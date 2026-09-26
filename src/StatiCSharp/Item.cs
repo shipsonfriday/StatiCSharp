@@ -1,4 +1,5 @@
 ﻿using StatiCSharp.Interfaces;
+using StatiCSharp.Tools;
 using System;
 using System.Collections.Generic;
 
@@ -18,20 +19,23 @@ internal class Item : IItem
 
     public string Path { get; set; } = string.Empty;
 
+    /// <summary>
+    /// The relative url of the item.
+    /// <para>
+    /// Derives the path segment through <see cref="FilenameToPath"/>, the same way
+    /// WebsiteManager.MakeItems derives the output directory. Both sides have to agree,
+    /// or every generated link points at a directory that is not there.
+    /// </para>
+    /// </summary>
     public string Url
     {
         get
         {
-            string x = string.Empty;
-            if (Path == string.Empty)
-            {
-                x = MarkdownFileName.Substring(0, MarkdownFileName.LastIndexOf(".md")).Replace(" ", "-").Trim();
-            }
-            else
-            {
-                x = Path;
-            }
-            return $"/{Section}/{x}";
+            string segment = string.IsNullOrEmpty(Path)
+                ? FilenameToPath.From(MarkdownFileName)
+                : Path;
+
+            return $"/{Section}/{segment}";
         }
     }
 
