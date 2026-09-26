@@ -6,6 +6,7 @@
     <LangVersion>14.0</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
     <!-- Opt in per project, so test and sample projects produce no package. -->
     <IsPackable>false</IsPackable>
   </PropertyGroup>
