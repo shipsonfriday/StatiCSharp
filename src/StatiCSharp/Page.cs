@@ -1,4 +1,5 @@
 ﻿using StatiCSharp.Interfaces;
+using StatiCSharp.Tools;
 using System;
 using System.Collections.Generic;
 
@@ -21,22 +22,45 @@ internal class Page : IPage
 
     public string Path { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Hierarchy of the page, as a relative file system path, e.g. "docs" or "docs/guide".
+    /// </summary>
     public string Hierarchy { get; set; } = string.Empty;
 
+    /// <summary>
+    /// The relative url of the page.
+    /// <para>
+    /// Mirrors what WebsiteManager.MakePages writes: the segment comes from
+    /// <see cref="FilenameToPath"/>, and an "index" segment is dropped, because
+    /// "about/index.md" is written to "/about" and not to "/about/index".
+    /// </para>
+    /// <para>
+    /// <see cref="Hierarchy"/> is a file system path, so its separators are translated
+    /// to forward slashes. Without that, a page generated on Windows carries a backslash
+    /// into the url.
+    /// </para>
+    /// </summary>
     public string Url
     {
         get
         {
-            string x = string.Empty;
-            if (Path == string.Empty)
+            string segment = string.IsNullOrEmpty(Path)
+                ? FilenameToPath.From(MarkdownFileName)
+                : Path;
+
+            if (segment == "index")
             {
-                x = MarkdownFileName.Substring(0, MarkdownFileName.LastIndexOf(".md")).Replace(" ", "-").Trim();
+                segment = string.Empty;
             }
-            else
+
+            string hierarchy = Hierarchy.Replace('\\', '/').Trim('/');
+
+            if (hierarchy.Length == 0)
             {
-                x = Path;
+                return $"/{segment}";
             }
-            return $"/{Hierarchy}/{x}";
+
+            return segment.Length == 0 ? $"/{hierarchy}" : $"/{hierarchy}/{segment}";
         }
     }
 
