@@ -1,4 +1,5 @@
 ﻿using StatiCSharp.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -8,33 +9,37 @@ namespace StatiCSharp;
 
 /// <summary>
 /// Manager that handles the website generating process with the given website and theme.
+/// <para>
+/// Start with <see cref="For(IWebsite, string)"/> and add the optional parts fluently:
+/// <code>
+/// await WebsiteManager.For(website, source: "/path/to/your/project")
+///     .WithTheme(myTheme)
+///     .WithGitMode()
+///     .MakeAsync();
+/// </code>
+/// </para>
 /// </summary>
 public partial class WebsiteManager : IWebsiteManager
 {
-    private HtmlBuilder _htmlBuilder = new HtmlBuilder(useDefaultMarkdownParser: true);
-    /// <inheritdoc/>
-    public bool UseDefaultMarkdownParser
-    {
-        get => _htmlBuilder.UseDefaultMarkdownParser;
-        set
-        {
-            _htmlBuilder.UseDefaultMarkdownParser = value;
-        }
-    }
-    /// <inheritdoc/>
-    public string SourceDir { get; set; }
+    private readonly HtmlBuilder _htmlBuilder = new(useDefaultMarkdownParser: true);
 
     /// <inheritdoc/>
-    public string Content { get; set; }
+    public bool UseDefaultMarkdownParser => _htmlBuilder.UseDefaultMarkdownParser;
 
     /// <inheritdoc/>
-    public string Resources { get; set; }
+    public string SourceDir { get; }
 
     /// <inheritdoc/>
-    public string Output { get; set; }
+    public string Content { get; private set; }
 
     /// <inheritdoc/>
-    public bool GitMode { get; set; } = false;
+    public string Resources { get; private set; }
+
+    /// <inheritdoc/>
+    public string Output { get; private set; }
+
+    /// <inheritdoc/>
+    public bool GitMode { get; private set; }
 
     /// <summary>
     /// List of all used paths while creating the sites.<br/>
@@ -43,55 +48,147 @@ public partial class WebsiteManager : IWebsiteManager
     private List<string> PathDirectory { get; set; }
 
     /// <inheritdoc/>
-    public IWebsite Website { get; set; }
+    public IWebsite Website { get; }
 
     /// <inheritdoc/>
-    public IHtmlFactory HtmlFactory { get; set; }
+    public IHtmlFactory HtmlFactory { get; private set; }
 
-    /// <summary>
-    /// Initialize a new manager that generates the output from a given website and theme.
-    /// </summary>
-    /// <param name="website">The website that contains the content.</param>
-    /// <param name="htmlFactory">The theme for the website.</param>
-    /// <param name="source">The absolute path to the directory that contains the folders `Content`, `Output` and `Resources`.</param>
-    public WebsiteManager(IWebsite website, IHtmlFactory? htmlFactory, string source)
+    private WebsiteManager(IWebsite website, string source)
     {
         Website = website;
+        HtmlFactory = new DefaultHtmlFactory(website);
 
-        if (htmlFactory is null)
-        {
-            HtmlFactory = new DefaultHtmlFactory(Website);
-        }
-        else
-        {
-            HtmlFactory = htmlFactory;
-        }
+        SourceDir = source;
+        Content = Path.Combine(source, "Content");
+        Resources = Path.Combine(source, "Resources");
+        Output = Path.Combine(source, "Output");
 
-        SourceDir       = Path.Combine(source);
-        Content         = Path.Combine(source, "Content");
-        Resources       = Path.Combine(source, "Resources");
-        Output          = Path.Combine(source, "Output");
-        PathDirectory   = new List<string>();
+        PathDirectory = [];
     }
 
     /// <summary>
-    /// Initialize a new manager that generates the output from a given website and theme.
+    /// Starts a new manager for the given website. These two values are required,
+    /// everything else is optional and added with the <c>With…</c> methods.
+    /// <para>
+    /// Unless overridden, <c>Content</c>, <c>Resources</c> and <c>Output</c> are
+    /// subdirectories of <paramref name="source"/>, and the built-in default theme is used.
+    /// </para>
     /// </summary>
     /// <param name="website">The website that contains the content.</param>
     /// <param name="source">The absolute path to the directory that contains the folders `Content`, `Output` and `Resources`.</param>
-    public WebsiteManager(IWebsite website, string source) : this(website, null!, source)
+    /// <returns>The new manager, ready for further configuration.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="website"/> or <paramref name="source"/> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="source"/> is empty or only whitespace.</exception>
+    public static WebsiteManager For(IWebsite website, string source)
     {
+        ArgumentNullException.ThrowIfNull(website);
+        ArgumentException.ThrowIfNullOrWhiteSpace(source);
+
+        return new WebsiteManager(website, source.Trim());
     }
 
-    /// <inheritdoc/>
-    public IWebsiteManager AddParser(IPipelineParser parser)
+    /// <summary>
+    /// Sets the theme used to render the website. Without this, the built-in default theme is used.
+    /// </summary>
+    /// <param name="htmlFactory">The theme for the website.</param>
+    /// <returns>this - the manager itself.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="htmlFactory"/> is null.</exception>
+    public WebsiteManager WithTheme(IHtmlFactory htmlFactory)
     {
+        ArgumentNullException.ThrowIfNull(htmlFactory);
+
+        HtmlFactory = htmlFactory;
+        return this;
+    }
+
+    /// <summary>
+    /// Turns on GitMode: output files are only rewritten when their content changed, and
+    /// files without a corresponding markdown file are deleted. Off by default.
+    /// </summary>
+    /// <param name="enabled">Whether GitMode is on.</param>
+    /// <returns>this - the manager itself.</returns>
+    public WebsiteManager WithGitMode(bool enabled = true)
+    {
+        GitMode = enabled;
+        return this;
+    }
+
+    /// <summary>
+    /// Overrides where the markdown files are read from.
+    /// Defaults to the `Content` folder inside the source directory.
+    /// </summary>
+    /// <param name="path">The path to the content directory.</param>
+    /// <returns>this - the manager itself.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="path"/> is empty or only whitespace.</exception>
+    public WebsiteManager WithContentDirectory(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
+        Content = path.Trim();
+        return this;
+    }
+
+    /// <summary>
+    /// Overrides where the static files are read from.
+    /// Defaults to the `Resources` folder inside the source directory.
+    /// </summary>
+    /// <param name="path">The path to the resources directory.</param>
+    /// <returns>this - the manager itself.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="path"/> is empty or only whitespace.</exception>
+    public WebsiteManager WithResourcesDirectory(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
+        Resources = path.Trim();
+        return this;
+    }
+
+    /// <summary>
+    /// Overrides where the generated website is written to.
+    /// Defaults to the `Output` folder inside the source directory.
+    /// </summary>
+    /// <param name="path">The path to the output directory.</param>
+    /// <returns>this - the manager itself.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="path"/> is empty or only whitespace.</exception>
+    public WebsiteManager WithOutputDirectory(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
+        Output = path.Trim();
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a parser to the end of the HTML building pipeline.
+    /// Parsers run in the order they were added.
+    /// </summary>
+    /// <param name="parser">The parser to add.</param>
+    /// <returns>this - the manager itself.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="parser"/> is null.</exception>
+    public WebsiteManager AddParser(IPipelineParser parser)
+    {
+        ArgumentNullException.ThrowIfNull(parser);
+
         _htmlBuilder.AddToPipeline(parser);
         return this;
     }
 
+    /// <summary>
+    /// Stops the integrated Markdig parser from running at the end of the pipeline.
+    /// It is on by default.
+    /// </summary>
+    /// <returns>this - the manager itself.</returns>
+    public WebsiteManager WithoutDefaultMarkdownParser()
+    {
+        _htmlBuilder.UseDefaultMarkdownParser = false;
+        return this;
+    }
+
     /// <inheritdoc/>
-    public async Task Make()
+    public async Task MakeAsync()
     {
         WriteLine("Website generating process startet...");
 
