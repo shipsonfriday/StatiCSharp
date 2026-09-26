@@ -25,17 +25,17 @@
 
 	<!-- Default Resources-->
     <ItemGroup>
-        <None Remove="DefaultResources\styles.css" />
-	    <None Remove="DefaultResources\favicon.png" />
+        <None Remove="DefaultResources/styles.css" />
+	    <None Remove="DefaultResources/favicon.png" />
     </ItemGroup>
 
     <ItemGroup>
-		<Content Include="DefaultResources\default-theme\styles.css" pack="true">
+		<Content Include="DefaultResources/default-theme/styles.css" pack="true">
 			<PackageCopyToOutput>true</PackageCopyToOutput>
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		
-		<Content Include="DefaultResources\favicon.png" pack="true">
+		<Content Include="DefaultResources/favicon.png" pack="true">
 			<PackageCopyToOutput>true</PackageCopyToOutput>
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
@@ -48,21 +48,9 @@
 	
 	<!-- NuGet -->
     <ItemGroup>
-		<None Update="LICENSE">
-          <Pack>True</Pack>
-          <PackagePath>\</PackagePath>
-        </None>
-    </ItemGroup>
-	
-    <ItemGroup>
-      <None Include=".NuGet\Images\Icon.png">
-        <Pack>True</Pack>
-        <PackagePath>\</PackagePath>
-      </None>
-      <None Include=".NuGet\README.md">
-        <Pack>True</Pack>
-        <PackagePath>\</PackagePath>
-      </None>
+        <None Include="../../LICENSE" Pack="true" PackagePath="/" />
+        <None Include="../../.NuGet/Images/Icon.png" Pack="true" PackagePath="/" />
+        <None Include="../../.NuGet/README.md" Pack="true" PackagePath="/" />
     </ItemGroup>
 
 </Project>
