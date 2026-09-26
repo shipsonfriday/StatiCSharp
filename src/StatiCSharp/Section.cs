@@ -1,7 +1,6 @@
 ﻿using StatiCSharp.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace StatiCSharp;
 
@@ -9,7 +8,7 @@ internal class Section : ISection
 {
     public string SectionName { get; set; } = string.Empty;
 
-    public List<IItem> Items { get; set; } = new List<IItem>();
+    public List<IItem> Items { get; } = [];
 
     public string Title { get; set; } = string.Empty;
 
@@ -23,22 +22,11 @@ internal class Section : ISection
 
     public string Path { get; set; } = string.Empty;
 
-    public string Url
-    {
-        get
-        {
-            string x = string.Empty;
-            if (Path == string.Empty)
-            {
-                x = MarkdownFileName.Substring(0, MarkdownFileName.LastIndexOf(".md")).Replace(" ", "-").Trim();
-            }
-            else
-            {
-                x = Path;
-            }
-            return $"/{SectionName}";
-        }
-    }
+    /// <summary>
+    /// The relative url of the section, which is its name.
+    /// WebsiteManager.MakeSections writes it to the same place.
+    /// </summary>
+    public string Url => $"/{SectionName}";
 
     public string Hierarchy { get; set; } = string.Empty;
 
@@ -50,9 +38,27 @@ internal class Section : ISection
 
     public string Content { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Adds an item and keeps the collection ordered by date, newest first.
+    /// </summary>
+    /// <param name="item">The item to add.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="item"/> is null.</exception>
     public void AddItem(IItem item)
     {
-        Items.Add(item);
-        Items.OrderByDescending(x => x.Date);
+        ArgumentNullException.ThrowIfNull(item);
+
+        // Insert at the right position instead of re-sorting. List.Sort is unstable, so
+        // items sharing a date could swap places between runs, which would make GitMode
+        // rewrite unchanged files.
+        int successor = Items.FindIndex(existing => existing.Date < item.Date);
+
+        if (successor < 0)
+        {
+            Items.Add(item);
+        }
+        else
+        {
+            Items.Insert(successor, item);
+        }
     }
 }
