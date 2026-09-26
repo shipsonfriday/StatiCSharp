@@ -1,5 +1,6 @@
 ﻿using StatiCSharp.Interfaces;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 
 namespace StatiCSharp.HtmlComponents
@@ -157,7 +158,9 @@ namespace StatiCSharp.HtmlComponents
             {
                 if (!string.IsNullOrEmpty(attribute.Key) && (!string.IsNullOrEmpty(attribute.Value)))
                 {
-                    elementBuilder.Append($" {attribute.Key}=\"{attribute.Value!}\"");
+                    // Encoded, so a quote in the value cannot end the attribute early
+                    // and break the tag. Values are taken literally, not as markup.
+                    elementBuilder.Append($" {attribute.Key}=\"{WebUtility.HtmlEncode(attribute.Value)}\"");
                 }
             }
 
