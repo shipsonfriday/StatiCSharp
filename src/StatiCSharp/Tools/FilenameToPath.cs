@@ -1,4 +1,7 @@
-﻿namespace StatiCSharp.Tools
+﻿using System;
+using System.IO;
+
+namespace StatiCSharp.Tools
 {
     /// <summary>
     /// Provides methods to generate paths from filenames.
@@ -6,13 +9,25 @@
     internal static class FilenameToPath
     {
         /// <summary>
-        /// Generates a path from a given filename.
+        /// Generates a url path segment from a given filename: the extension is dropped,
+        /// spaces become hyphens and the result is lowercased.
+        /// <para>
+        /// The lowercasing is invariant on purpose. With the culture-sensitive variant, a
+        /// machine set to Turkish turns "I" into "ı" instead of "i", which would produce a
+        /// different url for the same file.
+        /// </para>
         /// </summary>
-        /// <param name="filename"></param>
-        /// <returns></returns>
-        static public string From(string filename)
+        /// <param name="filename">The filename, with or without an extension.</param>
+        /// <returns>The path segment, e.g. "my-post" for "My Post.md".</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="filename"/> is null.</exception>
+        public static string From(string filename)
         {
-            return filename.Substring(0, filename.LastIndexOf(".")).Replace(" ", "-").Trim().ToLower();
+            ArgumentNullException.ThrowIfNull(filename);
+
+            return Path.GetFileNameWithoutExtension(filename)
+                .Trim()
+                .Replace(' ', '-')
+                .ToLowerInvariant();
         }
     }
 }
