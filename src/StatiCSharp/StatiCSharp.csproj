@@ -32,6 +32,11 @@
 		</Content>
     </ItemGroup>
 
+	<!-- Most of the site model is internal, so the tests reach it through here. -->
+    <ItemGroup>
+        <InternalsVisibleTo Include="StatiCSharp.Tests" />
+    </ItemGroup>
+
 	<!-- Markdig Markdown Reader -->
     <ItemGroup>
         <PackageReference Include="Markdig" Version="1.4.0" />
