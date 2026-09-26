@@ -1,20 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+    <!-- Framework, language version and shared metadata come from Directory.Build.props. -->
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>disable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <AssemblyVersion>0.5.0</AssemblyVersion>
-        <Version>0.5.0</Version>
-        <Authors>Roland Braun</Authors>
+        <IsPackable>true</IsPackable>
         <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
         <Description>A static website generator for C# developers. It enables entire websites to be built using C#. Custom templates are supported. See the documentation to learn how to create them.</Description>
-        <Copyright>Roland Braun</Copyright>
-        <PackageProjectUrl>https://github.com/RolandBraunDev/StatiCSharp</PackageProjectUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <RepositoryUrl>https://github.com/RolandBraunDev/StatiCSharp</RepositoryUrl>
-        <RepositoryType>git</RepositoryType>
-        <NeutralLanguage>en-US</NeutralLanguage>
         <PackageTags>StatiC#; StatiCSharp; staticsharp; Staticsharp; StatiCsharp; static; website; generator;</PackageTags>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageIcon>Icon.png</PackageIcon>

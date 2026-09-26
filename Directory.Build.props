@@ -1,0 +1,24 @@
+<Project>
+
+  <!-- Applies to every project in this repository. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <!-- Opt in per project, so test and sample projects produce no package. -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- Repository wide metadata. Package specific fields stay in the project file. -->
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <Authors>Roland Braun</Authors>
+    <Copyright>Roland Braun</Copyright>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <PackageProjectUrl>https://github.com/RolandBraunDev/StatiCSharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/RolandBraunDev/StatiCSharp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+</Project>
