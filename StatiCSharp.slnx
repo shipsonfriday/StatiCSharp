@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="src/StatiCSharp/StatiCSharp.csproj" />
+  <Project Path="tests/StatiCSharp.Tests/StatiCSharp.Tests.csproj" />
 </Solution>
