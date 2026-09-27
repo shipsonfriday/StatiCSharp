@@ -1,5 +1,6 @@
 ﻿using StatiCSharp.HtmlComponents;
 using StatiCSharp.Interfaces;
+using StatiCSharp.Tools;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -233,7 +234,7 @@ public class DefaultHtmlFactory: IHtmlFactory
             var result = new Ul().Class("tags");
             tags.ForEach((tag) => result.Add(
                                             new Li().Class("variant-default")
-                                                    .Add(new A(Plain(tag)).Href($"/tag/{tag}")))
+                                                    .Add(new A(Plain(tag)).Href($"/tag/{UrlSlug.From(tag)}")))
                         );
             return result.Render();
         }

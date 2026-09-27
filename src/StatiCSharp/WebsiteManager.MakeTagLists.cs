@@ -1,8 +1,11 @@
 ﻿using StatiCSharp.Interfaces;
+using StatiCSharp.Tools;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.IO;
 using System;
+using System.Linq;
+using static StatiCSharp.StatiCSharpConsole;
 
 namespace StatiCSharp;
 
@@ -28,8 +31,15 @@ public partial class WebsiteManager : IWebsiteManager
             }
         }
 
+        // Two tags can share a slug, e.g. "Web Dev" and "web-dev". They would be written
+        // to the same directory, so say so rather than letting one overwrite the other.
+        foreach (var collision in tags.GroupBy(UrlSlug.From).Where(group => group.Count() > 1))
+        {
+            WriteLine($"WARNING: The tags {string.Join(", ", collision.Select(tag => $"\"{tag}\""))} all lead to /tag/{collision.Key}. Only one of them will be written.");
+        }
+
         List<Task> tasks = new List<Task>();
-        
+
         foreach (string tag in tags)
         {
             tasks.Add(WriteTagList(tag));
@@ -39,6 +49,16 @@ public partial class WebsiteManager : IWebsiteManager
 
         async Task WriteTagList(string tag)
         {
+            string slug = UrlSlug.From(tag);
+
+            if (slug.Length == 0)
+            {
+                // Nothing usable is left, e.g. for a tag written as "+++". An empty segment
+                // would put the tag page into the /tag directory itself.
+                WriteLine($"WARNING: The tag \"{tag}\" has no characters that can be used in a url. Skipping it.");
+                return;
+            }
+
             List<IItem> itemsWithCurrentTag = new();
             // Collect all items with the current tag
             foreach (ISection currentSection in Website.Sections)
@@ -60,7 +80,7 @@ public partial class WebsiteManager : IWebsiteManager
             string page = AddLeadingHtmlCode(Website, tagPage, head, body);
 
             // Create directory, if it does not excist
-            string path = Directory.CreateDirectory(Path.Combine(Output, "tag", tag)).ToString();
+            string path = Directory.CreateDirectory(Path.Combine(Output, "tag", slug)).ToString();
 
             if (PathDirectory.Contains(path))
             {

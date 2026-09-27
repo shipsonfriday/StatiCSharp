@@ -63,6 +63,29 @@ public class DefaultHtmlFactoryEscapingTests
     }
 
     [Fact]
+    public void ATagLinkPointsAtTheSlugTheGeneratorWrites()
+    {
+        // The link used to interpolate the tag name straight into the path, so a tag with
+        // a space produced /tag/web dev and a tag with a slash nested the directory.
+        List<IItem> items = [new Item { Section = "posts", Tags = ["Web Dev"] }];
+
+        string html = new DefaultHtmlFactory(AWebsite()).MakeTagListHtml(items, "Web Dev");
+
+        Assert.Contains("href=\"/tag/web-dev\"", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("/tag/Web Dev", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ATagLinkShowsTheOriginalNameButLinksTheSlug()
+    {
+        List<IItem> items = [new Item { Section = "posts", Tags = ["Web Dev"] }];
+
+        string html = new DefaultHtmlFactory(AWebsite()).MakeTagListHtml(items, "a-tag");
+
+        Assert.Contains("href=\"/tag/web-dev\">Web Dev</a>", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TheSitesContentIsStillWrittenThroughAsHtml()
     {
         // Content is markdown rendered to html by the time it gets here. Encoding it
