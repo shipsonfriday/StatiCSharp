@@ -3,6 +3,7 @@ using StatiCSharp.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace StatiCSharp;
 
@@ -45,16 +46,10 @@ public class DefaultHtmlFactory: IHtmlFactory
     /// <inheritdoc/>
     public string MakeIndexHtml(IIndex index)
     {
-        // Collect all items to show. 10 items max.
-        List<IItem> items = new List<IItem>();
-        foreach (ISection section in Website.Sections)
-            {
-                section.Items.ForEach((item) => items.Add(item));
-            }
-        int showArticles = (items.Count > _numberOfArticlesOnHomepage) ? _numberOfArticlesOnHomepage : items.Count;
-        items.Sort((i1, i2) => DateTime.Compare(i1.Date.ToDateTime(TimeOnly.Parse("6pm")), i2.Date.ToDateTime(TimeOnly.Parse("6pm"))));
-        items.Reverse();
-        items = items.GetRange(0, showArticles);
+        // Collect all items to show, newest first, 10 items max.
+        List<IItem> items = NewestFirst(Website.Sections.SelectMany(section => section.Items))
+            .Take(_numberOfArticlesOnHomepage)
+            .ToList();
 
         return  new Body()  .Add(new SiteHeader(Website))
                             .Add(new Div()
@@ -83,9 +78,7 @@ public class DefaultHtmlFactory: IHtmlFactory
     /// <inheritdoc/>
     public string MakeSectionHtml(ISection section)
     {
-        List<IItem> items = section.Items;
-        items.Sort( (i1, i2) => DateTime.Compare(i1.Date.ToDateTime(TimeOnly.Parse("6pm")), i2.Date.ToDateTime(TimeOnly.Parse("6pm"))));
-        items.Reverse();
+        List<IItem> items = NewestFirst(section.Items).ToList();
         return new Body()   .Add(new SiteHeader(Website))
                             .Add(new Div(section.Content)
                                 .Class("wrapper"))
@@ -116,19 +109,31 @@ public class DefaultHtmlFactory: IHtmlFactory
     /// <inheritdoc/>
     public string MakeTagListHtml(List<IItem> items, string tag)
     {
-        items.Sort( (i1, i2) => DateTime.Compare(i1.Date.ToDateTime(TimeOnly.Parse("6pm")), i2.Date.ToDateTime(TimeOnly.Parse("6pm"))));
-        items.Reverse();
         return new Body()   .Add(new SiteHeader(Website))
                             .Add(new Div()
                                 .Add(new H1()
                                     .Add(new Text("Tagged with "))
                                     .Add(new bigTag(tag)))
-                                .Add(new ItemList(items))
+                                .Add(new ItemList(NewestFirst(items).ToList()))
                                 .Class("wrapper"))
                             .Add(new Footer())
                 .Render();
     }
 
+
+
+    /// <summary>
+    /// Orders items by date, newest first, without touching the given collection.
+    /// <para>
+    /// The previous version compared DateOnly values by converting both to a DateTime at
+    /// a time parsed from the string "6pm" - a culture-dependent detour around a type
+    /// that is directly comparable. It also used List.Sort, which is unstable, followed
+    /// by Reverse, and it did so on the caller's own list: rendering a section reordered
+    /// section.Items as a side effect.
+    /// </para>
+    /// </summary>
+    private static IEnumerable<IItem> NewestFirst(IEnumerable<IItem> items)
+        => items.OrderByDescending(item => item.Date);
 
 
     ////////////
