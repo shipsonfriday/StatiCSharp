@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build, e.g. v1.0.0'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish the package
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      # Tagging v1.0.1 while Directory.Build.props still says 1.0.0 would produce a
+      # package whose version does not match the tag. Catch that before building.
+      - name: Check that the tag matches the project version
+        run: |
+          tag="${{ inputs.tag || github.ref_name }}"
+          expected="${tag#v}"
+          actual=$(dotnet msbuild src/StatiCSharp/StatiCSharp.csproj -getProperty:Version)
+          echo "tag: $tag -> $expected"
+          echo "project version: $actual"
+          if [ "$expected" != "$actual" ]; then
+            echo "::error::Tag $tag expects version $expected, but the project says $actual. Update Directory.Build.props or retag."
+            exit 1
+          fi
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --configuration Release --no-build
+
+      - name: Pack
+        run: dotnet pack src/StatiCSharp/StatiCSharp.csproj --configuration Release --no-build --output artifacts
+
+      - name: Attach the package to a GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ inputs.tag || github.ref_name }}"
+          gh release create "$tag" artifacts/*.nupkg \
+            --title "$tag" \
+            --generate-notes \
+            --verify-tag
+
+      # Publishing to nuget.org is done by hand for now: download the .nupkg from the
+      # release above and upload it, or run
+      #   dotnet nuget push <file>.nupkg --source https://api.nuget.org/v3/index.json --api-key <key>
+      - name: Where to go from here
+        run: echo "Package attached to release. Upload it to nuget.org by hand."
