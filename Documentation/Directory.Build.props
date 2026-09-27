@@ -1,0 +1,11 @@
+<!--
+  Deliberately empty. MSBuild walks up from a project until it finds the first
+  Directory.Build.props, so this one stops the repository-wide props at the root from
+  reaching the project template below. Without it the template would inherit this
+  repository's version number, analyzer level and packaging settings, and would behave
+  differently here than it does once someone copies it out.
+
+  It lives here rather than inside the template folder so that the template stays clean
+  for copying.
+-->
+<Project />
