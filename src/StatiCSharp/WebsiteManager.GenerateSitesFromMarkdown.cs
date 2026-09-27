@@ -81,7 +81,7 @@ public partial class WebsiteManager : IWebsiteManager
 
         if (typeof(T) == typeof(IPage))
         {
-            IPage currentPage = new Page();
+            Page currentPage = new();
             currentPage.Content = contentAsHtml;
             currentPage.MarkdownFileName = filename;
             currentPage.MarkdownFilePath = path;
@@ -103,7 +103,7 @@ public partial class WebsiteManager : IWebsiteManager
 
         if (typeof(T) == typeof(ISection))
         {
-            ISection currentSection = new Section();
+            Section currentSection = new();
             string currentSectionName = Path.GetDirectoryName(path)!;
             currentSectionName = Path.GetFileName(currentSectionName);
             currentSection.SectionName = currentSectionName;

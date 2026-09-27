@@ -10,7 +10,7 @@ public partial class WebsiteManager : IWebsiteManager
     /// </summary>
     /// <param name="path"></param>
     /// <returns>void</returns>
-    private void DeleteAll(string path)
+    private static void DeleteAll(string path)
     {
         DirectoryInfo directory = new DirectoryInfo(path);
 

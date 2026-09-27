@@ -8,7 +8,7 @@ namespace StatiCSharp;
 internal class HtmlBuilder : IHtmlBuilder
 {
     private List<IPipelineParser> _parsers = new();
-    public bool UseDefaultMarkdownParser { get; set; } = false;
+    public bool UseDefaultMarkdownParser { get; set; }
 
     public string AdditionalHeaderContent
     {

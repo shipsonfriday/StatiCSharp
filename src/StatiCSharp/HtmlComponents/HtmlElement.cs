@@ -22,7 +22,7 @@ namespace StatiCSharp.HtmlComponents
         /// Void elements can have attributes.<br/>
         /// Void elements only have a start tag. Closing tags must not be specified for void elements.
         /// </summary>
-        private protected virtual bool VoidElement { get; set; } = false;
+        private protected virtual bool VoidElement { get; set; }
 
         /// <summary>
         /// Contains the components inside the element.
@@ -175,7 +175,7 @@ namespace StatiCSharp.HtmlComponents
             }
 
             // Close leading tag
-            elementBuilder.Append(">");
+            elementBuilder.Append('>');
 
             // Build content of the element
             if (!VoidElement)

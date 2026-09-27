@@ -53,8 +53,14 @@ public class CheckEnvironmentTests
     [Fact]
     public void AnUnwritableDirectoryRaisesDirectoryNotWriteable()
     {
-        // Permissions are set with chmod, which Windows does not honour this way.
-        Assert.SkipWhen(OperatingSystem.IsWindows(), "Needs POSIX permissions.");
+        // Permissions are set through the unix file mode, which Windows does not honour.
+        // Written as a guarded early return rather than Assert.SkipWhen, because that is
+        // the shape the platform-compatibility analyzer recognises.
+        if (OperatingSystem.IsWindows())
+        {
+            Assert.Skip("Needs POSIX permissions.");
+            return;
+        }
 
         using var directory = new TempDirectory();
         string output = Path.Combine(directory.Path, "Output");

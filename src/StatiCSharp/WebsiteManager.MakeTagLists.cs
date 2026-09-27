@@ -73,7 +73,7 @@ public partial class WebsiteManager : IWebsiteManager
             }
 
             // Write tags sites to files
-            IItem tagPage = new Item();
+            Item tagPage = new();
             tagPage.Title = $"{tag} | {Website.Name}";
             string body = HtmlFactory.MakeTagListHtml(itemsWithCurrentTag, tag);
             string head = HtmlFactory.MakeHeadHtml();

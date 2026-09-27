@@ -13,7 +13,7 @@ public partial class WebsiteManager : IWebsiteManager
     /// <param name="destinationDir">Source directory</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous copying operation.</returns>
     /// <exception cref="DirectoryNotFoundException"></exception>
-    private async Task CopyAllAsync(string sourceDir, string destinationDir)
+    private static async Task CopyAllAsync(string sourceDir, string destinationDir)
     {
         // https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-copy-directories
 

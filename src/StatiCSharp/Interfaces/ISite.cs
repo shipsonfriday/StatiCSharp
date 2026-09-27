@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace StatiCSharp.Interfaces
 {
@@ -27,6 +28,10 @@ namespace StatiCSharp.Interfaces
         /// <summary>
         /// The date when this site is published or should be.
         /// </summary>
+        [SuppressMessage(
+            "Naming",
+            "CA1716:Identifiers should not match keywords",
+            Justification = "Date is the documented name of this field in the front matter and throughout the public API. Renaming it for the benefit of a hypothetical Visual Basic caller is not worth breaking every existing site.")]
         DateOnly Date { get; set; }
 
         /// <summary>
