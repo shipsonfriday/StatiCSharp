@@ -11,15 +11,15 @@ public partial class WebsiteManager : IWebsiteManager
     /// Checks if all nessessary directories exist and if it can read and write in this folders.<br/>
     /// If a directory does not exist, it tries to create it.
     /// </summary>
-    /// <param name="templateResources"></param>
-    /// <returns></returns>
-    /// <exception cref="DirectoryNotFoundException"></exception>
-    /// <exception cref="CannotCreateDirectoryException"></exception>
-    private void CheckEnvironment(string? templateResources = null)
+    /// <param name="templateResources">The theme's resources directory, or null to skip that check.</param>
+    /// <exception cref="DirectoryNotFoundException">The theme's resources directory does not exist.</exception>
+    /// <exception cref="CannotCreateDirectoryException">A needed directory is missing and cannot be created.</exception>
+    /// <exception cref="DirectoryNotWriteableException">A needed directory exists but cannot be written to.</exception>
+    internal void CheckEnvironment(string? templateResources = null)
     {
-        string[] assumedDirectories = new string[] { Output, Content, Resources };
+        string[] assumedDirectories = [Output, Content, Resources];
 
-        foreach(string assumedDirectory in assumedDirectories)
+        foreach (string assumedDirectory in assumedDirectories)
         {
             CheckIfDirectoryExists(assumedDirectory);
             CheckIfDirectoryIsWritable(assumedDirectory);
@@ -27,14 +27,14 @@ public partial class WebsiteManager : IWebsiteManager
 
         if (templateResources is not null)
         {
-            if (!Directory.Exists(templateResources!))
+            if (!Directory.Exists(templateResources))
             {
                 throw new DirectoryNotFoundException($"Your template resources directory does not exist. Do you have read and write access to {templateResources} ?");
             }
         }
 
 
-        void CheckIfDirectoryExists(string assumedDirectory)
+        static void CheckIfDirectoryExists(string assumedDirectory)
         {
             if (!Directory.Exists(assumedDirectory))
             {
@@ -44,16 +44,23 @@ public partial class WebsiteManager : IWebsiteManager
                 }
                 catch (Exception ex)
                 {
-                    throw new CannotCreateDirectoryException(message: $"Your {nameof(assumedDirectory).ToLower()} directory does not exist. Trying to create it failed. Do you have read and write access to {assumedDirectory} ?", ex);
+                    throw new CannotCreateDirectoryException($"The directory {assumedDirectory} does not exist and StatiC# could not create it. Do you have read and write access to it?", ex);
                 }
             }
         }
 
 
-        void CheckIfDirectoryIsWritable(string path)
+        static void CheckIfDirectoryIsWritable(string path)
         {
-            using (FileStream fs = File.Create(Path.Combine(path, Path.GetRandomFileName()), 1, FileOptions.DeleteOnClose))
+            try
             {
+                // Writing a file that deletes itself on close is the only reliable check:
+                // permissions alone do not tell whether the volume is read-only or full.
+                using FileStream probe = File.Create(Path.Combine(path, Path.GetRandomFileName()), 1, FileOptions.DeleteOnClose);
+            }
+            catch (Exception ex)
+            {
+                throw new DirectoryNotWriteableException($"StatiC# cannot write to the directory {path}. Do you have write access to it?", ex);
             }
         }
     }
