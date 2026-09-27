@@ -10,20 +10,16 @@ Here is an example:
 ```C#
 using StatiCSharp;
 
-var myAwesomeWebsite = new Website(
-    url: "https://yourdomain.com",
-    name: "My Awesome Website",
-    description: @"Description of your website",
-    language: "en-US",
-    sections: "posts, about"            // Select which folders should be treated as sections
-);
+var myAwesomeWebsite = Website.Create(
+        url: "https://yourdomain.com",
+        name: "My Awesome Website")
+    .WithDescription("Description of your website")
+    .WithLanguage("en-US")
+    .WithSections("posts", "about");     // Folders that should be treated as sections.
 
-var manager = new WebsiteManager(
-    website: myAwesomeWebsite,
-    source: @"C:\path\to\your\project"  // Absolute path to your Content, Resources and Output directories.
-);
-
-await manager.Make();
+await WebsiteManager
+    .For(myAwesomeWebsite, source: @"C:\path\to\your\project")   // Holds Content, Resources and Output.
+    .MakeAsync();
 ```
 
 
@@ -41,13 +37,13 @@ After .NET has created the project files open `myWebsite.csproj` and add StatiC#
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="StatiCSharp" Version="0.5.0" />
+    <PackageReference Include="StatiCSharp" Version="1.0.0" />
   </ItemGroup>
 
 </Project>
@@ -75,7 +71,7 @@ I recomment to put those folders within your project folder of *myWebsite*. Your
 ```
 ├── myWebsite
 │   ├── Content
-│   ├── Outout
+│   ├── Output
 │   ├── Resources
 │   ├── myWebsite.csproj
 │   ├── Program.cs
@@ -101,7 +97,7 @@ Add some content to your website by adding your markdown files to the `Content` 
 │   │   ├── about                       // Contains a page.
 │   │   │   ├── index.md                // Content of the about page.
 │   │   │   ├── another-page.md         // Content of another page.
-│   ├── Outout
+│   ├── Output
 │   ├── Resources
 │   ├── myWebsite.csproj
 │   ├── Program.cs
@@ -114,20 +110,16 @@ Finally set up the parameters in `Program.cs` in your *myWebsite* project:
 ```C#
 using StatiCSharp;
 
-var myAwesomeWebsite = new Website(
-    url: "https://yourdomain.com",
-    name: "My Awesome Website",
-    description: @"Description of your website",
-    language: "en-US",
-    sections: "posts, about"            // Select which folders should be treated as sections.
-);
+var myAwesomeWebsite = Website.Create(
+        url: "https://yourdomain.com",
+        name: "My Awesome Website")
+    .WithDescription("Description of your website")
+    .WithLanguage("en-US")
+    .WithSections("posts", "about");     // Folders that should be treated as sections.
 
-var manager = new WebsiteManager(
-    website: myAwesomeWebsite,
-    source: @"C:\path\to\your\project"  // Absolute path to your Content, Resources and Output directories.
-);
-
-await manager.Make();
+await WebsiteManager
+    .For(myAwesomeWebsite, source: @"C:\path\to\your\project")   // Holds Content, Resources and Output.
+    .MakeAsync();
 ```
 
 Run the project and your new awesome website will be generated in the `Output` directory:
@@ -136,6 +128,29 @@ $ dotnet run
 ```
 
 Check out the [documentation](https://github.com/RolandBraunDev/StatiCSharp/tree/master/Documentation) for further information.
+
+## Upgrading from 0.5
+
+Version 1.0 changes the public API: the old constructors and settable properties are gone,
+required values go into the entry point and everything optional follows fluently.
+
+```C#
+// 0.5
+var manager = new WebsiteManager(website: site, source: path);
+manager.GitMode = true;
+await manager.Make();
+
+// 1.0
+await WebsiteManager.For(site, source: path)
+    .WithGitMode()
+    .MakeAsync();
+```
+
+Tag urls are now normalized (`/tag/CSharp` becomes `/tag/csharp`), `Title` and
+`Description` are treated as plain text rather than markdown, and dates in the front matter
+must be ISO 8601. Requires .NET 10. See the
+[upgrade notes](https://github.com/RolandBraunDev/StatiCSharp#upgrading-from-05) for the
+full list.
 
 ## Dependencies
 

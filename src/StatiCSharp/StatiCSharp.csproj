@@ -10,7 +10,16 @@
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageIcon>Icon.png</PackageIcon>
 		<Title>StatiC#</Title>
-		<PackageReleaseNotes>This release brings the upgrade to .NET 8.</PackageReleaseNotes>
+		<PackageReleaseNotes>Version 1.0.0 rewrites the public API and fixes a number of long-standing defects.
+
+- Requires .NET 10.
+- Fluent configuration: Website.Create(...).With... and WebsiteManager.For(...).With...MakeAsync(). The old constructors and settable properties are gone.
+- Generated urls now match the directories that are written, for index pages, nested page hierarchies and tags alike. Tag urls are normalized, so uppercase tags move to lowercase paths.
+- Meta data is treated as plain text and encoded on output, so a quote in a title or author name no longer breaks the page head.
+- Dates are read as ISO 8601 and rendered in the website's language, independent of the machine running the generator.
+- Markdig raised to 1.4.0.
+
+See the readme for the full upgrade notes.</PackageReleaseNotes>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
     </PropertyGroup>
 

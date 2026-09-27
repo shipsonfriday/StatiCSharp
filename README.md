@@ -4,13 +4,13 @@
 
 <p align="center">
     <a href="https://docs.microsoft.com/en-us/dotnet/csharp/">
-        <img src="https://img.shields.io/badge/C%23-12.0-blue?style=flat" alt="C# 12.0" />
+        <img src="https://img.shields.io/badge/C%23-14.0-blue?style=flat" alt="C# 14.0" />
     </a>
     <a href="https://dotnet.microsoft.com">
-        <img src="https://img.shields.io/badge/.NET-8.0-blueviolet?style=flat" />
+        <img src="https://img.shields.io/badge/.NET-10.0-blueviolet?style=flat" />
     </a>
     <img src="https://img.shields.io/badge/Platforms-Win+Mac+Linux-green?style=flat" />
-    <img src="https://img.shields.io/badge/Version-0.5.0-green?style=flat" />
+    <img src="https://img.shields.io/badge/Version-1.0.0-green?style=flat" />
     <a href="https://www.nuget.org/packages/StatiCSharp">
         <img src="https://img.shields.io/nuget/v/StatiCSharp?color=orange" />
     </a>
@@ -27,20 +27,16 @@ If you want to quickstart with your new website, you can start with the [default
 ```C#
 using StatiCSharp;
 
-var myAwesomeWebsite = new Website(
-    url: "https://yourdomain.com",
-    name: "My Awesome Website",
-    description: @"Description of your website",
-    language: "en-US",
-    sections: "posts, about"            // Select which folders should be treated as sections.
-);
+var myAwesomeWebsite = Website.Create(
+        url: "https://yourdomain.com",
+        name: "My Awesome Website")
+    .WithDescription("Description of your website")
+    .WithLanguage("en-US")
+    .WithSections("posts", "about");     // Folders that should be treated as sections.
 
-var manager = new WebsiteManager(
-    website: myAwesomeWebsite,
-    source: @"C:\path\to\your\project"  // Absolute path to your Content, Resources and Output directories.
-);
-
-await manager.Make();
+await WebsiteManager
+    .For(myAwesomeWebsite, source: @"C:\path\to\your\project")   // Holds Content, Resources and Output.
+    .MakeAsync();
 ```
 
 
@@ -58,13 +54,13 @@ After .NET has created the project files open `myWebsite.csproj` and add StatiC#
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="StatiCSharp" Version="0.5.0" />
+    <PackageReference Include="StatiCSharp" Version="1.0.0" />
   </ItemGroup>
 
 </Project>
@@ -92,7 +88,7 @@ It's recommented to put those folders within your project folder of *myWebsite*.
 ```
 ├── myWebsite
 │   ├── Content
-│   ├── Outout
+│   ├── Output
 │   ├── Resources
 │   ├── myWebsite.csproj
 │   ├── Program.cs
@@ -117,7 +113,7 @@ Add some content to your website by adding your markdown files to the `Content` 
 │   │   ├── about                       // Contains a page.
 │   │   │   ├── index.md                // Content of the about page.
 │   │   │   ├── another-page.md         // Content of another page.
-│   ├── Outout
+│   ├── Output
 │   ├── Resources
 │   ├── myWebsite.csproj
 │   ├── Program.cs
@@ -130,20 +126,16 @@ Finally set up the parameters in `Program.cs` in your *myWebsite* project:
 ```C#
 using StatiCSharp;
 
-var myAwesomeWebsite = new Website(
-    url: "https://yourdomain.com",
-    name: "My Awesome Website",
-    description: @"Description of your website",
-    language: "en-US",
-    sections: "posts, about"            // Select which folders should be treated as sections.
-);
+var myAwesomeWebsite = Website.Create(
+        url: "https://yourdomain.com",
+        name: "My Awesome Website")
+    .WithDescription("Description of your website")
+    .WithLanguage("en-US")
+    .WithSections("posts", "about");     // Folders that should be treated as sections.
 
-var manager = new WebsiteManager(
-    website: myAwesomeWebsite,
-    source: @"C:\path\to\your\project"  // Absolute path to your Content, Resources and Output directories.
-);
-
-await manager.Make();
+await WebsiteManager
+    .For(myAwesomeWebsite, source: @"C:\path\to\your\project")   // Holds Content, Resources and Output.
+    .MakeAsync();
 ```
 
 Run the project and your new awesome website will be generated in the `Output` directory:
@@ -152,6 +144,39 @@ $ dotnet run
 ```
 
 Check out the [documentation](Documentation/) for further information.
+
+## Upgrading from 0.5
+
+Version 1.0 changes the public API. The old constructors and settable properties are gone;
+required values go into the entry point and everything optional follows fluently.
+
+| 0.5 | 1.0 |
+| --- | --- |
+| `new Website(url, name, description, language, sections)` | `Website.Create(url, name).WithDescription(…).WithLanguage(…).WithSections(…)` |
+| `new WebsiteManager(website, source)` | `WebsiteManager.For(website, source)` |
+| `new WebsiteManager(website, theme, source)` | `WebsiteManager.For(website, source).WithTheme(theme)` |
+| `manager.Make()` | `manager.MakeAsync()` |
+| `manager.GitMode = true` | `manager.WithGitMode()` |
+| `manager.Content = path` | `manager.WithContentDirectory(path)` |
+| `manager.Output = path` | `manager.WithOutputDirectory(path)` |
+| `manager.Resources = path` | `manager.WithResourcesDirectory(path)` |
+| `manager.UseDefaultMarkdownParser = false` | `manager.WithoutDefaultMarkdownParser()` |
+| `manager.AddParser(parser)` | unchanged, still chainable |
+
+Three changes affect content rather than code:
+
+- **Tag urls are normalized.** A tag is lowercased and spaces become hyphens, so `CSharp`
+  is served from `/tag/csharp` and `Web Dev` from `/tag/web-dev`. External links to the old
+  spelling break. Themes should build tag links with `StatiCSharp.Tools.UrlSlug.From(tag)`
+  instead of interpolating the tag name.
+- **Meta data is plain text.** `Title` and `Description` are no longer run through the
+  markdown parser, so `title: My *great* post` now shows the asterisks. In exchange, a
+  quote or an ampersand in any meta data field no longer breaks the page.
+- **Dates must be ISO 8601**, e.g. `2026-09-27`. That was always what the documentation
+  said, but the parser used to accept whatever the build machine's locale happened to
+  allow, which meant the same file could yield different dates on different machines.
+
+Requires .NET 10.
 
 ## Dependencies
 
