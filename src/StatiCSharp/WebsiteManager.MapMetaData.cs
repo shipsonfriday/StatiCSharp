@@ -15,24 +15,29 @@ public partial class WebsiteManager : IWebsiteManager
     /// A key that is absent, or present without a value, leaves the site's default in
     /// place. A value that is there but unusable is reported instead of being dropped.
     /// </para>
+    /// <para>
+    /// Every value is taken as plain text. Only the content below the front matter is
+    /// markdown; title and description are encoded where they are rendered.
+    /// </para>
     /// </summary>
     /// <param name="metaData">The meta data.</param>
     /// <param name="site">The site where to add the meta data.</param>
     /// <exception cref="ArgumentNullException"><paramref name="metaData"/> or <paramref name="site"/> is null.</exception>
-    internal void MapMetaData(Dictionary<string, string> metaData, ISite site)
+    internal static void MapMetaData(Dictionary<string, string> metaData, ISite site)
     {
         ArgumentNullException.ThrowIfNull(metaData);
         ArgumentNullException.ThrowIfNull(site);
 
-        // HtmlBuilder uses Markdown.ToHtml as the default parser, which adds <p>-marks at the beginning and end of each value. This is sliced manually every time for now. Trim() removes \n at the end of the string.
+        // Plain text, not markup. These end up in <title> and in meta content
+        // attributes, where markup does not belong, and the render sites encode them.
         if (TryRead("title", out string title))
         {
-            site.Title = _htmlBuilder.ToHtml(title).Replace("<p>", "").Replace("</p>", "").Trim();
+            site.Title = title;
         }
 
         if (TryRead("description", out string description))
         {
-            site.Description = _htmlBuilder.ToHtml(description).Replace("<p>", "").Replace("</p>", "").Trim();
+            site.Description = description;
         }
 
         if (TryRead("author", out string author))

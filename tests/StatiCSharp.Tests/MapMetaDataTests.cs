@@ -7,9 +7,6 @@ namespace StatiCSharp.Tests;
 
 public class MapMetaDataTests
 {
-    private static WebsiteManager AManager() =>
-        WebsiteManager.For(Website.Create(url: "https://example.com", name: "My Website"), "source");
-
     private static Item AnItem() => new() { MarkdownFilePath = "/content/posts/a-post.md" };
 
     [Fact]
@@ -26,7 +23,7 @@ public class MapMetaDataTests
             ["tags"] = "one, two",
         };
 
-        AManager().MapMetaData(metaData, site);
+        WebsiteManager.MapMetaData(metaData, site);
 
         Assert.Equal("My Post", site.Title);
         Assert.Equal("A short description", site.Description);
@@ -42,7 +39,7 @@ public class MapMetaDataTests
         Item site = AnItem();
         DateOnly defaultDate = site.Date;
 
-        AManager().MapMetaData([], site);
+        WebsiteManager.MapMetaData([], site);
 
         Assert.Equal(string.Empty, site.Title);
         Assert.Equal(string.Empty, site.Author);
@@ -56,7 +53,7 @@ public class MapMetaDataTests
         Item site = AnItem();
         DateOnly defaultDate = site.Date;
 
-        AManager().MapMetaData(new Dictionary<string, string>
+        WebsiteManager.MapMetaData(new Dictionary<string, string>
         {
             ["author"] = string.Empty,
             ["date"] = "   ",
@@ -75,7 +72,7 @@ public class MapMetaDataTests
         // and a /tag/ directory in the output.
         Item site = AnItem();
 
-        AManager().MapMetaData(new Dictionary<string, string> { ["tags"] = string.Empty }, site);
+        WebsiteManager.MapMetaData(new Dictionary<string, string> { ["tags"] = string.Empty }, site);
 
         Assert.Empty(site.Tags);
     }
@@ -85,7 +82,7 @@ public class MapMetaDataTests
     {
         Item site = AnItem();
 
-        AManager().MapMetaData(new Dictionary<string, string> { ["tags"] = "one, , two," }, site);
+        WebsiteManager.MapMetaData(new Dictionary<string, string> { ["tags"] = "one, , two," }, site);
 
         Assert.Equal(["one", "two"], site.Tags);
     }
@@ -96,7 +93,7 @@ public class MapMetaDataTests
         // The old code removed every space, turning "web dev" into "webdev".
         Item site = AnItem();
 
-        AManager().MapMetaData(new Dictionary<string, string> { ["tags"] = "web dev, c#" }, site);
+        WebsiteManager.MapMetaData(new Dictionary<string, string> { ["tags"] = "web dev, c#" }, site);
 
         Assert.Equal(["web dev", "c#"], site.Tags);
     }
@@ -109,7 +106,7 @@ public class MapMetaDataTests
         Item site = AnItem();
         DateOnly defaultDate = site.Date;
 
-        AManager().MapMetaData(new Dictionary<string, string> { ["date"] = "not a date" }, site);
+        WebsiteManager.MapMetaData(new Dictionary<string, string> { ["date"] = "not a date" }, site);
 
         Assert.Equal(defaultDate, site.Date);
     }
@@ -128,7 +125,7 @@ public class MapMetaDataTests
             CultureInfo.CurrentCulture = new CultureInfo(culture);
             Item site = AnItem();
 
-            AManager().MapMetaData(new Dictionary<string, string> { ["date"] = "2026-09-27" }, site);
+            WebsiteManager.MapMetaData(new Dictionary<string, string> { ["date"] = "2026-09-27" }, site);
 
             Assert.Equal(new DateOnly(2026, 9, 27), site.Date);
         }
@@ -141,9 +138,35 @@ public class MapMetaDataTests
     [Fact]
     public void MapMetaData_RejectsNullArguments()
     {
-        WebsiteManager manager = AManager();
+        Assert.Throws<ArgumentNullException>(() => WebsiteManager.MapMetaData(null!, AnItem()));
+        Assert.Throws<ArgumentNullException>(() => WebsiteManager.MapMetaData([], null!));
+    }
 
-        Assert.Throws<ArgumentNullException>(() => manager.MapMetaData(null!, AnItem()));
-        Assert.Throws<ArgumentNullException>(() => manager.MapMetaData([], null!));
+    [Fact]
+    public void MapMetaData_TakesTheTitleAsPlainText()
+    {
+        // The title used to be run through Markdig and have its <p> tags cut off with a
+        // string replace, so it arrived here as html. It is text now; the render sites
+        // encode it.
+        Item site = AnItem();
+
+        WebsiteManager.MapMetaData(new Dictionary<string, string>
+        {
+            ["title"] = "My *great* post",
+            ["description"] = "Uses <angle> brackets & an ampersand",
+        }, site);
+
+        Assert.Equal("My *great* post", site.Title);
+        Assert.Equal("Uses <angle> brackets & an ampersand", site.Description);
+    }
+
+    [Fact]
+    public void MapMetaData_KeepsQuotesInTheTitle()
+    {
+        Item site = AnItem();
+
+        WebsiteManager.MapMetaData(new Dictionary<string, string> { ["title"] = "The \"quoted\" post" }, site);
+
+        Assert.Equal("The \"quoted\" post", site.Title);
     }
 }
