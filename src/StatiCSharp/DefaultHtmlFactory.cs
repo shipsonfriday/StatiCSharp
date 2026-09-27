@@ -2,6 +2,7 @@
 using StatiCSharp.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -57,7 +58,7 @@ public class DefaultHtmlFactory: IHtmlFactory
                                 .Add(new Div(index.Content)
                                         .Class("welcomeWrapper"))
                                 .Add(new H2("Latest Content"))
-                                .Add(new ItemList(items))
+                                .Add(new ItemList(items, Website.Language))
                                 .Class("wrapper"))
                             .Add(new Footer())
                 .Render();
@@ -84,7 +85,7 @@ public class DefaultHtmlFactory: IHtmlFactory
                             .Add(new Div(section.Content)
                                 .Class("wrapper"))
                             .Add(new Div()
-                                .Add(new ItemList(items))
+                                .Add(new ItemList(items, Website.Language))
                                 .Class("wrapper"))
                             .Add(new Footer())
                 .Render();
@@ -96,7 +97,7 @@ public class DefaultHtmlFactory: IHtmlFactory
         return new Body()   .Add(new SiteHeader(Website))
                             .Add(new Div()
                                 .Add(new TagList(item.Tags))
-                                .Add(new Text(item.Date.ToString("MMMM dd, yyyy")))
+                                .Add(new Text(FormatDate(item.Date, Website.Language)))
                                 .Class("item-meta-data-header"))
                             .Add(new Div()
                                 .Add(new Article()
@@ -115,7 +116,7 @@ public class DefaultHtmlFactory: IHtmlFactory
                                 .Add(new H1()
                                     .Add(new Text("Tagged with "))
                                     .Add(new bigTag(tag)))
-                                .Add(new ItemList(NewestFirst(items).ToList()))
+                                .Add(new ItemList(NewestFirst(items).ToList(), Website.Language))
                                 .Class("wrapper"))
                             .Add(new Footer())
                 .Render();
@@ -141,6 +142,16 @@ public class DefaultHtmlFactory: IHtmlFactory
     /// already html by then - meta data is not, so it has to be encoded here.
     /// </summary>
     private static Text Plain(string text) => new(WebUtility.HtmlEncode(text));
+
+    /// <summary>
+    /// Formats a date for display in the language the website declares.
+    /// <para>
+    /// Without an explicit culture the month name follows the machine that runs the
+    /// generator, so an English site built on a German machine would read "März".
+    /// </para>
+    /// </summary>
+    private static string FormatDate(DateOnly date, CultureInfo culture)
+        => date.ToString("MMMM dd, yyyy", culture);
 
 
     ////////////
@@ -181,10 +192,12 @@ public class DefaultHtmlFactory: IHtmlFactory
 
     private class ItemList: IHtmlComponent
     {
-        private List<IItem> items;            
-        public ItemList(List<IItem> items)
+        private List<IItem> items;
+        private CultureInfo culture;
+        public ItemList(List<IItem> items, CultureInfo culture)
         {
             this.items = items;
+            this.culture = culture;
         }
         public string Render()
         {
@@ -198,7 +211,7 @@ public class DefaultHtmlFactory: IHtmlFactory
                                                     )
                                                     .Add(new Div()
                                                             .Add(new TagList(item.Tags))
-                                                            .Add(new Text(item.Date.ToString("MMMM dd, yyyy")))
+                                                            .Add(new Text(FormatDate(item.Date, culture)))
                                                             .Class("item-meta-data"))
                                                     .Add(new Paragraph(Plain(item.Description)))
                                                 )
