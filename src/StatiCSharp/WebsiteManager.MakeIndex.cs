@@ -15,6 +15,6 @@ public partial class WebsiteManager : IWebsiteManager
             string head = HtmlFactory.MakeHeadHtml();
             string index = AddLeadingHtmlCode(Website, Website.Index, head, body);
             await WriteFileAsync(Output, "index.html", index, gitMode: GitMode);
-            PathDirectory.Add(Output);
+            ClaimPath(Output);
         }
     }

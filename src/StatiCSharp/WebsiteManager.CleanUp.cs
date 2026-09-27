@@ -17,7 +17,7 @@ public partial class WebsiteManager : IWebsiteManager
 
         async Task cleanUpDirectory(string directory)
         {
-            if (!PathDirectory.Contains(directory))
+            if (!WasWrittenTo(directory))
             {
                 // Delete only files named index.html. Other files could be resources!
                 if (File.Exists(Path.Combine(directory, "index.html")))

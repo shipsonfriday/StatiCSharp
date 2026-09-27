@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System;
 
+using static StatiCSharp.StatiCSharpConsole;
+
 namespace StatiCSharp;
 
 public partial class WebsiteManager : IWebsiteManager
@@ -37,14 +39,13 @@ public partial class WebsiteManager : IWebsiteManager
             string itemPath = (site.Path != string.Empty) ? site.Path : defaultPath;
             string path = Directory.CreateDirectory(Path.Combine(Output, section.SectionName, itemPath)).ToString();
 
-            if (PathDirectory.Contains(path))
+            if (!ClaimPath(path))
             {
-                Console.WriteLine($"WARNING: The path {path} is allready in use. Change the path in meta data to avoid duplicates.");
+                WriteLine($"WARNING: The path {path} is already in use. Change the path in meta data to avoid duplicates.");
             }
 
             await WriteFileAsync(path: path, filename: "index.html", content: page, gitMode: GitMode);
 
-            PathDirectory.Add(path);
         }
     }
 }
