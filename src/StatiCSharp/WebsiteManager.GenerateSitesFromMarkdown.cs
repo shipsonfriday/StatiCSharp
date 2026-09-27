@@ -11,7 +11,7 @@ public partial class WebsiteManager : IWebsiteManager
     /// Asynchronous generates index, pages, sections and items for the IWebsite object from the markdown files in the Content directory.
     /// </summary>
     /// <returns></returns>
-    private async Task GenerateSitesFromMarkdownAsync()
+    internal async Task GenerateSitesFromMarkdownAsync()
     {
         string[] directoriesOfContent = Directory.GetDirectories(Content);
 
@@ -119,29 +119,26 @@ public partial class WebsiteManager : IWebsiteManager
             {
                 if (!itemFile.EndsWith("index.md"))
                 {
-                    IItem currentItem = new Item();
                     var itemMetaData = MarkdownFactory.ParseMetaData(itemFile);
                     var itemContent = MarkdownFactory.ParseContent(itemFile);
                     var itemContentAsHtml = _htmlBuilder.ToHtml(itemContent);
-                    var itemLastModified = DateOnly.FromDateTime(Directory.GetLastWriteTime(itemFile));
+                    var itemLastModified = DateOnly.FromDateTime(File.GetLastWriteTime(itemFile));
 
-                    if (itemMetaData.ContainsKey("date"))
+                    IItem currentItem = new Item
                     {
-                        if (itemMetaData["date"] == string.Empty)
-                        {
-                            itemMetaData["date"] = currentItem.DateLastModified.ToString();
-                        }
-                    }
-                    else
-                    {
-                        itemMetaData.Add("date", currentItem.DateLastModified.ToString());
-                    }
+                        Content = itemContentAsHtml,
+                        MarkdownFileName = Path.GetFileName(itemFile),
+                        MarkdownFilePath = itemFile,
+                        Section = currentSectionName,
+                        DateLastModified = itemLastModified,
 
-                    currentItem.Content = itemContentAsHtml;
-                    currentItem.MarkdownFileName = Path.GetFileName(itemFile);
-                    currentItem.MarkdownFilePath = itemFile;
-                    currentItem.Section = currentSectionName;
-                    currentItem.DateLastModified = itemLastModified;
+                        // Fallback for items whose meta data carries no date. Set before
+                        // mapping, because MapMetaData leaves the value in place when no
+                        // date is given - no need to route the date through the
+                        // dictionary as a string, which also made it culture dependent.
+                        Date = itemLastModified,
+                    };
+
                     MapMetaData(itemMetaData, currentItem);
 
                     currentSection.AddItem(currentItem);
