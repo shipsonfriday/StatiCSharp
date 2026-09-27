@@ -45,8 +45,8 @@
 	<!-- NuGet -->
     <ItemGroup>
         <None Include="../../LICENSE" Pack="true" PackagePath="/" />
-        <None Include="../../.NuGet/Images/Icon.png" Pack="true" PackagePath="/" />
-        <None Include="../../.NuGet/README.md" Pack="true" PackagePath="/" />
+        <None Include="../../Packaging/Images/Icon.png" Pack="true" PackagePath="/" />
+        <None Include="../../Packaging/README.md" Pack="true" PackagePath="/" />
     </ItemGroup>
 
 </Project>
