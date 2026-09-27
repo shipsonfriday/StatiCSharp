@@ -1,72 +1,84 @@
 ﻿using StatiCSharp.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using static StatiCSharp.StatiCSharpConsole;
 
 namespace StatiCSharp;
 
 public partial class WebsiteManager : IWebsiteManager
 {
     /// <summary>
-    /// Adds the given meta data to a site (index, page, section or item). If there is no field for a given entry, it's sciped.
+    /// Adds the given meta data to a site (index, page, section or item).
+    /// <para>
+    /// A key that is absent, or present without a value, leaves the site's default in
+    /// place. A value that is there but unusable is reported instead of being dropped.
+    /// </para>
     /// </summary>
     /// <param name="metaData">The meta data.</param>
     /// <param name="site">The site where to add the meta data.</param>
-    private void MapMetaData(Dictionary<string, string> metaData, ISite site)
+    /// <exception cref="ArgumentNullException"><paramref name="metaData"/> or <paramref name="site"/> is null.</exception>
+    internal void MapMetaData(Dictionary<string, string> metaData, ISite site)
     {
+        ArgumentNullException.ThrowIfNull(metaData);
+        ArgumentNullException.ThrowIfNull(site);
+
         // HtmlBuilder uses Markdown.ToHtml as the default parser, which adds <p>-marks at the beginning and end of each value. This is sliced manually every time for now. Trim() removes \n at the end of the string.
-        try
+        if (TryRead("title", out string title))
         {
-            if (metaData["title"] is not null)
-            {
-                site.Title = _htmlBuilder.ToHtml(metaData["title"]).Replace("<p>", "").Replace("</p>", "").Trim();
-            }
+            site.Title = _htmlBuilder.ToHtml(title).Replace("<p>", "").Replace("</p>", "").Trim();
         }
-        catch { }
 
-        try
+        if (TryRead("description", out string description))
         {
-            if (metaData["description"] is not null)
-            {
-                site.Description = _htmlBuilder.ToHtml(metaData["description"]).Replace("<p>", "").Replace("</p>", "").Trim();
-            }
+            site.Description = _htmlBuilder.ToHtml(description).Replace("<p>", "").Replace("</p>", "").Trim();
         }
-        catch { }
 
-        try
+        if (TryRead("author", out string author))
         {
-            if (metaData["author"] is not null)
-            {
-                site.Author = metaData["author"];
-            }
+            site.Author = author;
         }
-        catch { }
 
-        try
+        if (TryRead("date", out string date))
         {
-            if (metaData["date"] is not null)
+            // Invariant, because the documented format is ISO 8601. Parsing with the
+            // current culture would read the same file differently on another machine.
+            if (DateOnly.TryParse(date, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsed))
             {
-                site.Date = DateOnly.Parse(metaData["date"]);
+                site.Date = parsed;
+            }
+            else
+            {
+                WriteLine($"WARNING: Could not read the date \"{date}\" in {site.MarkdownFilePath}. Expected ISO 8601, e.g. 2026-09-27. Using {site.Date:yyyy-MM-dd} instead.");
             }
         }
-        catch { }
 
-        try
+        if (TryRead("path", out string path))
         {
-            if (metaData["path"] is not null)
-            {
-                site.Path = metaData["path"];
-            }
+            site.Path = path;
         }
-        catch { }
 
-        try
+        if (TryRead("tags", out string tags))
         {
-            if (metaData["tags"] is not null)
-            {
-                site.Tags = metaData["tags"].Replace(" ", string.Empty).Split(',').ToList();
-            }
+            site.Tags = tags
+                .Split(',')
+                .Select(tag => tag.Trim())
+                .Where(tag => tag.Length > 0)
+                .ToList();
         }
-        catch { }
+
+        // Absent key or empty value means "not given", so the default survives.
+        bool TryRead(string key, out string value)
+        {
+            if (metaData.TryGetValue(key, out string? found) && !string.IsNullOrWhiteSpace(found))
+            {
+                value = found;
+                return true;
+            }
+
+            value = string.Empty;
+            return false;
+        }
     }
 }
