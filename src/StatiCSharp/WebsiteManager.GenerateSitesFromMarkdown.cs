@@ -38,7 +38,7 @@ public partial class WebsiteManager : IWebsiteManager
 
             foreach (string file in files)
             {
-                if (file.EndsWith(".md"))
+                if (IsMarkdownFile(file))
                     LoadSiteFromMarkdown<IPage>(file);
             }
 
@@ -117,7 +117,7 @@ public partial class WebsiteManager : IWebsiteManager
 
             foreach (string itemFile in itemFiles)
             {
-                if (!itemFile.EndsWith("index.md"))
+                if (IsMarkdownFile(itemFile) && !IsIndexFile(itemFile))
                 {
                     var itemMetaData = MarkdownFactory.ParseMetaData(itemFile);
                     var itemContent = MarkdownFactory.ParseContent(itemFile);
@@ -151,4 +151,19 @@ public partial class WebsiteManager : IWebsiteManager
         throw new NotImplementedException(message:$"The given type-parameter {typeof(T)} is not supported by this method.");
 
     }
+
+    /// <summary>
+    /// Whether the path names a markdown file. Case insensitive, so "NOTES.MD" counts too.
+    /// </summary>
+    private static bool IsMarkdownFile(string path)
+        => Path.GetExtension(path).Equals(".md", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Whether the path names an index file. "index.md" is a reserved name: it carries the
+    /// content of the section or page itself and never becomes an item of its own.
+    /// Compared against the filename, not the end of the path, so that "my-index.md" is an
+    /// ordinary item.
+    /// </summary>
+    private static bool IsIndexFile(string path)
+        => Path.GetFileName(path).Equals("index.md", StringComparison.OrdinalIgnoreCase);
 }

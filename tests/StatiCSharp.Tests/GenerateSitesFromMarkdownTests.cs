@@ -98,4 +98,63 @@ public class GenerateSitesFromMarkdownTests
 
         Assert.Equal("a-post.md", item.MarkdownFileName);
     }
+
+    /// <summary>
+    /// Puts the given files into one section and returns the filenames that became items.
+    /// </summary>
+    private static async Task<string[]> ItemFilenamesForAsync(TempDirectory directory, params string[] filenames)
+    {
+        directory.WriteFile("Content/posts/index.md", "---", "title: Posts", "---", "The posts section.");
+
+        foreach (string filename in filenames)
+        {
+            directory.WriteFile($"Content/posts/{filename}", "---", $"title: {filename}", "---", "Body.");
+        }
+
+        Website website = Website.Create(url: "https://example.com", name: "My Website")
+            .WithSections("posts");
+
+        await WebsiteManager.For(website, directory.Path).GenerateSitesFromMarkdownAsync();
+
+        return [.. Assert.Single(website.Sections).Items.Select(item => item.MarkdownFileName).Order()];
+    }
+
+    [Fact]
+    public async Task AFileWhoseNameEndsInIndexIsStillAnItem()
+    {
+        // The check used to look at the end of the whole path, so my-index.md matched
+        // "index.md" and was skipped: it appeared in no list and was never written.
+        using var directory = new TempDirectory();
+
+        string[] items = await ItemFilenamesForAsync(directory, "my-index.md", "a-post.md");
+
+        Assert.Equal(["a-post.md", "my-index.md"], items);
+    }
+
+    [Fact]
+    public async Task NonMarkdownFilesInASectionAreIgnored()
+    {
+        // There was no extension filter at all, so anything sitting in a section folder
+        // was parsed as markdown. A .DS_Store even produced an item whose path segment
+        // was empty, colliding with the section page itself.
+        using var directory = new TempDirectory();
+        directory.WriteFile("Content/posts/.DS_Store", "binary junk");
+        directory.WriteFile("Content/posts/notes.txt", "not markdown");
+        directory.WriteFile("Content/posts/photo.png", "not markdown either");
+
+        string[] items = await ItemFilenamesForAsync(directory, "a-post.md");
+
+        Assert.Equal(["a-post.md"], items);
+    }
+
+    [Fact]
+    public async Task AnUppercaseExtensionCountsAsMarkdown()
+    {
+        using var directory = new TempDirectory();
+
+        string[] items = await ItemFilenamesForAsync(directory, "A-Post.MD");
+
+        Assert.Equal(["A-Post.MD"], items);
+    }
+
 }
