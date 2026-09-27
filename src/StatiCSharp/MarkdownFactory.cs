@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using static StatiCSharp.StatiCSharpConsole;
 
 namespace StatiCSharp;
 
@@ -11,33 +13,58 @@ internal static class MarkdownFactory
 {
     /// <summary>
     /// Parses the meta data (yaml) of a markdown file.
+    /// <para>
+    /// A malformed line is skipped on its own. Blank lines and comments inside the front
+    /// matter are ignored, anything else without a colon is reported. A key that appears
+    /// twice keeps the last value and is reported as well.
+    /// </para>
     /// </summary>
     /// <param name="path">Path to the markdown file.</param>
     /// <returns>A Dictionary&lt;string, string&gt; with the parsed meta data.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
     public static Dictionary<string, string> ParseMetaData(string path)
     {
-        Dictionary<string, string> metaData = new Dictionary<string, string>();
+        ArgumentNullException.ThrowIfNull(path);
+
+        Dictionary<string, string> metaData = [];
         string[] lines = File.ReadAllLines(path);
         List<int> yamlMarker = YamlMarkers(lines);
 
-        // Add meta data from md-file between yaml markers in dict, if there are any.
-        if (yamlMarker.Count == 2)
+        if (yamlMarker.Count != 2)
         {
-            try
+            return metaData;
+        }
+
+        for (int i = yamlMarker[0] + 1; i < yamlMarker[1]; i++)
+        {
+            string line = lines[i].Trim();
+
+            // Blank lines and yaml comments carry no meta data and are not a mistake.
+            if (line.Length == 0 || line[0] == '#')
             {
-                for (int i = yamlMarker[0] + 1; i < yamlMarker[1]; i++)
-                {
-                    int indexOfColon = lines[i].IndexOf(':');
-                    string key = lines[i].Substring(0, indexOfColon).ToLower().Trim();
-                    string value = lines[i].Substring(indexOfColon + 1).Trim();
-                    metaData.Add(key, value);
-                }
+                continue;
             }
-            catch
+
+            int indexOfColon = line.IndexOf(':', StringComparison.Ordinal);
+
+            if (indexOfColon < 0)
             {
-                // No action needed if no meta data is found.
+                WriteLine($"WARNING: Ignoring the line \"{lines[i]}\" in the meta data of {path}, because it has no colon.");
+                continue;
+            }
+
+            // Invariant, so that a machine set to Turkish does not turn "Title" into
+            // "tıtle", which would never match the key the generator looks for.
+            string key = line[..indexOfColon].Trim().ToLowerInvariant();
+            string value = line[(indexOfColon + 1)..].Trim();
+
+            if (!metaData.TryAdd(key, value))
+            {
+                WriteLine($"WARNING: The key \"{key}\" appears more than once in the meta data of {path}. Using the last value.");
+                metaData[key] = value;
             }
         }
+
         return metaData;
     }
 
@@ -46,17 +73,21 @@ internal static class MarkdownFactory
     /// </summary>
     /// <param name="path">Path to the markdown file.</param>
     /// <returns>A string with the parsed content.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
     public static string ParseContent(string path)
     {
+        ArgumentNullException.ThrowIfNull(path);
+
         string[] lines = File.ReadAllLines(path);
         List<int> yamlMarker = YamlMarkers(lines);
+
         if (yamlMarker.Count == 0) // No meta data available
         {
-            return String.Join("\n", lines);
+            return string.Join("\n", lines);
         }
+
         string[] linesWithoutMetaData = new ArraySegment<string>(lines, yamlMarker[1] + 1, lines.Length - yamlMarker[1] - 1).ToArray();
-        string content = String.Join("\n", linesWithoutMetaData);
-        return content;
+        return string.Join("\n", linesWithoutMetaData);
     }
 
     /// <summary>
@@ -68,9 +99,10 @@ internal static class MarkdownFactory
     /// <returns>A List&lt;int&gt; with ether zero entries if no meta data was found, or two entries identifying the marker positions. (0 is first line in the document)</returns>
     private static List<int> YamlMarkers(string[] lines)
     {
-        List<int> marker = new List<int>();
+        List<int> marker = [];
 
-        if (lines[0] != "---")
+        // An empty file has no first line to look at.
+        if (lines.Length == 0 || lines[0] != "---")
         {
             return marker;
         }
@@ -87,11 +119,12 @@ internal static class MarkdownFactory
                 break;
             }
         }
-        
+
         if (marker.Count == 1)
         {
             marker.Clear();
         }
+
         return marker;
     }
 }
