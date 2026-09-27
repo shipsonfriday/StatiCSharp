@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 
 namespace StatiCSharp;
 
@@ -135,6 +136,12 @@ public class DefaultHtmlFactory: IHtmlFactory
     private static IEnumerable<IItem> NewestFirst(IEnumerable<IItem> items)
         => items.OrderByDescending(item => item.Date);
 
+    /// <summary>
+    /// Wraps plain text for output. Text renders verbatim, because a site's Content is
+    /// already html by then - meta data is not, so it has to be encoded here.
+    /// </summary>
+    private static Text Plain(string text) => new(WebUtility.HtmlEncode(text));
+
 
     ////////////
     /// Components
@@ -156,12 +163,12 @@ public class DefaultHtmlFactory: IHtmlFactory
             {
                 if (section.ToString() is not null)
                 {
-                    NavLinks.Add(new Li(new A(section).Href($"/{section}")));
+                    NavLinks.Add(new Li(new A(Plain(section)).Href($"/{section}")));
                 }
             }
             return new Header(
                             new Div(
-                                new A(this.website.Name).Href("/").Class("site-name")
+                                new A(Plain(this.website.Name)).Href("/").Class("site-name")
                             ).Add(
                                 new Nav().Add(
                                     new Ul().Add(NavLinks)
@@ -186,14 +193,14 @@ public class DefaultHtmlFactory: IHtmlFactory
                                             new Li()
                                                 .Add(new Article()
                                                     .Add(new H1().Add(
-                                                                new A(item.Title).Href(item.Url)
+                                                                new A(Plain(item.Title)).Href(item.Url)
                                                             )
                                                     )
                                                     .Add(new Div()
                                                             .Add(new TagList(item.Tags))
                                                             .Add(new Text(item.Date.ToString("MMMM dd, yyyy")))
                                                             .Class("item-meta-data"))
-                                                    .Add(new Text($"<p>{item.Description}</p>"))
+                                                    .Add(new Paragraph(Plain(item.Description)))
                                                 )
                                             )
                                     );
@@ -213,7 +220,7 @@ public class DefaultHtmlFactory: IHtmlFactory
             var result = new Ul().Class("tags");
             tags.ForEach((tag) => result.Add(
                                             new Li().Class("variant-default")
-                                                    .Add(new A(tag).Href($"/tag/{tag}")))
+                                                    .Add(new A(Plain(tag)).Href($"/tag/{tag}")))
                         );
             return result.Render();
         }
@@ -228,7 +235,7 @@ public class DefaultHtmlFactory: IHtmlFactory
         }
         public string Render()
         {
-            var result = new Span(tag).Class("tag");
+            var result = new Span(Plain(tag)).Class("tag");
             return result.Render();
         }
     }
