@@ -1,5 +1,6 @@
 ﻿using StatiCSharp.Interfaces;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace StatiCSharp.HtmlComponents
 {
@@ -147,9 +148,9 @@ namespace StatiCSharp.HtmlComponents
         /// <returns>this - the element itself.</returns>
         public Ol Type(char t)
         {
-            if (!Attributes.TryAdd("type", t.ToString()))
+            if (!Attributes.TryAdd("type", t.ToString(CultureInfo.InvariantCulture)))
             {
-                Attributes["type"] = t.ToString();
+                Attributes["type"] = t.ToString(CultureInfo.InvariantCulture);
             }
             return this;
         }
@@ -166,9 +167,9 @@ namespace StatiCSharp.HtmlComponents
         /// <returns>this - the element itself.</returns>
         public Ol Type(int t)
         {
-            if (!Attributes.TryAdd("type", t.ToString()))
+            if (!Attributes.TryAdd("type", t.ToString(CultureInfo.InvariantCulture)))
             {
-                Attributes["type"] = t.ToString();
+                Attributes["type"] = t.ToString(CultureInfo.InvariantCulture);
             }
             return this;
         }

@@ -1,5 +1,6 @@
 ﻿using StatiCSharp.Interfaces;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
 using System.Text;
 
@@ -93,7 +94,7 @@ namespace StatiCSharp.HtmlComponents
         /// <returns>this - the element itself.</returns>
         public HtmlElement Width(int width)
         {
-            Attributes["width"] = width.ToString();
+            Attributes["width"] = width.ToString(CultureInfo.InvariantCulture);
             return this;
         }
 
@@ -104,7 +105,7 @@ namespace StatiCSharp.HtmlComponents
         /// <returns>this - the element itself.</returns>
         public HtmlElement Height(int height)
         {
-            Attributes["height"] = height.ToString();
+            Attributes["height"] = height.ToString(CultureInfo.InvariantCulture);
             return this;
         }
 
@@ -138,7 +139,7 @@ namespace StatiCSharp.HtmlComponents
         /// <returns></returns>
         public HtmlElement TabIndex(int index)
         {
-            Attributes["tabindex"] = index.ToString();
+            Attributes["tabindex"] = index.ToString(CultureInfo.InvariantCulture);
             return this;
         }
 
@@ -151,7 +152,7 @@ namespace StatiCSharp.HtmlComponents
             StringBuilder elementBuilder = new();
 
             // Build leading tag
-            elementBuilder.Append($"<{TagName}");
+            elementBuilder.Append(CultureInfo.InvariantCulture, $"<{TagName}");
 
             // Add attributes with key-value pairs
             foreach (KeyValuePair<string, string?> attribute in Attributes)
@@ -160,7 +161,7 @@ namespace StatiCSharp.HtmlComponents
                 {
                     // Encoded, so a quote in the value cannot end the attribute early
                     // and break the tag. Values are taken literally, not as markup.
-                    elementBuilder.Append($" {attribute.Key}=\"{WebUtility.HtmlEncode(attribute.Value)}\"");
+                    elementBuilder.Append(CultureInfo.InvariantCulture, $" {attribute.Key}=\"{WebUtility.HtmlEncode(attribute.Value)}\"");
                 }
             }
 
@@ -169,7 +170,7 @@ namespace StatiCSharp.HtmlComponents
             {
                 if ((!string.IsNullOrEmpty(attribute.Key)) && (attribute.Value is null))
                 {
-                    elementBuilder.Append($" {attribute.Key}");
+                    elementBuilder.Append(CultureInfo.InvariantCulture, $" {attribute.Key}");
                 }
             }
 
@@ -185,7 +186,7 @@ namespace StatiCSharp.HtmlComponents
                 }
 
                 // Build trailing tag
-                elementBuilder.Append($"</{TagName}>");
+                elementBuilder.Append(CultureInfo.InvariantCulture, $"</{TagName}>");
             }
 
             return elementBuilder.ToString();

@@ -1,5 +1,6 @@
 ﻿using StatiCSharp.Interfaces;
 using System;
+using System.Globalization;
 using System.Net;
 using System.Text;
 
@@ -30,14 +31,14 @@ public partial class WebsiteManager : IWebsiteManager
 
         StringBuilder siteBuilder = new StringBuilder();
         siteBuilder.Append("<!doctype html>");
-        siteBuilder.Append($"<html lang=\"{WebUtility.HtmlEncode(website.Language.Name)}\">");
+        siteBuilder.Append(CultureInfo.InvariantCulture, $"<html lang=\"{WebUtility.HtmlEncode(website.Language.Name)}\">");
         siteBuilder.Append("<head>");
         siteBuilder.Append("<meta charset=\"utf-8\">");
         siteBuilder.Append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
-        siteBuilder.Append($"<title>{WebUtility.HtmlEncode(context.Title)}</title>");
-        siteBuilder.Append($"<meta name=\"description\" content=\"{WebUtility.HtmlEncode(context.Description)}\">");
-        siteBuilder.Append($"<meta name=\"author\" content=\"{WebUtility.HtmlEncode(context.Author)}\">");
-        siteBuilder.Append($"<meta name=\"keywords\" content=\"{WebUtility.HtmlEncode(string.Join(", ", context.Tags))}\">");
+        siteBuilder.Append(CultureInfo.InvariantCulture, $"<title>{WebUtility.HtmlEncode(context.Title)}</title>");
+        siteBuilder.Append(CultureInfo.InvariantCulture, $"<meta name=\"description\" content=\"{WebUtility.HtmlEncode(context.Description)}\">");
+        siteBuilder.Append(CultureInfo.InvariantCulture, $"<meta name=\"author\" content=\"{WebUtility.HtmlEncode(context.Author)}\">");
+        siteBuilder.Append(CultureInfo.InvariantCulture, $"<meta name=\"keywords\" content=\"{WebUtility.HtmlEncode(string.Join(", ", context.Tags))}\">");
         siteBuilder.Append("<link rel=\"icon\" type=\"image/x-icon\" href=\"/favicon.png\">");
         siteBuilder.Append(head);
         siteBuilder.Append(_htmlBuilder.AdditionalHeaderContent);

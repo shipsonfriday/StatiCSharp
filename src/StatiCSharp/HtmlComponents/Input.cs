@@ -1,4 +1,5 @@
 ﻿using StatiCSharp.Interfaces;
+using System.Globalization;
 
 namespace StatiCSharp.HtmlComponents
 {
@@ -100,7 +101,7 @@ namespace StatiCSharp.HtmlComponents
         /// <returns></returns>
         public Input Max(float max)
         {
-            Attributes["max"] = max.ToString();
+            Attributes["max"] = max.ToString(CultureInfo.InvariantCulture);
             return this;
         }
 
@@ -111,7 +112,7 @@ namespace StatiCSharp.HtmlComponents
         /// <returns></returns>
         public Input MaxLength(int max)
         {
-            Attributes["maxlength"] = max.ToString();
+            Attributes["maxlength"] = max.ToString(CultureInfo.InvariantCulture);
             return this;
         }
 
@@ -122,7 +123,7 @@ namespace StatiCSharp.HtmlComponents
         /// <returns></returns>
         public Input Min(float min)
         {
-            Attributes["min"] = min.ToString();
+            Attributes["min"] = min.ToString(CultureInfo.InvariantCulture);
             return this;
         }
 
@@ -133,7 +134,7 @@ namespace StatiCSharp.HtmlComponents
         /// <returns></returns>
         public Input MinLength(int min)
         {
-            Attributes["minlength"] = min.ToString();
+            Attributes["minlength"] = min.ToString(CultureInfo.InvariantCulture);
             return this;
         }
 
@@ -186,7 +187,7 @@ namespace StatiCSharp.HtmlComponents
         /// <returns></returns>
         public Input Size(int size)
         {
-            Attributes["size"] = size.ToString();
+            Attributes["size"] = size.ToString(CultureInfo.InvariantCulture);
             return this;
         }
 
@@ -221,7 +222,7 @@ namespace StatiCSharp.HtmlComponents
         /// <returns></returns>
         public Input Attribute(string key, int value)
         {
-            Attributes[key] = value.ToString();
+            Attributes[key] = value.ToString(CultureInfo.InvariantCulture);
             return this;
         }
     }
