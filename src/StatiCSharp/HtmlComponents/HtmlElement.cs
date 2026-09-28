@@ -11,6 +11,12 @@ namespace StatiCSharp.HtmlComponents
     /// <summary>
     /// A base class for all basic HTML elements.
     /// <para>
+    /// Deriving from this is supported: override <see cref="TagName"/>, and
+    /// <see cref="VoidElement"/> if the element takes no content. Derive from
+    /// <see cref="HtmlElement{TSelf}"/> instead to also get the shared fluent methods typed
+    /// to your own element.
+    /// </para>
+    /// <para>
     /// Implements the non-generic <see cref="IEnumerable"/> so that children can be written
     /// as a collection initializer:
     /// <code>
@@ -26,7 +32,7 @@ namespace StatiCSharp.HtmlComponents
         /// <summary>
         /// Defines the tagname of the element.
         /// </summary>
-        private protected abstract string TagName { get; }
+        protected abstract string TagName { get; }
 
         /// <summary>
         /// If this element is a void element.<br/>
@@ -34,18 +40,18 @@ namespace StatiCSharp.HtmlComponents
         /// Void elements can have attributes.<br/>
         /// Void elements only have a start tag. Closing tags must not be specified for void elements.
         /// </summary>
-        private protected virtual bool VoidElement { get; set; }
+        protected virtual bool VoidElement { get; set; }
 
         /// <summary>
         /// Contains the components inside the element.
         /// </summary>
-        private protected List<IHtmlComponent> Content { get; set; }
+        protected List<IHtmlComponent> Content { get; set; }
 
         /// <summary>
         /// Contains the attributes that are added to the opening tag of the element.
         /// &lt;Key&gt;&lt;Value&gt; is equivalent to Key="Value".
         /// </summary>
-        private protected Dictionary<string, string?> Attributes { get; set; } = new Dictionary<string, string?>();
+        protected Dictionary<string, string?> Attributes { get; set; } = new Dictionary<string, string?>();
 
         /// <summary>
         /// Initiate a new Html-Element, based on the derived class.
@@ -73,7 +79,7 @@ namespace StatiCSharp.HtmlComponents
         /// matter.
         /// </para>
         /// </summary>
-        private protected static string CheckedKey(string key)
+        protected static string CheckedKey(string key)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(key);
 

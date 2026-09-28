@@ -9,12 +9,14 @@ namespace StatiCSharp.HtmlComponents
     /// </summary>
     public class Input : HtmlElement<Input>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "input"; }
         }
 
-        private protected override bool VoidElement
+        /// <inheritdoc/>
+        protected override bool VoidElement
         {
             get { return true; }
         }

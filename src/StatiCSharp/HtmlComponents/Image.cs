@@ -8,12 +8,14 @@ namespace StatiCSharp.HtmlComponents
     /// </summary>
     public class Image : HtmlElement<Image>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "img"; }
         }
 
-        private protected override bool VoidElement
+        /// <inheritdoc/>
+        protected override bool VoidElement
         {
             get { return true; }
         }

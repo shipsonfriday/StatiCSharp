@@ -10,7 +10,8 @@ namespace StatiCSharp.HtmlComponents
     /// </summary>
     public class Footer : HtmlElement<Footer>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "footer"; }
         }

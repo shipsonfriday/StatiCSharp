@@ -11,7 +11,8 @@ namespace StatiCSharp.HtmlComponents
     /// </summary>
     public class Div : HtmlElement<Div>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "div"; }
         }

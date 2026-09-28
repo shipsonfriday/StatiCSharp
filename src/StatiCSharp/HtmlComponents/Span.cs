@@ -11,7 +11,8 @@ namespace StatiCSharp.HtmlComponents
     /// </summary>
     public class Span : HtmlElement<Span>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "span"; }
         }

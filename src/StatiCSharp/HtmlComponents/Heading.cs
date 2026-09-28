@@ -10,7 +10,8 @@ namespace StatiCSharp.HtmlComponents
     /// </summary>
     public class H1 : HtmlElement<H1>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "h1"; }
         }
@@ -62,7 +63,8 @@ namespace StatiCSharp.HtmlComponents
     /// </summary>
     public class H2 : HtmlElement<H2>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "h2"; }
         }
@@ -114,7 +116,8 @@ namespace StatiCSharp.HtmlComponents
     /// </summary>
     public class H3 : HtmlElement<H3>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "h3"; }
         }
@@ -166,7 +169,8 @@ namespace StatiCSharp.HtmlComponents
     /// </summary>
     public class H4 : HtmlElement<H4>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "h4"; }
         }
@@ -218,7 +222,8 @@ namespace StatiCSharp.HtmlComponents
     /// </summary>
     public class H5 : HtmlElement<H5>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "h5"; }
         }
@@ -270,7 +275,8 @@ namespace StatiCSharp.HtmlComponents
     /// </summary>
     public class H6 : HtmlElement<H6>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "h6"; }
         }

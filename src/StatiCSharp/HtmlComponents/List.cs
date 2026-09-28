@@ -11,7 +11,8 @@ namespace StatiCSharp.HtmlComponents
     /// </summary>
     public class Li: HtmlElement<Li>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "li"; }
         }
@@ -79,7 +80,8 @@ namespace StatiCSharp.HtmlComponents
     /// </summary>
     public class Ul : HtmlElement<Ul>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "ul"; }
         }
@@ -132,7 +134,8 @@ namespace StatiCSharp.HtmlComponents
     /// </summary>
     public class Ol : HtmlElement<Ol>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "ol"; }
         }
