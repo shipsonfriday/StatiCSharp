@@ -1,4 +1,5 @@
-using StatiCSharp.Interfaces;
+﻿using StatiCSharp.Interfaces;
+using System;
 using System.Collections.Generic;
 
 namespace StatiCSharp.HtmlComponents
@@ -38,6 +39,19 @@ namespace StatiCSharp.HtmlComponents
         public Footer(string text)
         {
             Content = new List<IHtmlComponent>() { new Text(text) };
+        }
+
+        /// <summary>
+        /// Initiate a new footer with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the footer.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public Footer(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Content = [.. content];
         }
 
     }

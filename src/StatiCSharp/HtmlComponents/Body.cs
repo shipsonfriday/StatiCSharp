@@ -1,4 +1,5 @@
 ﻿using StatiCSharp.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -41,6 +42,19 @@ namespace StatiCSharp.HtmlComponents
         {
             Content = new List<IHtmlComponent>();
             Content.Add(new Text(text));
+        }
+
+        /// <summary>
+        /// Initiate a new body with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the body.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public Body(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Content = [.. content];
         }
 
     }

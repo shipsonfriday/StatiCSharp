@@ -1,4 +1,5 @@
 ﻿using StatiCSharp.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -39,6 +40,19 @@ namespace StatiCSharp.HtmlComponents
         public Li(string text)
         {
             Content = new List<IHtmlComponent> { new Text(text) };
+        }
+
+        /// <summary>
+        /// Initiate a new li element with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the li element.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public Li(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Content = [.. content];
         }
 
         /// <summary>
@@ -96,6 +110,19 @@ namespace StatiCSharp.HtmlComponents
             Content = new List<IHtmlComponent> { new Text(text) };
         }
 
+        /// <summary>
+        /// Initiate a new ul element with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the ul element.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public Ul(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Content = [.. content];
+        }
+
     }
 
 
@@ -134,6 +161,19 @@ namespace StatiCSharp.HtmlComponents
         public Ol(string text)
         {
             Content = new List<IHtmlComponent> { new Text(text) };
+        }
+
+        /// <summary>
+        /// Initiate a new ol element with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the ol element.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public Ol(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Content = [.. content];
         }
 
         /// <summary>

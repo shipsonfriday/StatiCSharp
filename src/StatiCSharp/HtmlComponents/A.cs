@@ -43,6 +43,19 @@ namespace StatiCSharp.HtmlComponents
         }
 
         /// <summary>
+        /// Initiate a new anchor element with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the anchor element.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public A(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Content = [.. content];
+        }
+
+        /// <summary>
         /// Set the content of the href attribute.
         /// </summary>
         /// <param name="href">The target of the link.</param>

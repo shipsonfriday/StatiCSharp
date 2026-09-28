@@ -1,4 +1,5 @@
 ﻿using StatiCSharp.Interfaces;
+using System;
 using System.Collections.Generic;
 
 namespace StatiCSharp.HtmlComponents
@@ -40,6 +41,19 @@ namespace StatiCSharp.HtmlComponents
         {
             Content= new List<IHtmlComponent>();
             Content.Add(new Text(text));
+        }
+
+        /// <summary>
+        /// Initiate a new header with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the header.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public Header(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Content = [.. content];
         }
 
     }

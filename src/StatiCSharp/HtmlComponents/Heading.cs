@@ -1,4 +1,5 @@
-using StatiCSharp.Interfaces;
+﻿using StatiCSharp.Interfaces;
+using System;
 using System.Collections.Generic;
 
 namespace StatiCSharp.HtmlComponents
@@ -39,6 +40,19 @@ namespace StatiCSharp.HtmlComponents
         {
             Content = new List<IHtmlComponent>() { new Text(text) };
         }
+
+        /// <summary>
+        /// Initiate a new h1 element with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the h1 element.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public H1(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Content = [.. content];
+        }
     }
 
 
@@ -77,6 +91,19 @@ namespace StatiCSharp.HtmlComponents
         public H2(string text)
         {
             Content = new List<IHtmlComponent>() { new Text(text) };
+        }
+
+        /// <summary>
+        /// Initiate a new h2 element with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the h2 element.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public H2(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Content = [.. content];
         }
     }
 
@@ -117,6 +144,19 @@ namespace StatiCSharp.HtmlComponents
         {
             Content = new List<IHtmlComponent>() { new Text(text) };
         }
+
+        /// <summary>
+        /// Initiate a new h3 element with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the h3 element.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public H3(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Content = [.. content];
+        }
     }
 
 
@@ -155,6 +195,19 @@ namespace StatiCSharp.HtmlComponents
         public H4(string text)
         {
             Content = new List<IHtmlComponent>() { new Text(text) };
+        }
+
+        /// <summary>
+        /// Initiate a new h4 element with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the h4 element.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public H4(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Content = [.. content];
         }
     }
 
@@ -195,6 +248,19 @@ namespace StatiCSharp.HtmlComponents
         {
             Content = new List<IHtmlComponent>() { new Text(text) };
         }
+
+        /// <summary>
+        /// Initiate a new h5 element with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the h5 element.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public H5(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Content = [.. content];
+        }
     }
 
 
@@ -233,6 +299,19 @@ namespace StatiCSharp.HtmlComponents
         public H6(string text)
         {
             Content = new List<IHtmlComponent>() { new Text(text) };
+        }
+
+        /// <summary>
+        /// Initiate a new h6 element with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the h6 element.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public H6(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Content = [.. content];
         }
     }
 }
