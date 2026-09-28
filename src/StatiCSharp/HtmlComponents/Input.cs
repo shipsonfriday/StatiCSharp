@@ -7,14 +7,16 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;input /&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class Input : HtmlElement, IHtmlComponent
+    public class Input : HtmlElement<Input>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "input"; }
         }
 
-        private protected override bool VoidElement
+        /// <inheritdoc/>
+        protected override bool VoidElement
         {
             get { return true; }
         }
@@ -202,28 +204,5 @@ namespace StatiCSharp.HtmlComponents
             return this;
         }
 
-        /// <summary>
-        /// A wildcard to set custom attributes if the needed attribute is not supported yet.
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public Input Attribute(string key, string? value)
-        {
-            Attributes[key] = value;
-            return this;
-        }
-
-        /// <summary>
-        /// A wildcard to set custom attributes if the needed attribute is not supported yet.
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public Input Attribute(string key, int value)
-        {
-            Attributes[key] = value.ToString(CultureInfo.InvariantCulture);
-            return this;
-        }
     }
 }

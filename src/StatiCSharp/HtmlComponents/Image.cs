@@ -6,14 +6,16 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;img /&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class Image : HtmlElement, IHtmlComponent
+    public class Image : HtmlElement<Image>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "img"; }
         }
 
-        private protected override bool VoidElement
+        /// <inheritdoc/>
+        protected override bool VoidElement
         {
             get { return true; }
         }

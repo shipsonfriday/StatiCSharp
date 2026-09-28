@@ -8,26 +8,82 @@ You can code your template purely in C# if you want. Additionally, you can build
 
 ## Supported HTML components
 
-StatiC# has built-in the following HTML elements (more are added frequently).  
+StatiC# ships 67 elements. Every type is named after the tag it produces, so the type name
+lowercased is the tag - with two exceptions that carry a short form, `Paragraph` (`P`) for
+`<p>` and `Image` (`Img`) for `<img>`.
 
-- \<a href="">
-- \<article>
-- \<body>
-- \<div>
-- \<footer>
-- \<h1>...\<h6>
-- \<html>
-- \<header>
-- \<img>
-- \<input>
-- \<ul>
-- \<ol>
-- \<li>
-- \<nav>
-- \<p>
-- \<span>
+| | |
+| --- | --- |
+| **Sectioning** | `body` `header` `nav` `main` `section` `article` `aside` `footer` `div` `figure` `figcaption` |
+| **Headings** | `h1` `h2` `h3` `h4` `h5` `h6` |
+| **Text** | `p` `span` `strong` `em` `small` `mark` `code` `pre` `blockquote` `cite` `abbr` `sub` `sup` `time` `br` `hr` |
+| **Lists** | `ul` `ol` `li` `dl` `dt` `dd` |
+| **Tables** | `table` `caption` `thead` `tbody` `tfoot` `tr` `th` `td` |
+| **Links and media** | `a` `img` `picture` `source` `video` `audio` `iframe` |
+| **Forms** | `form` `label` `input` `button` `select` `option` `textarea` |
+| **Disclosure** | `details` `summary` |
+| **Head** | `link` `meta` `script` `style` |
 
-Of course, you can make your own, and it's welcome to contribute new elements or features of elements to this project.  
+There is no `html`, `head` or `title` element: the document shell around your body is
+written by StatiC# itself. Use `MakeHeadHtml()` to add to the `<head>`.
+
+Elements with attributes specific to them carry typed methods for those - `A.Href()`,
+`Link.Rel()`, `Time.DateTime()`, `Th.Scope()`, `Td.ColSpan()`, `Img.Alt()` and so on. For
+anything not covered, every element has `Attribute()`:
+
+```C#
+new Div().Attribute("data-section", "posts").Attribute("role", "region")
+new Details().Attribute("open")        // an attribute without a value
+new Td().Attribute("colspan", 3)       // numbers are formatted invariantly
+```
+
+Attribute values are encoded when the element renders, and attribute *names* are rejected
+if they contain characters that would break out of the tag.
+
+## Writing a tree
+
+There are two ways to nest elements, and they produce the same html. Pass the children as
+arguments:
+
+```C#
+new Body(
+    new Div(
+        new Article(
+            new H1("Title"),
+            new Div(page.Content).Class("content"))).Class("wrapper"))
+```
+
+Or write them as a collection initializer:
+
+```C#
+new Body
+{
+    new Div
+    {
+        new Article
+        {
+            new H1("Title"),
+            new Div(page.Content).Class("content"),
+        },
+    }.Class("wrapper"),
+}
+```
+
+Attributes are set by chaining, in any order, and every method hands back your own element
+type, so `new A("x").Class("nav").Href("/")` and `new A("x").Href("/").Class("nav")` both
+compile.
+
+If the `new` keyword on every line bothers you, import the factories and it disappears:
+
+```C#
+using static StatiCSharp.HtmlComponents.Tags;
+
+Body(
+    Div(
+        Article(
+            H1("Title"),
+            Div(page.Content).Class("content"))).Class("wrapper"))
+```
 
 ## Getting started
 
@@ -70,16 +126,14 @@ By using the StatiC#-HTML-Components, you can write HTML-Code in C#. Let's check
 ```C#
 public string MakePageHtml(IPage page)
 {
-    return new Body()   
-		.Add(new SiteHeader(Website))
-		.Add(new Div()
-		    .Add(new Article()
-			.Add(new Div(page.Content)
-			    .Class("content")))
-		    .Class("wrapper"))
-		.Add(new Footer())
-		.Render();
-        }
+    return new Body(
+            new SiteHeader(Website),
+            new Div(
+                new Article(
+                    new Div(page.Content).Class("content"))).Class("wrapper"),
+            new Footer())
+        .Render();
+}
 ```
 
 In this case, inspect the [IPage interface](github.com/RolandBraunDev/StatiCSharp/blob/master/src/StatiCSharp/Interfaces/IPage.cs) for information about the content you can access via `page`. Pay attention to the fact that all parameter interfaces inherit from [ISite](github.com/RolandBraunDev/StatiCSharp/blob/master/src/StatiCSharp/Interfaces/ISite.cs), so you always have access to those properties, too.  
@@ -87,21 +141,25 @@ Initiate a new `Body` object, which is a representation of your current body of 
 `SiteHeader` and `Footer` are not basic HTML elements. They are custom components that can be used across all your sites. You can create those components with the use of other components or whatever you want. But you need to implement [IHtmlComponent](github.com/RolandBraunDev/StatiCSharp/blob/master/src/StatiCSharp/Interfaces/IHtmlComponent.cs) to work with StatiC#. To ensure chaining, you have to return the element itself after every method you implement to customize the element.  
 Note that the property `Website` is not initialized in the method. If you want access to the whole website object (this can be useful for navigation or sitemap), use dependency injection in your custom constructor, e.g., `DefaultHtmlFactory(IWebsite website)`.  
 
-Here is an example from the [integrated default theme](https://github.com/RolandBraunDev/StatiCSharp/blob/master/src/StatiCSharp/DefaultHtmlFactory.cs) for a custom component called Footer:
+Here is an example from the [integrated default theme](https://github.com/RolandBraunDev/StatiCSharp/blob/master/src/StatiCSharp/DefaultHtmlFactory.cs) for a custom component called SiteFooter:
 
 ```C#
-private class Footer : IHtmlComponent
+private class SiteFooter : IHtmlComponent
 {
     public string Render()
     {
-        return new HtmlComponents.Footer()
-		    .Add(new Paragraph()
-			.Add(new Text("Generated with ❤️ using "))
-			.Add(new A("StatiC#").Href("https://github.com/RolandBraunDev/StatiCSharp")))
-		    .Render();
+        return new Footer(
+                new Paragraph(
+                    new Text("Generated with ❤️ using "),
+                    new A("StatiC#").Href("https://github.com/RolandBraunDev/StatiCSharp")))
+            .Render();
     }
 }
 ```
+
+Give your components names that do not collide with the elements - `SiteFooter` rather than
+`Footer`. The integrated theme calls its own component `Footer` and has to write
+`StatiCSharp.HtmlComponents.Footer` everywhere as a result.
 
 By the way, it would be nice if you implement this reference to StatiC# in your templates.
 
@@ -137,6 +195,61 @@ using StatiCSharp.Tools;
 
 new A(Plain(tag)).Href($"/tag/{UrlSlug.From(tag)}")
 ```
+
+## Making your own element
+
+If an element is missing, derive from `HtmlElement<T>` with your own type as the argument
+and name the tag. That is the whole requirement:
+
+```C#
+using StatiCSharp.HtmlComponents;
+using StatiCSharp.Interfaces;
+
+public class Dialog : HtmlElement<Dialog>
+{
+    protected override string TagName => "dialog";
+
+    public Dialog() { }
+
+    public Dialog(params IHtmlComponent[] content) => Children = [.. content];
+
+    public Dialog(string text) => Children = [new Text(text)];
+
+    public Dialog Open() => Attribute("open");
+}
+```
+
+Your element gets everything the built-in ones have: both nesting syntaxes, the fluent
+attribute methods typed to `Dialog`, and the attribute name checking.
+
+```C#
+new Dialog(new H1("Title"), new Paragraph("Text")).Open().Class("modal")
+```
+
+`Children` is the list of components inside the element; assign it in your constructors.
+For an element that takes no content, override `VoidElement`:
+
+```C#
+public class Wbr : HtmlElement<Wbr>
+{
+    protected override string TagName => "wbr";
+
+    protected override bool VoidElement => true;
+}
+```
+
+Deriving from the non-generic `HtmlElement` also works if you do not need the fluent chain.
+
+One thing to expect: the analyzer reports **CA1010** on your element, because `HtmlElement`
+implements `IEnumerable` so that the collection initializer works. Your element is not a
+collection, so the warning does not apply - switch it off for your components folder:
+
+```ini
+[YourTheme/Components/*.cs]
+dotnet_diagnostic.CA1010.severity = none
+```
+
+Contributions of new elements to StatiC# itself are welcome, too.
 
 ## Managing resources
 

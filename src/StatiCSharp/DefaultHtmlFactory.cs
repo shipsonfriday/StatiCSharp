@@ -43,7 +43,7 @@ public class DefaultHtmlFactory: IHtmlFactory
     /// <inheritdoc/>
     public string MakeHeadHtml()
     {
-        return "<link rel=\"stylesheet\" href=\"/default-theme/styles.css\">";
+        return new Link().Rel("stylesheet").Href("/default-theme/styles.css").Render();
     }
 
     /// <inheritdoc/>
@@ -54,73 +54,68 @@ public class DefaultHtmlFactory: IHtmlFactory
             .Take(_numberOfArticlesOnHomepage)
             .ToList();
 
-        return  new Body()  .Add(new SiteHeader(Website))
-                            .Add(new Div()
-                                .Add(new Div(index.Content)
-                                        .Class("welcomeWrapper"))
-                                .Add(new H2("Latest Content"))
-                                .Add(new ItemList(items, Website.Language))
-                                .Class("wrapper"))
-                            .Add(new Footer())
-                .Render();
+        return new Body(
+                new SiteHeader(Website),
+                new Div(
+                    new Div(index.Content).Class("welcomeWrapper"),
+                    new H2("Latest Content"),
+                    new ItemList(items, Website.Language)).Class("wrapper"),
+                new Footer())
+            .Render();
     }
 
     /// <inheritdoc/>
     public string MakePageHtml(IPage page)
     {
-        return new Body()   .Add(new SiteHeader(Website))
-                            .Add(new Div()
-                                .Add(new Article()
-                                    .Add(new Div(page.Content)
-                                        .Class("content")))
-                                .Class("wrapper"))
-                            .Add(new Footer())
-                .Render();
+        return new Body(
+                new SiteHeader(Website),
+                new Div(
+                    new Article(
+                        new Div(page.Content).Class("content"))).Class("wrapper"),
+                new Footer())
+            .Render();
     }
 
     /// <inheritdoc/>
     public string MakeSectionHtml(ISection section)
     {
         List<IItem> items = NewestFirst(section.Items).ToList();
-        return new Body()   .Add(new SiteHeader(Website))
-                            .Add(new Div(section.Content)
-                                .Class("wrapper"))
-                            .Add(new Div()
-                                .Add(new ItemList(items, Website.Language))
-                                .Class("wrapper"))
-                            .Add(new Footer())
-                .Render();
+        return new Body(
+                new SiteHeader(Website),
+                new Div(section.Content).Class("wrapper"),
+                new Div(
+                    new ItemList(items, Website.Language)).Class("wrapper"),
+                new Footer())
+            .Render();
     }
 
     /// <inheritdoc/>
     public string MakeItemHtml(IItem item)
     {
-        return new Body()   .Add(new SiteHeader(Website))
-                            .Add(new Div()
-                                .Add(new TagList(item.Tags))
-                                .Add(new Text(FormatDate(item.Date, Website.Language)))
-                                .Class("item-meta-data-header"))
-                            .Add(new Div()
-                                .Add(new Article()
-                                    .Add(new Div(item.Content)
-                                        .Class("content")))
-                                .Class("wrapper"))
-                            .Add(new Footer())
-                .Render();
+        return new Body(
+                new SiteHeader(Website),
+                new Div(
+                    new TagList(item.Tags),
+                    new Text(FormatDate(item.Date, Website.Language))).Class("item-meta-data-header"),
+                new Div(
+                    new Article(
+                        new Div(item.Content).Class("content"))).Class("wrapper"),
+                new Footer())
+            .Render();
     }
 
     /// <inheritdoc/>
     public string MakeTagListHtml(List<IItem> items, string tag)
     {
-        return new Body()   .Add(new SiteHeader(Website))
-                            .Add(new Div()
-                                .Add(new H1()
-                                    .Add(new Text("Tagged with "))
-                                    .Add(new bigTag(tag)))
-                                .Add(new ItemList(NewestFirst(items).ToList(), Website.Language))
-                                .Class("wrapper"))
-                            .Add(new Footer())
-                .Render();
+        return new Body(
+                new SiteHeader(Website),
+                new Div(
+                    new H1(
+                        new Text("Tagged with "),
+                        new bigTag(tag)),
+                    new ItemList(NewestFirst(items).ToList(), Website.Language)).Class("wrapper"),
+                new Footer())
+            .Render();
     }
 
 
@@ -170,24 +165,15 @@ public class DefaultHtmlFactory: IHtmlFactory
         }
         public string Render()
         {
-            Ul NavLinks = new();
-            foreach (var section in sections)
-            {
-                if (section.ToString() is not null)
-                {
-                    NavLinks.Add(new Li(new A(Plain(section)).Href($"/{section}")));
-                }
-            }
+            Li[] navLinks = [.. sections.Select(section =>
+                new Li(new A(Plain(section)).Href($"/{section}")))];
+
             return new Header(
-                            new Div(
-                                new A(Plain(this.website.Name)).Href("/").Class("site-name")
-                            ).Add(
-                                new Nav().Add(
-                                    new Ul().Add(NavLinks)
-                                )
-                            ).Class("wrapper")
-                    )
-                    .Render();
+                    new Div(
+                        new A(Plain(this.website.Name)).Href("/").Class("site-name"),
+                        new Nav(
+                            new Ul(navLinks))).Class("wrapper"))
+                .Render();
         }
     }
 
@@ -202,23 +188,17 @@ public class DefaultHtmlFactory: IHtmlFactory
         }
         public string Render()
         {
-            var result = new Ul().Class("item-list");
-            items.ForEach((item) => result.Add(
-                                            new Li()
-                                                .Add(new Article()
-                                                    .Add(new H1().Add(
-                                                                new A(Plain(item.Title)).Href(item.Url)
-                                                            )
-                                                    )
-                                                    .Add(new Div()
-                                                            .Add(new TagList(item.Tags))
-                                                            .Add(new Text(FormatDate(item.Date, culture)))
-                                                            .Class("item-meta-data"))
-                                                    .Add(new Paragraph(Plain(item.Description)))
-                                                )
-                                            )
-                                    );
-            return result.Render();
+            Li[] listItems = [.. items.Select(item =>
+                new Li(
+                    new Article(
+                        new H1(
+                            new A(Plain(item.Title)).Href(item.Url)),
+                        new Div(
+                            new TagList(item.Tags),
+                            new Text(FormatDate(item.Date, culture))).Class("item-meta-data"),
+                        new Paragraph(Plain(item.Description)))))];
+
+            return new Ul(listItems).Class("item-list").Render();
         }
     }
 
@@ -231,12 +211,11 @@ public class DefaultHtmlFactory: IHtmlFactory
         }
         public string Render()
         {
-            var result = new Ul().Class("tags");
-            tags.ForEach((tag) => result.Add(
-                                            new Li().Class("variant-default")
-                                                    .Add(new A(Plain(tag)).Href($"/tag/{UrlSlug.From(tag)}")))
-                        );
-            return result.Render();
+            Li[] tagItems = [.. tags.Select(tag =>
+                new Li(
+                    new A(Plain(tag)).Href($"/tag/{UrlSlug.From(tag)}")).Class("variant-default"))];
+
+            return new Ul(tagItems).Class("tags").Render();
         }
     }
 
@@ -258,11 +237,11 @@ public class DefaultHtmlFactory: IHtmlFactory
     {
         public string Render()
         {
-            return new HtmlComponents.Footer()
-            .Add(new Paragraph()
-                    .Add(new Text("Generated with ❤️ using "))
-                    .Add(new A("StatiC#").Href("https://github.com/RolandBraunDev/StatiCSharp")))
-            .Render();
+            return new HtmlComponents.Footer(
+                    new Paragraph(
+                        new Text("Generated with ❤️ using "),
+                        new A("StatiC#").Href("https://github.com/RolandBraunDev/StatiCSharp")))
+                .Render();
         }
     }
 }

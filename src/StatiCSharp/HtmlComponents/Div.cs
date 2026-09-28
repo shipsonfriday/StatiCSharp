@@ -1,4 +1,5 @@
 ﻿using StatiCSharp.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,9 +9,10 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a <div></div> element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class Div : HtmlElement, IHtmlComponent
+    public class Div : HtmlElement<Div>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "div"; }
         }
@@ -29,7 +31,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="component">The element or component for the content of the div.</param>
         public Div(IHtmlComponent component)
         {
-            Content = new List<IHtmlComponent>() { component };
+            Children = new List<IHtmlComponent>() { component };
         }
 
         /// <summary>
@@ -38,7 +40,20 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="text">The text for the content of the div.</param>
         public Div(string text)
         {
-            Content = new List<IHtmlComponent>() { new Text(text) };
+            Children = new List<IHtmlComponent>() { new Text(text) };
+        }
+
+        /// <summary>
+        /// Initiate a new div with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the div.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public Div(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Children = [.. content];
         }
 
     }

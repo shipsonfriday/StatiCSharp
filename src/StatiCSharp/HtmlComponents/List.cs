@@ -1,4 +1,5 @@
 ﻿using StatiCSharp.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -8,9 +9,10 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;li&gt;&lt;/li&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class Li: HtmlElement, IHtmlComponent
+    public class Li: HtmlElement<Li>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "li"; }
         }
@@ -29,7 +31,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="component">The component for the content of the li.</param>
         public Li(IHtmlComponent component)
         {
-            Content = new List<IHtmlComponent> { component };
+            Children = new List<IHtmlComponent> { component };
         }
 
         /// <summary>
@@ -38,7 +40,20 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="text">The text inside the li element.</param>
         public Li(string text)
         {
-            Content = new List<IHtmlComponent> { new Text(text) };
+            Children = new List<IHtmlComponent> { new Text(text) };
+        }
+
+        /// <summary>
+        /// Initiate a new li element with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the li element.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public Li(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Children = [.. content];
         }
 
         /// <summary>
@@ -63,9 +78,10 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;ul&gt;&lt;/ul&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class Ul : HtmlElement, IHtmlComponent
+    public class Ul : HtmlElement<Ul>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "ul"; }
         }
@@ -84,7 +100,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="component">The component for the content of the ul.</param>
         public Ul(IHtmlComponent component)
         {
-            Content = new List<IHtmlComponent> { component };
+            Children = new List<IHtmlComponent> { component };
         }
 
         /// <summary>
@@ -93,7 +109,20 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="text">The text for the content of the &lt;ul&gt;.</param>
         public Ul(string text)
         {
-            Content = new List<IHtmlComponent> { new Text(text) };
+            Children = new List<IHtmlComponent> { new Text(text) };
+        }
+
+        /// <summary>
+        /// Initiate a new ul element with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the ul element.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public Ul(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Children = [.. content];
         }
 
     }
@@ -103,9 +132,10 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;ol&gt;&lt;/ol&gt; element.<br/>
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class Ol : HtmlElement, IHtmlComponent
+    public class Ol : HtmlElement<Ol>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "ol"; }
         }
@@ -124,7 +154,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="component">The component for the content of the ol.</param>
         public Ol(IHtmlComponent component)
         {
-            Content = new List<IHtmlComponent> { component };
+            Children = new List<IHtmlComponent> { component };
         }
 
         /// <summary>
@@ -133,7 +163,20 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="text">The text for the content of the &lt;ol&gt;.</param>
         public Ol(string text)
         {
-            Content = new List<IHtmlComponent> { new Text(text) };
+            Children = new List<IHtmlComponent> { new Text(text) };
+        }
+
+        /// <summary>
+        /// Initiate a new ol element with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the ol element.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public Ol(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Children = [.. content];
         }
 
         /// <summary>

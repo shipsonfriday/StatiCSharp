@@ -1,4 +1,4 @@
-# Use Themes
+﻿# Use Themes
 
 **StatiC#** makes it easy to use different themes for your website. This article shows how to use [Foundation](https://www.nuget.org/packages/StatiCSharp.Theme.Foundation).  
 
@@ -8,9 +8,13 @@ Add the template of your choice to your website project as a project or package 
 
 ```
 <ItemGroup>
-    <PackageReference Include="StatiCSharp.Themes.Foundation" Version="0.1.1" />
+    <PackageReference Include="StatiCSharp.Theme.Foundation" Version="<the version built for StatiC# 1.0>" />
 </ItemGroup>
 ```
+
+The package id is `StatiCSharp.Theme.Foundation`, singular. Check which version was built
+against the StatiC# release you are using - a theme compiled against 0.5 does not run on
+1.0, see below.
 You can use the NuGet package manager as well.  
 Build your project to restore packages.  
 
@@ -35,8 +39,19 @@ await WebsiteManager
     .MakeAsync();
 ```
 
-A theme built against StatiC# 0.5 still works: `IHtmlFactory` is unchanged. Only the way
-the theme is handed to the manager moved from a constructor argument to `WithTheme()`.
+A theme built against StatiC# 0.5 has to be rebuilt for 1.0. `IHtmlFactory` itself is
+unchanged, so the theme class needs no new members - but the html components it renders with
+did change, and a binary compiled against 0.5 calls methods that no longer exist.
+
+What a theme author has to do:
+
+- Replace chained `.Add(...)` calls with constructor arguments or a collection initializer,
+  as described in [making a custom theme](making_a_custom_theme.md#writing-a-tree).
+- Rename `Content` to `Children` in any custom element.
+- Build tag links with `StatiCSharp.Tools.UrlSlug.From(tag)` rather than interpolating the
+  tag name, since tag directories are normalized now.
+- Encode meta data - `Title`, `Description`, `Author`, tags - before rendering it. Those are
+  plain text in 1.0 and are no longer escaped on the way in.
 
 Build and run your project. Your website is created with the new theme in your `Output` directory.
 

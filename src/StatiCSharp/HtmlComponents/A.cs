@@ -8,9 +8,10 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of an &lt;a&gt;&lt;/a&gt; element.
     /// <para>Call the Render() method to turn it into an HTML string.</para>
     /// </summary>
-    public class A : HtmlElement, IHtmlComponent
+    public class A : HtmlElement<A>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "a"; }
         }
@@ -29,7 +30,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="component"></param>
         public A(IHtmlComponent component)
         {
-            Content = new List<IHtmlComponent>() { component };
+            Children = new List<IHtmlComponent>() { component };
         }
 
         /// <summary>
@@ -38,8 +39,21 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="text">The text for the link.</param>
         public A(string text)
         {
-            Content = new List<IHtmlComponent>();
-            Content.Add(new Text(text));
+            Children = new List<IHtmlComponent>();
+            Children.Add(new Text(text));
+        }
+
+        /// <summary>
+        /// Initiate a new anchor element with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the anchor element.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public A(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Children = [.. content];
         }
 
         /// <summary>

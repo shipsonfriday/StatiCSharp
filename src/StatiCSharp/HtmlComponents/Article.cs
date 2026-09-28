@@ -1,4 +1,5 @@
-using StatiCSharp.Interfaces;
+﻿using StatiCSharp.Interfaces;
+using System;
 using System.Collections.Generic;
 
 namespace StatiCSharp.HtmlComponents
@@ -7,9 +8,10 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;article&gt;&lt;/article&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class Article : HtmlElement, IHtmlComponent
+    public class Article : HtmlElement<Article>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "article"; }
         }
@@ -28,7 +30,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="component">The element or component for the content of the &lt;article&gt;.</param>
         public Article(IHtmlComponent component)
         {
-            Content = new List<IHtmlComponent>() { component };
+            Children = new List<IHtmlComponent>() { component };
         }
 
         /// <summary>
@@ -37,7 +39,20 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="text">The text for the content of the &lt;article&gt;.</param>
         public Article(string text)
         {
-            Content = new List<IHtmlComponent>() { new Text(text) };
+            Children = new List<IHtmlComponent>() { new Text(text) };
+        }
+
+        /// <summary>
+        /// Initiate a new article with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the article.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public Article(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Children = [.. content];
         }
 
     }

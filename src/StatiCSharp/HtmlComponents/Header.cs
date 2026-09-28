@@ -1,4 +1,5 @@
 ﻿using StatiCSharp.Interfaces;
+using System;
 using System.Collections.Generic;
 
 namespace StatiCSharp.HtmlComponents
@@ -7,9 +8,10 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;header&gt;&lt;/header&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class Header: HtmlElement, IHtmlComponent
+    public class Header: HtmlElement<Header>, IHtmlComponent
     {
-        private protected override string TagName
+        /// <inheritdoc/>
+        protected override string TagName
         {
             get { return "header"; }
         }
@@ -28,8 +30,8 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="element">The element or component for the content of the header.</param>
         public Header(IHtmlComponent element)
         {
-            Content = new List<IHtmlComponent>();
-            Content.Add(element);
+            Children = new List<IHtmlComponent>();
+            Children.Add(element);
         }
 
         /// <summary>
@@ -38,8 +40,21 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="text">The text for the content of the header.</param>
         public Header(string text)
         {
-            Content= new List<IHtmlComponent>();
-            Content.Add(new Text(text));
+            Children= new List<IHtmlComponent>();
+            Children.Add(new Text(text));
+        }
+
+        /// <summary>
+        /// Initiate a new header with the given content. Lets elements be nested by
+        /// passing their children as arguments.
+        /// </summary>
+        /// <param name="content">The elements or components for the content of the header.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+        public Header(params IHtmlComponent[] content)
+        {
+            ArgumentNullException.ThrowIfNull(content);
+
+            Children = [.. content];
         }
 
     }

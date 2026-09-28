@@ -5,7 +5,10 @@
     <OutputType>Exe</OutputType>
     <IsTestProject>true</IsTestProject>
     <!-- CA1707: test names use Method_Scenario_Expectation, which needs the underscores. -->
-    <NoWarn>$(NoWarn);CA1707</NoWarn>
+    <!-- CA1010: the custom elements in CustomElementTests inherit IEnumerable from
+         HtmlElement, which is deliberate. Every theme defining its own element has to do
+         the same, so this line also documents what a consumer needs. -->
+    <NoWarn>$(NoWarn);CA1707;CA1010</NoWarn>
   </PropertyGroup>
 
   <!-- xunit.v3 runs on Microsoft Testing Platform and needs no separate runner packages. -->

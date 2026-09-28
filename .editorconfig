@@ -134,3 +134,23 @@ dotnet_naming_rule.private_fields_are_underscore_camel_case.severity = suggestio
 dotnet_naming_rule.parameters_and_locals_are_camel_case.symbols = parameters_and_locals
 dotnet_naming_rule.parameters_and_locals_are_camel_case.style = camel_case
 dotnet_naming_rule.parameters_and_locals_are_camel_case.severity = suggestion
+
+# The html element classes implement the non-generic IEnumerable on purpose, so that
+# children can be written as a collection initializer:
+#
+#     new Div { new H1("Title"), new Paragraph("Text") }
+#
+# CA1010 asks for IEnumerable<T> as well and CA1710 asks for a "Collection" suffix. Both
+# are advice for types that are collections. These are not: an element has content, it is
+# not a sequence. Implementing the generic interface would let an element pass as a
+# sequence of its own children wherever one is expected, which is a worse trap than the
+# warning is worth, and renaming Div to DivCollection would be absurd.
+[src/StatiCSharp/HtmlComponents/*.cs]
+dotnet_diagnostic.CA1010.severity = none
+dotnet_diagnostic.CA1710.severity = none
+
+# CA1716 flags Option, Select and Sub as reserved keywords in Visual Basic. Every
+# identifier in this folder is named after the html tag or attribute it produces, so any
+# hit here has the same answer: the html name wins. Renaming them would break the rule
+# that a type's lowercased name is its tag, and OptionElement reads worse than Option.
+dotnet_diagnostic.CA1716.severity = none
