@@ -178,6 +178,21 @@ Three changes affect content rather than code:
 
 Requires .NET 10.
 
+### If you wrote a theme
+
+Themes have to be rebuilt. `IHtmlFactory` is unchanged, but the html components are not:
+
+| 0.5 | 1.0 |
+| --- | --- |
+| `new Div().Add(a).Add(b)` | `new Div(a, b)` or `new Div { a, b }` |
+| `Content` in a custom element | `Children` |
+| `Href($"/tag/{tag}")` | `Href($"/tag/{UrlSlug.From(tag)}")` |
+| `new Text(item.Title)` | encode it - meta data is plain text now |
+
+In exchange the element set grew from 20 to 67, every element takes any attribute through
+`Attribute()`, custom elements are actually possible, and a chain no longer depends on the
+order of its calls. See [making a custom theme](Documentation/HowTo/making_a_custom_theme.md).
+
 ## Dependencies
 
 - [Microsoft .NET](https://dotnet.microsoft.com/)
