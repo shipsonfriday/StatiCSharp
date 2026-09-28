@@ -43,7 +43,7 @@ public class DefaultHtmlFactory: IHtmlFactory
     /// <inheritdoc/>
     public string MakeHeadHtml()
     {
-        return "<link rel=\"stylesheet\" href=\"/default-theme/styles.css\">";
+        return new Link().Rel("stylesheet").Href("/default-theme/styles.css").Render();
     }
 
     /// <inheritdoc/>

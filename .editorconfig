@@ -148,3 +148,9 @@ dotnet_naming_rule.parameters_and_locals_are_camel_case.severity = suggestion
 [src/StatiCSharp/HtmlComponents/*.cs]
 dotnet_diagnostic.CA1010.severity = none
 dotnet_diagnostic.CA1710.severity = none
+
+# CA1716 flags Option, Select and Sub as reserved keywords in Visual Basic. Every
+# identifier in this folder is named after the html tag or attribute it produces, so any
+# hit here has the same answer: the html name wins. Renaming them would break the rule
+# that a type's lowercased name is its tag, and OptionElement reads worse than Option.
+dotnet_diagnostic.CA1716.severity = none

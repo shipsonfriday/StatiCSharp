@@ -30,7 +30,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="component"></param>
         public A(IHtmlComponent component)
         {
-            Content = new List<IHtmlComponent>() { component };
+            Children = new List<IHtmlComponent>() { component };
         }
 
         /// <summary>
@@ -39,8 +39,8 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="text">The text for the link.</param>
         public A(string text)
         {
-            Content = new List<IHtmlComponent>();
-            Content.Add(new Text(text));
+            Children = new List<IHtmlComponent>();
+            Children.Add(new Text(text));
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace StatiCSharp.HtmlComponents
         {
             ArgumentNullException.ThrowIfNull(content);
 
-            Content = [.. content];
+            Children = [.. content];
         }
 
         /// <summary>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using StatiCSharp.HtmlComponents;
 using StatiCSharp.Interfaces;
 using Xunit;
@@ -22,12 +22,12 @@ public class SectionTag : HtmlElement<SectionTag>
 
     public SectionTag(params IHtmlComponent[] content)
     {
-        Content = [.. content];
+        Children = [.. content];
     }
 
     public SectionTag(string text)
     {
-        Content = [new Text(text)];
+        Children = [new Text(text)];
     }
 }
 

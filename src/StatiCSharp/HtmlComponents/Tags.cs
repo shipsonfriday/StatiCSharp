@@ -260,5 +260,482 @@ namespace StatiCSharp.HtmlComponents
         /// <summary>Creates an image with the given source. Short for <see cref="Image(string)"/>.</summary>
         /// <param name="source">The value of the src attribute.</param>
         public static Image Img(string source) => new(source);
+
+        /// <summary>Creates an empty &lt;main&gt; element.</summary>
+        public static Main Main() => new();
+
+        /// <summary>Creates a &lt;main&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Main Main(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;main&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Main Main(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;section&gt; element.</summary>
+        public static Section Section() => new();
+
+        /// <summary>Creates a &lt;section&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Section Section(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;section&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Section Section(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;aside&gt; element.</summary>
+        public static Aside Aside() => new();
+
+        /// <summary>Creates a &lt;aside&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Aside Aside(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;aside&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Aside Aside(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;figure&gt; element.</summary>
+        public static Figure Figure() => new();
+
+        /// <summary>Creates a &lt;figure&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Figure Figure(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;figure&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Figure Figure(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;figcaption&gt; element.</summary>
+        public static Figcaption Figcaption() => new();
+
+        /// <summary>Creates a &lt;figcaption&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Figcaption Figcaption(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;figcaption&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Figcaption Figcaption(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;strong&gt; element.</summary>
+        public static Strong Strong() => new();
+
+        /// <summary>Creates a &lt;strong&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Strong Strong(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;strong&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Strong Strong(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;em&gt; element.</summary>
+        public static Em Em() => new();
+
+        /// <summary>Creates a &lt;em&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Em Em(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;em&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Em Em(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;small&gt; element.</summary>
+        public static Small Small() => new();
+
+        /// <summary>Creates a &lt;small&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Small Small(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;small&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Small Small(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;mark&gt; element.</summary>
+        public static Mark Mark() => new();
+
+        /// <summary>Creates a &lt;mark&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Mark Mark(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;mark&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Mark Mark(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;code&gt; element.</summary>
+        public static Code Code() => new();
+
+        /// <summary>Creates a &lt;code&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Code Code(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;code&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Code Code(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;pre&gt; element.</summary>
+        public static Pre Pre() => new();
+
+        /// <summary>Creates a &lt;pre&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Pre Pre(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;pre&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Pre Pre(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;blockquote&gt; element.</summary>
+        public static Blockquote Blockquote() => new();
+
+        /// <summary>Creates a &lt;blockquote&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Blockquote Blockquote(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;blockquote&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Blockquote Blockquote(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;cite&gt; element.</summary>
+        public static Cite Cite() => new();
+
+        /// <summary>Creates a &lt;cite&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Cite Cite(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;cite&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Cite Cite(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;abbr&gt; element.</summary>
+        public static Abbr Abbr() => new();
+
+        /// <summary>Creates a &lt;abbr&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Abbr Abbr(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;abbr&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Abbr Abbr(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;sub&gt; element.</summary>
+        public static Sub Sub() => new();
+
+        /// <summary>Creates a &lt;sub&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Sub Sub(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;sub&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Sub Sub(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;sup&gt; element.</summary>
+        public static Sup Sup() => new();
+
+        /// <summary>Creates a &lt;sup&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Sup Sup(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;sup&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Sup Sup(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;time&gt; element.</summary>
+        public static Time Time() => new();
+
+        /// <summary>Creates a &lt;time&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Time Time(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;time&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Time Time(string text) => new(text);
+
+        /// <summary>Creates a &lt;link&gt; element.</summary>
+        public static Link Link() => new();
+
+        /// <summary>Creates a &lt;meta&gt; element.</summary>
+        public static Meta Meta() => new();
+
+        /// <summary>Creates an empty &lt;script&gt; element.</summary>
+        public static Script Script() => new();
+
+        /// <summary>Creates a &lt;script&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Script Script(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;script&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Script Script(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;style&gt; element.</summary>
+        public static Style Style() => new();
+
+        /// <summary>Creates a &lt;style&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Style Style(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;style&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Style Style(string text) => new(text);
+
+        /// <summary>Creates a &lt;br&gt; element.</summary>
+        public static Br Br() => new();
+
+        /// <summary>Creates a &lt;hr&gt; element.</summary>
+        public static Hr Hr() => new();
+
+        /// <summary>Creates an empty &lt;dl&gt; element.</summary>
+        public static Dl Dl() => new();
+
+        /// <summary>Creates a &lt;dl&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Dl Dl(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;dl&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Dl Dl(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;dt&gt; element.</summary>
+        public static Dt Dt() => new();
+
+        /// <summary>Creates a &lt;dt&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Dt Dt(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;dt&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Dt Dt(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;dd&gt; element.</summary>
+        public static Dd Dd() => new();
+
+        /// <summary>Creates a &lt;dd&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Dd Dd(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;dd&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Dd Dd(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;details&gt; element.</summary>
+        public static Details Details() => new();
+
+        /// <summary>Creates a &lt;details&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Details Details(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;details&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Details Details(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;summary&gt; element.</summary>
+        public static Summary Summary() => new();
+
+        /// <summary>Creates a &lt;summary&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Summary Summary(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;summary&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Summary Summary(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;table&gt; element.</summary>
+        public static Table Table() => new();
+
+        /// <summary>Creates a &lt;table&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Table Table(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;table&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Table Table(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;caption&gt; element.</summary>
+        public static Caption Caption() => new();
+
+        /// <summary>Creates a &lt;caption&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Caption Caption(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;caption&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Caption Caption(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;thead&gt; element.</summary>
+        public static Thead Thead() => new();
+
+        /// <summary>Creates a &lt;thead&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Thead Thead(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;thead&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Thead Thead(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;tbody&gt; element.</summary>
+        public static Tbody Tbody() => new();
+
+        /// <summary>Creates a &lt;tbody&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Tbody Tbody(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;tbody&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Tbody Tbody(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;tfoot&gt; element.</summary>
+        public static Tfoot Tfoot() => new();
+
+        /// <summary>Creates a &lt;tfoot&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Tfoot Tfoot(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;tfoot&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Tfoot Tfoot(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;tr&gt; element.</summary>
+        public static Tr Tr() => new();
+
+        /// <summary>Creates a &lt;tr&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Tr Tr(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;tr&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Tr Tr(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;th&gt; element.</summary>
+        public static Th Th() => new();
+
+        /// <summary>Creates a &lt;th&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Th Th(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;th&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Th Th(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;td&gt; element.</summary>
+        public static Td Td() => new();
+
+        /// <summary>Creates a &lt;td&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Td Td(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;td&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Td Td(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;form&gt; element.</summary>
+        public static Form Form() => new();
+
+        /// <summary>Creates a &lt;form&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Form Form(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;form&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Form Form(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;label&gt; element.</summary>
+        public static Label Label() => new();
+
+        /// <summary>Creates a &lt;label&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Label Label(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;label&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Label Label(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;button&gt; element.</summary>
+        public static Button Button() => new();
+
+        /// <summary>Creates a &lt;button&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Button Button(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;button&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Button Button(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;select&gt; element.</summary>
+        public static Select Select() => new();
+
+        /// <summary>Creates a &lt;select&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Select Select(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;select&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Select Select(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;option&gt; element.</summary>
+        public static Option Option() => new();
+
+        /// <summary>Creates a &lt;option&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Option Option(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;option&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Option Option(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;textarea&gt; element.</summary>
+        public static Textarea Textarea() => new();
+
+        /// <summary>Creates a &lt;textarea&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Textarea Textarea(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;textarea&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Textarea Textarea(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;picture&gt; element.</summary>
+        public static Picture Picture() => new();
+
+        /// <summary>Creates a &lt;picture&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Picture Picture(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;picture&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Picture Picture(string text) => new(text);
+
+        /// <summary>Creates a &lt;source&gt; element.</summary>
+        public static Source Source() => new();
+
+        /// <summary>Creates an empty &lt;video&gt; element.</summary>
+        public static Video Video() => new();
+
+        /// <summary>Creates a &lt;video&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Video Video(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;video&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Video Video(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;audio&gt; element.</summary>
+        public static Audio Audio() => new();
+
+        /// <summary>Creates a &lt;audio&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Audio Audio(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;audio&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Audio Audio(string text) => new(text);
+
+        /// <summary>Creates an empty &lt;iframe&gt; element.</summary>
+        public static Iframe Iframe() => new();
+
+        /// <summary>Creates a &lt;iframe&gt; element with the given content.</summary>
+        /// <param name="content">The elements or components inside it.</param>
+        public static Iframe Iframe(params IHtmlComponent[] content) => new(content);
+
+        /// <summary>Creates a &lt;iframe&gt; element with the given text.</summary>
+        /// <param name="text">The text inside it.</param>
+        public static Iframe Iframe(string text) => new(text);
     }
 }

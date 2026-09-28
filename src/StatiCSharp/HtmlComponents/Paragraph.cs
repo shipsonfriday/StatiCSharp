@@ -30,7 +30,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="component">The element or component for the content of the paragraph.</param>
         public Paragraph(IHtmlComponent component)
         {
-            Content = new List<IHtmlComponent>() { component };
+            Children = new List<IHtmlComponent>() { component };
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="text">The text for the content of the paragraph.</param>
         public Paragraph(string text)
         {
-            Content = new List<IHtmlComponent>() { new Text(text) };
+            Children = new List<IHtmlComponent>() { new Text(text) };
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace StatiCSharp.HtmlComponents
         {
             ArgumentNullException.ThrowIfNull(content);
 
-            Content = [.. content];
+            Children = [.. content];
         }
 
     }

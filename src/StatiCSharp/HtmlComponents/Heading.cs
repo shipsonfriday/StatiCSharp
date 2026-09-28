@@ -30,7 +30,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="component">The element or component for the content of the element.</param>
         public H1(IHtmlComponent component)
         {
-            Content = new List<IHtmlComponent>() { component };
+            Children = new List<IHtmlComponent>() { component };
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="text">The text for the content of the element.</param>
         public H1(string text)
         {
-            Content = new List<IHtmlComponent>() { new Text(text) };
+            Children = new List<IHtmlComponent>() { new Text(text) };
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace StatiCSharp.HtmlComponents
         {
             ArgumentNullException.ThrowIfNull(content);
 
-            Content = [.. content];
+            Children = [.. content];
         }
     }
 
@@ -83,7 +83,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="component">The element or component for the content of the element.</param>
         public H2(IHtmlComponent component)
         {
-            Content = new List<IHtmlComponent>() { component };
+            Children = new List<IHtmlComponent>() { component };
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="text">The text for the content of the element.</param>
         public H2(string text)
         {
-            Content = new List<IHtmlComponent>() { new Text(text) };
+            Children = new List<IHtmlComponent>() { new Text(text) };
         }
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace StatiCSharp.HtmlComponents
         {
             ArgumentNullException.ThrowIfNull(content);
 
-            Content = [.. content];
+            Children = [.. content];
         }
     }
 
@@ -136,7 +136,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="component">The element or component for the content of the element.</param>
         public H3(IHtmlComponent component)
         {
-            Content = new List<IHtmlComponent>() { component };
+            Children = new List<IHtmlComponent>() { component };
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="text">The text for the content of the element.</param>
         public H3(string text)
         {
-            Content = new List<IHtmlComponent>() { new Text(text) };
+            Children = new List<IHtmlComponent>() { new Text(text) };
         }
 
         /// <summary>
@@ -158,7 +158,7 @@ namespace StatiCSharp.HtmlComponents
         {
             ArgumentNullException.ThrowIfNull(content);
 
-            Content = [.. content];
+            Children = [.. content];
         }
     }
 
@@ -189,7 +189,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="component">The element or component for the content of the element.</param>
         public H4(IHtmlComponent component)
         {
-            Content = new List<IHtmlComponent>() { component };
+            Children = new List<IHtmlComponent>() { component };
         }
 
         /// <summary>
@@ -198,7 +198,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="text">The text for the content of the element.</param>
         public H4(string text)
         {
-            Content = new List<IHtmlComponent>() { new Text(text) };
+            Children = new List<IHtmlComponent>() { new Text(text) };
         }
 
         /// <summary>
@@ -211,7 +211,7 @@ namespace StatiCSharp.HtmlComponents
         {
             ArgumentNullException.ThrowIfNull(content);
 
-            Content = [.. content];
+            Children = [.. content];
         }
     }
 
@@ -242,7 +242,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="component">The element or component for the content of the element.</param>
         public H5(IHtmlComponent component)
         {
-            Content = new List<IHtmlComponent>() { component };
+            Children = new List<IHtmlComponent>() { component };
         }
 
         /// <summary>
@@ -251,7 +251,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="text">The text for the content of the element.</param>
         public H5(string text)
         {
-            Content = new List<IHtmlComponent>() { new Text(text) };
+            Children = new List<IHtmlComponent>() { new Text(text) };
         }
 
         /// <summary>
@@ -264,7 +264,7 @@ namespace StatiCSharp.HtmlComponents
         {
             ArgumentNullException.ThrowIfNull(content);
 
-            Content = [.. content];
+            Children = [.. content];
         }
     }
 
@@ -295,7 +295,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="component">The element or component for the content of the element.</param>
         public H6(IHtmlComponent component)
         {
-            Content = new List<IHtmlComponent>() { component };
+            Children = new List<IHtmlComponent>() { component };
         }
 
         /// <summary>
@@ -304,7 +304,7 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="text">The text for the content of the element.</param>
         public H6(string text)
         {
-            Content = new List<IHtmlComponent>() { new Text(text) };
+            Children = new List<IHtmlComponent>() { new Text(text) };
         }
 
         /// <summary>
@@ -317,7 +317,7 @@ namespace StatiCSharp.HtmlComponents
         {
             ArgumentNullException.ThrowIfNull(content);
 
-            Content = [.. content];
+            Children = [.. content];
         }
     }
 }

@@ -43,9 +43,9 @@ namespace StatiCSharp.HtmlComponents
         protected virtual bool VoidElement { get; set; }
 
         /// <summary>
-        /// Contains the components inside the element.
+        /// The components inside this element.
         /// </summary>
-        protected List<IHtmlComponent> Content { get; set; }
+        protected List<IHtmlComponent> Children { get; set; }
 
         /// <summary>
         /// Contains the attributes that are added to the opening tag of the element.
@@ -58,7 +58,7 @@ namespace StatiCSharp.HtmlComponents
         /// </summary>
         public HtmlElement()
         {
-            Content = new List<IHtmlComponent>();
+            Children = new List<IHtmlComponent>();
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace StatiCSharp.HtmlComponents
         /// </para>
         /// </summary>
         /// <returns>An enumerator over the content of this element.</returns>
-        IEnumerator IEnumerable.GetEnumerator() => Content.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => Children.GetEnumerator();
 
         /// <summary>
         /// Adds an element or component to the content of this element.
@@ -84,14 +84,14 @@ namespace StatiCSharp.HtmlComponents
         /// </para>
         /// </summary>
         /// <param name="component">The element or component to add. Must implement IHtmlComponent.</param>
-        public void Add(IHtmlComponent component) => Content.Add(component);
+        public void Add(IHtmlComponent component) => Children.Add(component);
 
         /// <summary>
         /// Adds text to the content of this element. The text is written as it is; use
         /// encoding at the call site if it comes from anywhere but your own code.
         /// </summary>
         /// <param name="text">The text to add inside the content of the element.</param>
-        public void Add(string text) => Content.Add(new Text(text));
+        public void Add(string text) => Children.Add(new Text(text));
 
         /// <summary>
         /// Rejects attribute names that would not survive being written into a tag.
@@ -159,7 +159,7 @@ namespace StatiCSharp.HtmlComponents
             // Build content of the element
             if (!VoidElement)
             {
-                foreach (IHtmlComponent element in Content)
+                foreach (IHtmlComponent element in Children)
                 {
                     elementBuilder.Append(element.Render());
                 }

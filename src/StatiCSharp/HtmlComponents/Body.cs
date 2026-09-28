@@ -31,8 +31,8 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="element">The element or component for the content of the html tag.</param>
         public Body(IHtmlComponent element)
         {
-            Content = new List<IHtmlComponent>();
-            Content.Add(element);
+            Children = new List<IHtmlComponent>();
+            Children.Add(element);
         }
 
         /// <summary>
@@ -41,8 +41,8 @@ namespace StatiCSharp.HtmlComponents
         /// <param name="text">The text for the content of the html tag.</param>
         public Body(string text)
         {
-            Content = new List<IHtmlComponent>();
-            Content.Add(new Text(text));
+            Children = new List<IHtmlComponent>();
+            Children.Add(new Text(text));
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace StatiCSharp.HtmlComponents
         {
             ArgumentNullException.ThrowIfNull(content);
 
-            Content = [.. content];
+            Children = [.. content];
         }
 
     }
