@@ -9,7 +9,7 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;nav&gt;&lt;/nav&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class Nav : HtmlElement, IHtmlComponent
+    public class Nav : HtmlElement<Nav>, IHtmlComponent
     {
         private protected override string TagName
         {

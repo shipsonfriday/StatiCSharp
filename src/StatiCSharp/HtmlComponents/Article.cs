@@ -8,7 +8,7 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;article&gt;&lt;/article&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class Article : HtmlElement, IHtmlComponent
+    public class Article : HtmlElement<Article>, IHtmlComponent
     {
         private protected override string TagName
         {

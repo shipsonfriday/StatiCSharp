@@ -56,17 +56,6 @@ namespace StatiCSharp.HtmlComponents
         }
 
         /// <summary>
-        /// Add a new element or component to the content of this element.
-        /// </summary>
-        /// <param name="component">The element or component you want to add. Must implement IHtmlComponent</param>
-        /// <returns>this - The element object itself</returns>
-        public HtmlElement Add(IHtmlComponent component)
-        {
-            Content.Add(component);
-            return this;
-        }
-
-        /// <summary>
         /// Enumerates the components inside this element.
         /// <para>
         /// Present so that a collection initializer can be used; see <see cref="HtmlElement"/>.
@@ -74,142 +63,6 @@ namespace StatiCSharp.HtmlComponents
         /// </summary>
         /// <returns>An enumerator over the content of this element.</returns>
         IEnumerator IEnumerable.GetEnumerator() => Content.GetEnumerator();
-
-        /// <summary>
-        /// Add text to the content of this element.
-        /// </summary>
-        /// <param name="text">The text to add inside the content of the element.</param>
-        /// <returns>this - The element object itself</returns>
-        public HtmlElement Add(string text)
-        {
-            Content.Add(new Text(text));
-            return this;
-        }
-
-        /// <summary>
-        /// Add a class attribute.
-        /// </summary>
-        /// <param name="cssClass">The name of the css class you want to assign.</param>
-        /// <returns>this - the element itself.</returns>
-        public HtmlElement Class(string cssClass)
-        {
-            Attributes["class"] = cssClass;
-            return this;
-        }
-
-        /// <summary>
-        /// Add a style attribute.
-        /// </summary>
-        /// <param name="style">The content of the style attribute.</param>
-        /// <returns>this - The element itself.></returns>
-        public HtmlElement Style(string style)
-        {
-            Attributes["style"] = style;
-            return this;
-        }
-
-        /// <summary>
-        /// Specifies the width of the element.
-        /// </summary>
-        /// <param name="width"></param>
-        /// <returns>this - the element itself.</returns>
-        public HtmlElement Width(int width)
-        {
-            Attributes["width"] = width.ToString(CultureInfo.InvariantCulture);
-            return this;
-        }
-
-        /// <summary>
-        /// Specifies the height of the element.
-        /// </summary>
-        /// <param name="height"></param>
-        /// <returns>this - the element itself.</returns>
-        public HtmlElement Height(int height)
-        {
-            Attributes["height"] = height.ToString(CultureInfo.InvariantCulture);
-            return this;
-        }
-
-        /// <summary>
-        /// Indicates that the element is not yet, or is no longer, relevant.<br/>
-        /// The browser won't render such elements. This attribute must not be used to hide content that could legitimately be shown.
-        /// </summary>
-        /// <returns></returns>
-        public HtmlElement Hidden()
-        {
-            Attributes["hidden"] = null;
-            return this;
-        }
-
-        /// <summary>
-        /// Defines a unique identifier which must be unique in the whole document.<br/>
-        /// Its purpose is to identify the element when linking, scripting, or styling.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public HtmlElement Id(string id)
-        {
-            Attributes["id"] = id;
-            return this;
-        }
-
-        /// <summary>
-        /// An integer attribute indicating if the element can take input focus, if it should participate to sequential keyboard navigation, and if so, at what position.
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        public HtmlElement TabIndex(int index)
-        {
-            Attributes["tabindex"] = index.ToString(CultureInfo.InvariantCulture);
-            return this;
-        }
-
-        /// <summary>
-        /// Sets an attribute that carries no value, e.g. <c>required</c> or <c>open</c>.
-        /// </summary>
-        /// <param name="key">The name of the attribute.</param>
-        /// <returns>this - the element itself.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="key"/> is blank or not a usable attribute name.</exception>
-        public HtmlElement Attribute(string key)
-        {
-            Attributes[CheckedKey(key)] = null;
-            return this;
-        }
-
-        /// <summary>
-        /// Sets any attribute, for the cases this library has no dedicated method for -
-        /// <c>data-*</c>, <c>aria-*</c>, <c>role</c>, <c>rel</c> and the like.
-        /// <para>
-        /// The value is encoded when the element is rendered. Pass null to write the
-        /// attribute without a value.
-        /// </para>
-        /// </summary>
-        /// <param name="key">The name of the attribute.</param>
-        /// <param name="value">The value of the attribute, or null for none.</param>
-        /// <returns>this - the element itself.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="key"/> is blank or not a usable attribute name.</exception>
-        public HtmlElement Attribute(string key, string? value)
-        {
-            Attributes[CheckedKey(key)] = value;
-            return this;
-        }
-
-        /// <summary>
-        /// Sets any attribute to a number, formatted invariantly so that the result does not
-        /// depend on the machine's locale.
-        /// </summary>
-        /// <param name="key">The name of the attribute.</param>
-        /// <param name="value">The value of the attribute.</param>
-        /// <returns>this - the element itself.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="key"/> is blank or not a usable attribute name.</exception>
-        public HtmlElement Attribute(string key, int value)
-        {
-            Attributes[CheckedKey(key)] = value.ToString(CultureInfo.InvariantCulture);
-            return this;
-        }
 
         /// <summary>
         /// Rejects attribute names that would not survive being written into a tag.
@@ -220,7 +73,7 @@ namespace StatiCSharp.HtmlComponents
         /// matter.
         /// </para>
         /// </summary>
-        private static string CheckedKey(string key)
+        private protected static string CheckedKey(string key)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
@@ -289,4 +142,170 @@ namespace StatiCSharp.HtmlComponents
             return elementBuilder.ToString();
         }
     }
+
+    /// <summary>
+    /// Adds the fluent methods that every element shares, typed so that they hand back the
+    /// derived element rather than the base.
+    /// <para>
+    /// Without <typeparamref name="TSelf"/> a chain would lose the derived type after the
+    /// first shared method, and this would not compile:
+    /// <code>
+    /// new A("Link").Class("nav").Href("/posts")
+    /// </code>
+    /// because <c>Class</c> would have returned <see cref="HtmlElement"/>, which has no
+    /// <c>Href</c>. The call order used to matter; it no longer does.
+    /// </para>
+    /// </summary>
+    /// <typeparam name="TSelf">The deriving element type.</typeparam>
+    public abstract class HtmlElement<TSelf> : HtmlElement
+        where TSelf : HtmlElement<TSelf>
+    {
+        /// <summary>
+        /// Add a new element or component to the content of this element.
+        /// </summary>
+        /// <param name="component">The element or component you want to add. Must implement IHtmlComponent</param>
+        /// <returns>this - the element itself, typed as <typeparamref name="TSelf"/>.</returns>
+        public TSelf Add(IHtmlComponent component)
+        {
+            Content.Add(component);
+            return (TSelf)this;
+        }
+
+        /// <summary>
+        /// Add text to the content of this element.
+        /// </summary>
+        /// <param name="text">The text to add inside the content of the element.</param>
+        /// <returns>this - the element itself, typed as <typeparamref name="TSelf"/>.</returns>
+        public TSelf Add(string text)
+        {
+            Content.Add(new Text(text));
+            return (TSelf)this;
+        }
+
+        /// <summary>
+        /// Add a class attribute.
+        /// </summary>
+        /// <param name="cssClass">The name of the css class you want to assign.</param>
+        /// <returns>this - the element itself, typed as <typeparamref name="TSelf"/>.</returns>
+        public TSelf Class(string cssClass)
+        {
+            Attributes["class"] = cssClass;
+            return (TSelf)this;
+        }
+
+        /// <summary>
+        /// Add a style attribute.
+        /// </summary>
+        /// <param name="style">The content of the style attribute.</param>
+        /// <returns>this - The element itself.></returns>
+        public TSelf Style(string style)
+        {
+            Attributes["style"] = style;
+            return (TSelf)this;
+        }
+
+        /// <summary>
+        /// Specifies the width of the element.
+        /// </summary>
+        /// <param name="width"></param>
+        /// <returns>this - the element itself, typed as <typeparamref name="TSelf"/>.</returns>
+        public TSelf Width(int width)
+        {
+            Attributes["width"] = width.ToString(CultureInfo.InvariantCulture);
+            return (TSelf)this;
+        }
+
+        /// <summary>
+        /// Specifies the height of the element.
+        /// </summary>
+        /// <param name="height"></param>
+        /// <returns>this - the element itself, typed as <typeparamref name="TSelf"/>.</returns>
+        public TSelf Height(int height)
+        {
+            Attributes["height"] = height.ToString(CultureInfo.InvariantCulture);
+            return (TSelf)this;
+        }
+
+        /// <summary>
+        /// Indicates that the element is not yet, or is no longer, relevant.<br/>
+        /// The browser won't render such elements. This attribute must not be used to hide content that could legitimately be shown.
+        /// </summary>
+        /// <returns></returns>
+        public TSelf Hidden()
+        {
+            Attributes["hidden"] = null;
+            return (TSelf)this;
+        }
+
+        /// <summary>
+        /// Defines a unique identifier which must be unique in the whole document.<br/>
+        /// Its purpose is to identify the element when linking, scripting, or styling.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public TSelf Id(string id)
+        {
+            Attributes["id"] = id;
+            return (TSelf)this;
+        }
+
+        /// <summary>
+        /// An integer attribute indicating if the element can take input focus, if it should participate to sequential keyboard navigation, and if so, at what position.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public TSelf TabIndex(int index)
+        {
+            Attributes["tabindex"] = index.ToString(CultureInfo.InvariantCulture);
+            return (TSelf)this;
+        }
+
+        /// <summary>
+        /// Sets an attribute that carries no value, e.g. <c>required</c> or <c>open</c>.
+        /// </summary>
+        /// <param name="key">The name of the attribute.</param>
+        /// <returns>this - the element itself, typed as <typeparamref name="TSelf"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="key"/> is blank or not a usable attribute name.</exception>
+        public TSelf Attribute(string key)
+        {
+            Attributes[CheckedKey(key)] = null;
+            return (TSelf)this;
+        }
+
+        /// <summary>
+        /// Sets any attribute, for the cases this library has no dedicated method for -
+        /// <c>data-*</c>, <c>aria-*</c>, <c>role</c>, <c>rel</c> and the like.
+        /// <para>
+        /// The value is encoded when the element is rendered. Pass null to write the
+        /// attribute without a value.
+        /// </para>
+        /// </summary>
+        /// <param name="key">The name of the attribute.</param>
+        /// <param name="value">The value of the attribute, or null for none.</param>
+        /// <returns>this - the element itself, typed as <typeparamref name="TSelf"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="key"/> is blank or not a usable attribute name.</exception>
+        public TSelf Attribute(string key, string? value)
+        {
+            Attributes[CheckedKey(key)] = value;
+            return (TSelf)this;
+        }
+
+        /// <summary>
+        /// Sets any attribute to a number, formatted invariantly so that the result does not
+        /// depend on the machine's locale.
+        /// </summary>
+        /// <param name="key">The name of the attribute.</param>
+        /// <param name="value">The value of the attribute.</param>
+        /// <returns>this - the element itself, typed as <typeparamref name="TSelf"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="key"/> is blank or not a usable attribute name.</exception>
+        public TSelf Attribute(string key, int value)
+        {
+            Attributes[CheckedKey(key)] = value.ToString(CultureInfo.InvariantCulture);
+            return (TSelf)this;
+        }
+    }
+
 }

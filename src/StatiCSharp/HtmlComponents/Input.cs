@@ -7,7 +7,7 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;input /&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class Input : HtmlElement, IHtmlComponent
+    public class Input : HtmlElement<Input>, IHtmlComponent
     {
         private protected override string TagName
         {
@@ -202,33 +202,5 @@ namespace StatiCSharp.HtmlComponents
             return this;
         }
 
-        /// <summary>
-        /// A wildcard to set custom attributes if the needed attribute is not supported yet.
-        /// <para>
-        /// Declared here only to keep the chain on <see cref="Input"/>; the work and the
-        /// name checking happen in <see cref="HtmlElement.Attribute(string, string?)"/>.
-        /// </para>
-        /// </summary>
-        /// <param name="key">The name of the attribute.</param>
-        /// <param name="value">The value of the attribute, or null for none.</param>
-        /// <returns>this - the element itself.</returns>
-        public new Input Attribute(string key, string? value)
-        {
-            base.Attribute(key, value);
-            return this;
-        }
-
-        /// <summary>
-        /// A wildcard to set a custom numeric attribute if the needed attribute is not
-        /// supported yet. Formatted invariantly.
-        /// </summary>
-        /// <param name="key">The name of the attribute.</param>
-        /// <param name="value">The value of the attribute.</param>
-        /// <returns>this - the element itself.</returns>
-        public new Input Attribute(string key, int value)
-        {
-            base.Attribute(key, value);
-            return this;
-        }
     }
 }

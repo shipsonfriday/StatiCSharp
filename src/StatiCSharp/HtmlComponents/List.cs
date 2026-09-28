@@ -9,7 +9,7 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;li&gt;&lt;/li&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class Li: HtmlElement, IHtmlComponent
+    public class Li: HtmlElement<Li>, IHtmlComponent
     {
         private protected override string TagName
         {
@@ -77,7 +77,7 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;ul&gt;&lt;/ul&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class Ul : HtmlElement, IHtmlComponent
+    public class Ul : HtmlElement<Ul>, IHtmlComponent
     {
         private protected override string TagName
         {
@@ -130,7 +130,7 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;ol&gt;&lt;/ol&gt; element.<br/>
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class Ol : HtmlElement, IHtmlComponent
+    public class Ol : HtmlElement<Ol>, IHtmlComponent
     {
         private protected override string TagName
         {

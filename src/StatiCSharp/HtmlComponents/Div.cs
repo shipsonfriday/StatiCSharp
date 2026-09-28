@@ -9,7 +9,7 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a <div></div> element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class Div : HtmlElement, IHtmlComponent
+    public class Div : HtmlElement<Div>, IHtmlComponent
     {
         private protected override string TagName
         {

@@ -9,7 +9,7 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;p&gt;&lt;/p&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class Paragraph : HtmlElement, IHtmlComponent
+    public class Paragraph : HtmlElement<Paragraph>, IHtmlComponent
     {
         private protected override string TagName
         {

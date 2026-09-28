@@ -9,7 +9,7 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;span&gt;&lt;/span&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class Span : HtmlElement, IHtmlComponent
+    public class Span : HtmlElement<Span>, IHtmlComponent
     {
         private protected override string TagName
         {

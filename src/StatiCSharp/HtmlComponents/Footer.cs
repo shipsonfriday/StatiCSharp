@@ -8,7 +8,7 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;footer&gt;&lt;/footer&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class Footer : HtmlElement, IHtmlComponent
+    public class Footer : HtmlElement<Footer>, IHtmlComponent
     {
         private protected override string TagName
         {

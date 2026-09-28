@@ -8,7 +8,7 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;h1&gt;&lt;/h1&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class H1 : HtmlElement, IHtmlComponent
+    public class H1 : HtmlElement<H1>, IHtmlComponent
     {
         private protected override string TagName
         {
@@ -60,7 +60,7 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;h2&gt;&lt;/h2&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class H2 : HtmlElement, IHtmlComponent
+    public class H2 : HtmlElement<H2>, IHtmlComponent
     {
         private protected override string TagName
         {
@@ -112,7 +112,7 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;h3&gt;&lt;/h3&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class H3 : HtmlElement, IHtmlComponent
+    public class H3 : HtmlElement<H3>, IHtmlComponent
     {
         private protected override string TagName
         {
@@ -164,7 +164,7 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;h4&gt;&lt;/h4&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class H4 : HtmlElement, IHtmlComponent
+    public class H4 : HtmlElement<H4>, IHtmlComponent
     {
         private protected override string TagName
         {
@@ -216,7 +216,7 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;h5&gt;&lt;/h5&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class H5 : HtmlElement, IHtmlComponent
+    public class H5 : HtmlElement<H5>, IHtmlComponent
     {
         private protected override string TagName
         {
@@ -268,7 +268,7 @@ namespace StatiCSharp.HtmlComponents
     /// A representation of a &lt;h6&gt;&lt;/h6&gt; element.
     /// Call the Render() method to turn it into an HTML string.
     /// </summary>
-    public class H6 : HtmlElement, IHtmlComponent
+    public class H6 : HtmlElement<H6>, IHtmlComponent
     {
         private protected override string TagName
         {
