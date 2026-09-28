@@ -1,5 +1,6 @@
 using System;
 using StatiCSharp.HtmlComponents;
+using StatiCSharp.Interfaces;
 using Xunit;
 
 namespace StatiCSharp.Tests;
@@ -16,6 +17,18 @@ namespace StatiCSharp.Tests;
 public class SectionTag : HtmlElement<SectionTag>
 {
     protected override string TagName => "section";
+
+    public SectionTag() { }
+
+    public SectionTag(params IHtmlComponent[] content)
+    {
+        Content = [.. content];
+    }
+
+    public SectionTag(string text)
+    {
+        Content = [new Text(text)];
+    }
 }
 
 /// <summary>
@@ -41,16 +54,15 @@ public class CustomElementTests
     [Fact]
     public void ACustomElementRenders()
     {
-        Assert.Equal("<section>body</section>", new SectionTag().Add("body").Render());
+        Assert.Equal("<section>body</section>", new SectionTag("body").Render());
     }
 
     [Fact]
     public void ACustomElementGetsTheSharedFluentMethodsTypedToItself()
     {
-        SectionTag section = new SectionTag()
+        SectionTag section = new SectionTag(new H1("Title"))
             .Class("content")
-            .Attribute("aria-label", "Main")
-            .Add(new H1("Title"));
+            .Attribute("aria-label", "Main");
 
         Assert.Equal(
             "<section class=\"content\" aria-label=\"Main\"><h1>Title</h1></section>",
@@ -60,7 +72,7 @@ public class CustomElementTests
     [Fact]
     public void ACustomElementWorksInTheNestingAndInitializerSyntax()
     {
-        string nested = new Div(new SectionTag().Add(new Paragraph("Text"))).Render();
+        string nested = new Div(new SectionTag(new Paragraph("Text"))).Render();
         string initializer = new Div { new SectionTag { new Paragraph("Text") } }.Render();
 
         Assert.Equal("<div><section><p>Text</p></section></div>", nested);
@@ -77,6 +89,14 @@ public class CustomElementTests
     public void TheNonGenericBaseCanBeDerivedFromAsWell()
     {
         Assert.Equal("<mark></mark>", new Marker().Render());
+    }
+
+    [Fact]
+    public void TheInitializerWorksOnTheNonGenericBaseToo()
+    {
+        // Add and IEnumerable both sit on the non-generic base, so the initializer is
+        // available even without the TSelf parameter.
+        Assert.Equal("<mark><h1>Title</h1></mark>", new Marker { new H1("Title") }.Render());
     }
 
     [Fact]

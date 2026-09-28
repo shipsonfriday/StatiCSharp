@@ -81,12 +81,13 @@ public class HtmlChainingTests
     }
 
     [Fact]
-    public void AddKeepsTheDerivedTypeAsWell()
+    public void TheDerivedTypeSurvivesTheInitializerFormToo()
     {
-        Div wrapper = new Div()
-            .Add(new H1("Title"))
-            .Class("wrapper")
-            .Add(new Paragraph("Text"));
+        Div wrapper = new Div
+        {
+            new H1("Title"),
+            new Paragraph("Text"),
+        }.Class("wrapper");
 
         Assert.Equal(
             "<div class=\"wrapper\"><h1>Title</h1><p>Text</p></div>",

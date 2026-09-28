@@ -58,16 +58,12 @@ public class HtmlNestingTests
     }
 
     [Fact]
-    public void TheFluentAddStyleKeepsWorking()
+    public void TheInitializerFormProducesTheSameHtml()
     {
-        string chained = new Div()
-            .Add(new H1("Title"))
-            .Add(new Paragraph("Text"))
-            .Render();
-
+        string initializer = new Div { new H1("Title"), new Paragraph("Text") }.Render();
         string nested = new Div(new H1("Title"), new Paragraph("Text")).Render();
 
-        Assert.Equal(nested, chained);
+        Assert.Equal(nested, initializer);
     }
 
     [Fact]

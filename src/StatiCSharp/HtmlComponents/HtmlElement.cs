@@ -71,6 +71,29 @@ namespace StatiCSharp.HtmlComponents
         IEnumerator IEnumerable.GetEnumerator() => Content.GetEnumerator();
 
         /// <summary>
+        /// Adds an element or component to the content of this element.
+        /// <para>
+        /// Returns nothing on purpose. Together with <see cref="IEnumerable"/> this is what
+        /// a collection initializer needs, which ignores the return value:
+        /// <code>
+        /// new Div { new H1("Title"), new Paragraph("Text") }
+        /// </code>
+        /// It used to return the element so that calls could be chained. That third way of
+        /// nesting was dropped in favour of the two above, and a void return is what makes
+        /// it impossible rather than merely unused.
+        /// </para>
+        /// </summary>
+        /// <param name="component">The element or component to add. Must implement IHtmlComponent.</param>
+        public void Add(IHtmlComponent component) => Content.Add(component);
+
+        /// <summary>
+        /// Adds text to the content of this element. The text is written as it is; use
+        /// encoding at the call site if it comes from anywhere but your own code.
+        /// </summary>
+        /// <param name="text">The text to add inside the content of the element.</param>
+        public void Add(string text) => Content.Add(new Text(text));
+
+        /// <summary>
         /// Rejects attribute names that would not survive being written into a tag.
         /// <para>
         /// Values are encoded when rendering, but names are not: a name containing a space
@@ -166,28 +189,6 @@ namespace StatiCSharp.HtmlComponents
     public abstract class HtmlElement<TSelf> : HtmlElement
         where TSelf : HtmlElement<TSelf>
     {
-        /// <summary>
-        /// Add a new element or component to the content of this element.
-        /// </summary>
-        /// <param name="component">The element or component you want to add. Must implement IHtmlComponent</param>
-        /// <returns>this - the element itself, typed as <typeparamref name="TSelf"/>.</returns>
-        public TSelf Add(IHtmlComponent component)
-        {
-            Content.Add(component);
-            return (TSelf)this;
-        }
-
-        /// <summary>
-        /// Add text to the content of this element.
-        /// </summary>
-        /// <param name="text">The text to add inside the content of the element.</param>
-        /// <returns>this - the element itself, typed as <typeparamref name="TSelf"/>.</returns>
-        public TSelf Add(string text)
-        {
-            Content.Add(new Text(text));
-            return (TSelf)this;
-        }
-
         /// <summary>
         /// Add a class attribute.
         /// </summary>

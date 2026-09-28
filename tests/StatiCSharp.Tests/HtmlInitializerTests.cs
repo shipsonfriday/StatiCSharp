@@ -51,9 +51,9 @@ public class HtmlInitializerTests
     }
 
     [Fact]
-    public void AllThreeStylesProduceTheSameHtml()
+    public void BothStylesProduceTheSameHtml()
     {
-        // The point of adding both: nobody has to migrate, and a theme can mix them.
+        // Both stay available until one of them is picked, so a theme can use either.
         string initializer = new Div
         {
             new H1("Title"),
@@ -64,13 +64,7 @@ public class HtmlInitializerTests
             new H1("Title"),
             new Paragraph("Text")).Render();
 
-        string chained = new Div()
-            .Add(new H1("Title"))
-            .Add(new Paragraph("Text"))
-            .Render();
-
         Assert.Equal(arguments, initializer);
-        Assert.Equal(chained, initializer);
     }
 
     [Fact]
