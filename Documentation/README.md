@@ -1,7 +1,7 @@
 ﻿# Documentation
 
 Welcome to StatiC#'s documentation.  
-This collection contains documentation focused on helping you understand how to use StatiC#'s various features and capabilities. If you need a [project template](ProjectTemplate/) to get started, feel free to use [this](ProjectTemplate/).
+This collection contains documentation focused on helping you understand how to use StatiC#'s various features and capabilities. If you need a [project template](ProjectTemplate/) to get started, copy the one in [ProjectTemplate](ProjectTemplate/).
 
 ## How-to's
 

@@ -31,7 +31,7 @@ Of course, you can make your own, and it's welcome to contribute new elements or
 
 ## Getting started
 
-To get started, create a new class library project in [.NET](https://dotnet.microsoft.com/en-us/) that is version 6 or higher and add [StatiC#](https://github.com/RolandBraunDev/StatiCSharp) as a package reference to the project. Feel free to check out the [integrated template](https://github.com/RolandBraunDev/StatiCSharp/blob/master/Sources/DefaultHtmlFactory.cs) while following this documentation.  
+To get started, create a new class library project in [.NET](https://dotnet.microsoft.com/en-us/) 10 or higher and add [StatiC#](https://github.com/RolandBraunDev/StatiCSharp) as a package reference to the project. Feel free to check out the [integrated template](https://github.com/RolandBraunDev/StatiCSharp/blob/master/src/StatiCSharp/DefaultHtmlFactory.cs) while following this documentation.  
 On the top of your class-file import `StatiCSharp.HtmlComponents` and `StatiCSharp.Interfaces`:
 
 ```C#
@@ -82,12 +82,12 @@ public string MakePageHtml(IPage page)
         }
 ```
 
-In this case, inspect the [IPage interface](github.com/RolandBraunDev/StatiCSharp/blob/master/Sources/Interfaces/IPage.cs) for information about the content you can access via `page`. Pay attention to the fact that all parameter interfaces inherit from [ISite](github.com/RolandBraunDev/StatiCSharp/blob/master/Sources/Interfaces/ISite.cs), so you always have access to those properties, too.  
+In this case, inspect the [IPage interface](github.com/RolandBraunDev/StatiCSharp/blob/master/src/StatiCSharp/Interfaces/IPage.cs) for information about the content you can access via `page`. Pay attention to the fact that all parameter interfaces inherit from [ISite](github.com/RolandBraunDev/StatiCSharp/blob/master/src/StatiCSharp/Interfaces/ISite.cs), so you always have access to those properties, too.  
 Initiate a new `Body` object, which is a representation of your current body of the HTML site. Then follows the elements you want to add to the body of the page. You see that you can use chaining, and you are able to nest the elements. This makes your code more readable. Imagine: The code above is everything you need to display a page.  
-`SiteHeader` and `Footer` are not basic HTML elements. They are custom components that can be used across all your sites. You can create those components with the use of other components or whatever you want. But you need to implement [IHtmlComponent](github.com/RolandBraunDev/StatiCSharp/blob/master/Sources/Interfaces/IHtmlComponent.cs) to work with StatiC#. To ensure chaining, you have to return the element itself after every method you implement to customize the element.  
+`SiteHeader` and `Footer` are not basic HTML elements. They are custom components that can be used across all your sites. You can create those components with the use of other components or whatever you want. But you need to implement [IHtmlComponent](github.com/RolandBraunDev/StatiCSharp/blob/master/src/StatiCSharp/Interfaces/IHtmlComponent.cs) to work with StatiC#. To ensure chaining, you have to return the element itself after every method you implement to customize the element.  
 Note that the property `Website` is not initialized in the method. If you want access to the whole website object (this can be useful for navigation or sitemap), use dependency injection in your custom constructor, e.g., `DefaultHtmlFactory(IWebsite website)`.  
 
-Here is an example from the [integrated default theme](https://github.com/RolandBraunDev/StatiCSharp/blob/master/Sources/DefaultHtmlFactory.cs) for a custom component called Footer:
+Here is an example from the [integrated default theme](https://github.com/RolandBraunDev/StatiCSharp/blob/master/src/StatiCSharp/DefaultHtmlFactory.cs) for a custom component called Footer:
 
 ```C#
 private class Footer : IHtmlComponent
@@ -104,6 +104,39 @@ private class Footer : IHtmlComponent
 ```
 
 By the way, it would be nice if you implement this reference to StatiC# in your templates.
+
+## Text and markup
+
+`Text` renders its string unchanged, and so does `Add(string)`, which wraps its argument in
+a `Text`. That is deliberate: a site's `Content` is already HTML by the time your theme sees
+it, so encoding it would print the page as visible source.
+
+Everything else coming off a site is plain text and has to be encoded before it goes into
+the output. That includes `Title`, `Description`, `Author` and the tags - a quote in a title
+or an ampersand in an author name breaks the page otherwise. The integrated default theme
+uses a small helper for this:
+
+```C#
+private static Text Plain(string text) => new(System.Net.WebUtility.HtmlEncode(text));
+
+// ...
+new A(Plain(item.Title)).Href(item.Url)
+```
+
+Attribute values set through methods like `Class()`, `Id()` or `Href()` are encoded by
+StatiC# itself, so those need no extra care.
+
+## Linking to tag pages
+
+StatiC# writes a tag page to a normalized path: lowercased, with spaces turned into
+hyphens. Build the link with the same rule instead of interpolating the tag name, or the
+link points at a directory that is not there:
+
+```C#
+using StatiCSharp.Tools;
+
+new A(Plain(tag)).Href($"/tag/{UrlSlug.From(tag)}")
+```
 
 ## Managing resources
 
@@ -160,4 +193,4 @@ This would be equivalent to javascript files. If you want to access images or ot
 
 ---
 
-Check out the [default theme](https://github.com/RolandBraunDev/StatiCSharp/blob/master/Sources/DefaultHtmlFactory.cs) to see a template in action. I will be pleased if you give me feedback on this guide so that I can make it better and make the entry to build custom themes with StatiC# as smoothly as possible. It would be great if many developers bring in their template ideas, and there would be a large number of templates to choose from.
+Check out the [default theme](https://github.com/RolandBraunDev/StatiCSharp/blob/master/src/StatiCSharp/DefaultHtmlFactory.cs) to see a template in action. I will be pleased if you give me feedback on this guide so that I can make it better and make the entry to build custom themes with StatiC# as smoothly as possible. It would be great if many developers bring in their template ideas, and there would be a large number of templates to choose from.

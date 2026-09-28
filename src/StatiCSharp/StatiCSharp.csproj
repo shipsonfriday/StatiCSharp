@@ -1,0 +1,61 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <!-- Framework, language version and shared metadata come from Directory.Build.props. -->
+    <PropertyGroup>
+        <IsPackable>true</IsPackable>
+        <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+        <Description>A static website generator for C# developers. It enables entire websites to be built using C#. Custom templates are supported. See the documentation to learn how to create them.</Description>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageTags>StatiC#; StatiCSharp; staticsharp; Staticsharp; StatiCsharp; static; website; generator;</PackageTags>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<PackageIcon>Icon.png</PackageIcon>
+		<Title>StatiC#</Title>
+		<PackageReleaseNotes>Version 1.0.0 rewrites the public API and fixes a number of long-standing defects.
+
+- Requires .NET 10.
+- Fluent configuration: Website.Create(...).With... and WebsiteManager.For(...).With...MakeAsync(). The old constructors and settable properties are gone.
+- Generated urls now match the directories that are written, for index pages, nested page hierarchies and tags alike. Tag urls are normalized, so uppercase tags move to lowercase paths.
+- Meta data is treated as plain text and encoded on output, so a quote in a title or author name no longer breaks the page head.
+- Dates are read as ISO 8601 and rendered in the website's language, independent of the machine running the generator.
+- Markdig raised to 1.4.0.
+
+See the readme for the full upgrade notes.</PackageReleaseNotes>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+    </PropertyGroup>
+
+	<!-- Default Resources-->
+    <ItemGroup>
+        <None Remove="DefaultResources/styles.css" />
+	    <None Remove="DefaultResources/favicon.png" />
+    </ItemGroup>
+
+    <ItemGroup>
+		<Content Include="DefaultResources/default-theme/styles.css" pack="true">
+			<PackageCopyToOutput>true</PackageCopyToOutput>
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		
+		<Content Include="DefaultResources/favicon.png" pack="true">
+			<PackageCopyToOutput>true</PackageCopyToOutput>
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+    </ItemGroup>
+
+	<!-- Most of the site model is internal, so the tests reach it through here. -->
+    <ItemGroup>
+        <InternalsVisibleTo Include="StatiCSharp.Tests" />
+    </ItemGroup>
+
+	<!-- Markdig Markdown Reader -->
+    <ItemGroup>
+        <PackageReference Include="Markdig" Version="1.4.0" />
+    </ItemGroup>
+	
+	<!-- NuGet -->
+    <ItemGroup>
+        <None Include="../../LICENSE" Pack="true" PackagePath="/" />
+        <None Include="../../Packaging/Images/Icon.png" Pack="true" PackagePath="/" />
+        <None Include="../../Packaging/README.md" Pack="true" PackagePath="/" />
+    </ItemGroup>
+
+</Project>

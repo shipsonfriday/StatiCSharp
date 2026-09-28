@@ -20,24 +20,23 @@ Now we can import the theme in the `Program.cs` of the website project, initiate
 using StatiCSharp;
 using Foundation;
 
-var myAwesomeWebsite = new Website(
-    url: "https://yourdomain.com",
-    name: "My Awesome Website",
-    description: @"Description of your website",
-    language: "en-US",
-    sections: "posts, about"    //select which folders should be treated as sections
-    );
+var myAwesomeWebsite = Website.Create(
+        url: "https://yourdomain.com",
+        name: "My Awesome Website")
+    .WithDescription("Description of your website")
+    .WithLanguage("en-US")
+    .WithSections("posts", "about");    // Folders that should be treated as sections.
 
 var theme = new FoundationHtmlFactory(myAwesomeWebsite);
 
-var manager = new WebsiteManager(
-    website: myAwesomeWebsite,
-    htmlFactory: theme,
-    source: @"/path/to/your/project"    // path to the folder of your website project
-);
-
-await manager.Make();
+await WebsiteManager
+    .For(myAwesomeWebsite, source: @"/path/to/your/project")   // Folder of your website project.
+    .WithTheme(theme)
+    .MakeAsync();
 ```
+
+A theme built against StatiC# 0.5 still works: `IHtmlFactory` is unchanged. Only the way
+the theme is handed to the manager moved from a constructor argument to `WithTheme()`.
 
 Build and run your project. Your website is created with the new theme in your `Output` directory.
 

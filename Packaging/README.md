@@ -1,28 +1,11 @@
-<p align="center">
-    <img src=".github/Images/Logo.svg" width="400" max-width="90%" alt="StatiC#" />
-</p>
-
-<p align="center">
-    <a href="https://docs.microsoft.com/en-us/dotnet/csharp/">
-        <img src="https://img.shields.io/badge/C%23-14.0-blue?style=flat" alt="C# 14.0" />
-    </a>
-    <a href="https://dotnet.microsoft.com">
-        <img src="https://img.shields.io/badge/.NET-10.0-blueviolet?style=flat" />
-    </a>
-    <img src="https://img.shields.io/badge/Platforms-Win+Mac+Linux-green?style=flat" />
-    <img src="https://img.shields.io/badge/Version-1.0.0-green?style=flat" />
-    <a href="https://www.nuget.org/packages/StatiCSharp">
-        <img src="https://img.shields.io/nuget/v/StatiCSharp?color=orange" />
-    </a>
-</p>
-
 Welcome to **StatiC#**, a static website generator for C# developers. It enables entire websites to be built using C#. Custom themes can be used by editing the integrated default theme or importing a theme.
 
 ---
 
 StatiC# provides everything you need to create a website with all the files needed to upload onto a web server.  
 
-If you want to quickstart with your new website, you can start with the [default configuration](Documentation/ProjectTemplate) and build up from there. Here is an example:
+If you want to quickstart with your new website, you can start with the [default configuration](https://github.com/RolandBraunDev/StatiCSharp/tree/master/Documentation/ProjectTemplate) and build up from there. You can find a template in the [documentation](https://github.com/RolandBraunDev/StatiCSharp/tree/master/Documentation/ProjectTemplate).  
+Here is an example:
 
 ```C#
 using StatiCSharp;
@@ -74,7 +57,7 @@ using StatiCSharp;
 
 ## Quick start
 
-You can use StatiC#'s [project template](Documentation/ProjectTemplate) to quick start or follow the following steps to set up your project manually.  
+You can use StatiC#'s [project template](https://github.com/RolandBraunDev/StatiCSharp/tree/master/Documentation/ProjectTemplate) to quick start or follow the following steps to set up your project manually.  
 Nevertheless it's recommended to read this readme to get a understanding how StatiC# works.  
 
 StatiC# expects three folders to work with at the path given during the initialization of the WebsiteManager.  
@@ -83,7 +66,7 @@ StatiC# expects three folders to work with at the path given during the initiali
 `Output`: Here the final website with all the necessary files will be saved.  
 `Resources`: Put all your static files in here. All files will be copied, without any manipulation, to the output. Folders are migrated.  
 
-It's recommented to put those folders within your project folder of *myWebsite*. Your folder should look something like this:
+I recomment to put those folders within your project folder of *myWebsite*. Your folder should look something like this:
 
 ```
 ├── myWebsite
@@ -92,6 +75,7 @@ It's recommented to put those folders within your project folder of *myWebsite*.
 │   ├── Resources
 │   ├── myWebsite.csproj
 │   ├── Program.cs
+│   ├── styles.css
 ```
 StatiC# renders four different types of sites:  
 
@@ -100,7 +84,7 @@ StatiC# renders four different types of sites:
 *sections*: Sites that contain items e.g. articles in a specific field.  
 *items*: The sites that are part of a section.  
   
-Add some content to your website by adding your markdown files to the `Content` folder. Check out the [documentation](Documentation/) for a [template file](Documentation/HowTo/content-template.md):
+Add some content to your website by adding your markdown files to the `Content` folder. Check out the [documentation](https://github.com/RolandBraunDev/StatiCSharp/tree/master/Documentation) for a [template file](https://github.com/RolandBraunDev/StatiCSharp/blob/master/Documentation/HowTo/content-template.md):
 
 ```
 ├── myWebsite
@@ -143,40 +127,30 @@ Run the project and your new awesome website will be generated in the `Output` d
 $ dotnet run
 ```
 
-Check out the [documentation](Documentation/) for further information.
+Check out the [documentation](https://github.com/RolandBraunDev/StatiCSharp/tree/master/Documentation) for further information.
 
 ## Upgrading from 0.5
 
-Version 1.0 changes the public API. The old constructors and settable properties are gone;
+Version 1.0 changes the public API: the old constructors and settable properties are gone,
 required values go into the entry point and everything optional follows fluently.
 
-| 0.5 | 1.0 |
-| --- | --- |
-| `new Website(url, name, description, language, sections)` | `Website.Create(url, name).WithDescription(…).WithLanguage(…).WithSections(…)` |
-| `new WebsiteManager(website, source)` | `WebsiteManager.For(website, source)` |
-| `new WebsiteManager(website, theme, source)` | `WebsiteManager.For(website, source).WithTheme(theme)` |
-| `manager.Make()` | `manager.MakeAsync()` |
-| `manager.GitMode = true` | `manager.WithGitMode()` |
-| `manager.Content = path` | `manager.WithContentDirectory(path)` |
-| `manager.Output = path` | `manager.WithOutputDirectory(path)` |
-| `manager.Resources = path` | `manager.WithResourcesDirectory(path)` |
-| `manager.UseDefaultMarkdownParser = false` | `manager.WithoutDefaultMarkdownParser()` |
-| `manager.AddParser(parser)` | unchanged, still chainable |
+```C#
+// 0.5
+var manager = new WebsiteManager(website: site, source: path);
+manager.GitMode = true;
+await manager.Make();
 
-Three changes affect content rather than code:
+// 1.0
+await WebsiteManager.For(site, source: path)
+    .WithGitMode()
+    .MakeAsync();
+```
 
-- **Tag urls are normalized.** A tag is lowercased and spaces become hyphens, so `CSharp`
-  is served from `/tag/csharp` and `Web Dev` from `/tag/web-dev`. External links to the old
-  spelling break. Themes should build tag links with `StatiCSharp.Tools.UrlSlug.From(tag)`
-  instead of interpolating the tag name.
-- **Meta data is plain text.** `Title` and `Description` are no longer run through the
-  markdown parser, so `title: My *great* post` now shows the asterisks. In exchange, a
-  quote or an ampersand in any meta data field no longer breaks the page.
-- **Dates must be ISO 8601**, e.g. `2026-09-27`. That was always what the documentation
-  said, but the parser used to accept whatever the build machine's locale happened to
-  allow, which meant the same file could yield different dates on different machines.
-
-Requires .NET 10.
+Tag urls are now normalized (`/tag/CSharp` becomes `/tag/csharp`), `Title` and
+`Description` are treated as plain text rather than markdown, and dates in the front matter
+must be ISO 8601. Requires .NET 10. See the
+[upgrade notes](https://github.com/RolandBraunDev/StatiCSharp#upgrading-from-05) for the
+full list.
 
 ## Dependencies
 
