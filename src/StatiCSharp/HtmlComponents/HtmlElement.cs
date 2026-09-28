@@ -1,4 +1,5 @@
 ﻿using StatiCSharp.Interfaces;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
@@ -8,8 +9,18 @@ namespace StatiCSharp.HtmlComponents
 {
     /// <summary>
     /// A base class for all basic HTML elements.
+    /// <para>
+    /// Implements the non-generic <see cref="IEnumerable"/> so that children can be written
+    /// as a collection initializer:
+    /// <code>
+    /// new Div { new H1("Title"), new Paragraph("Text") }
+    /// </code>
+    /// Deliberately not <c>IEnumerable&lt;IHtmlComponent&gt;</c>: that is more than the
+    /// initializer needs, and it would make an element pass as a sequence of its own
+    /// children wherever one is expected.
+    /// </para>
     /// </summary>
-    public abstract class HtmlElement : IHtmlComponent
+    public abstract class HtmlElement : IHtmlComponent, IEnumerable
     {
         /// <summary>
         /// Defines the tagname of the element.
@@ -53,6 +64,15 @@ namespace StatiCSharp.HtmlComponents
             Content.Add(component);
             return this;
         }
+
+        /// <summary>
+        /// Enumerates the components inside this element.
+        /// <para>
+        /// Present so that a collection initializer can be used; see <see cref="HtmlElement"/>.
+        /// </para>
+        /// </summary>
+        /// <returns>An enumerator over the content of this element.</returns>
+        IEnumerator IEnumerable.GetEnumerator() => Content.GetEnumerator();
 
         /// <summary>
         /// Add text to the content of this element.
