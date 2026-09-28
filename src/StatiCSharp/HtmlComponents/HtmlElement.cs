@@ -1,4 +1,5 @@
 ﻿using StatiCSharp.Interfaces;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -161,6 +162,80 @@ namespace StatiCSharp.HtmlComponents
         {
             Attributes["tabindex"] = index.ToString(CultureInfo.InvariantCulture);
             return this;
+        }
+
+        /// <summary>
+        /// Sets an attribute that carries no value, e.g. <c>required</c> or <c>open</c>.
+        /// </summary>
+        /// <param name="key">The name of the attribute.</param>
+        /// <returns>this - the element itself.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="key"/> is blank or not a usable attribute name.</exception>
+        public HtmlElement Attribute(string key)
+        {
+            Attributes[CheckedKey(key)] = null;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets any attribute, for the cases this library has no dedicated method for -
+        /// <c>data-*</c>, <c>aria-*</c>, <c>role</c>, <c>rel</c> and the like.
+        /// <para>
+        /// The value is encoded when the element is rendered. Pass null to write the
+        /// attribute without a value.
+        /// </para>
+        /// </summary>
+        /// <param name="key">The name of the attribute.</param>
+        /// <param name="value">The value of the attribute, or null for none.</param>
+        /// <returns>this - the element itself.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="key"/> is blank or not a usable attribute name.</exception>
+        public HtmlElement Attribute(string key, string? value)
+        {
+            Attributes[CheckedKey(key)] = value;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets any attribute to a number, formatted invariantly so that the result does not
+        /// depend on the machine's locale.
+        /// </summary>
+        /// <param name="key">The name of the attribute.</param>
+        /// <param name="value">The value of the attribute.</param>
+        /// <returns>this - the element itself.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="key"/> is blank or not a usable attribute name.</exception>
+        public HtmlElement Attribute(string key, int value)
+        {
+            Attributes[CheckedKey(key)] = value.ToString(CultureInfo.InvariantCulture);
+            return this;
+        }
+
+        /// <summary>
+        /// Rejects attribute names that would not survive being written into a tag.
+        /// <para>
+        /// Values are encoded when rendering, but names are not: a name containing a space
+        /// or an equals sign would turn into further attributes. That only became reachable
+        /// once callers could choose the name, e.g. building one from a tag out of the front
+        /// matter.
+        /// </para>
+        /// </summary>
+        private static string CheckedKey(string key)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
+            foreach (char character in key)
+            {
+                if (char.IsWhiteSpace(character) || char.IsControl(character)
+                    || character is '"' or '\'' or '>' or '/' or '=')
+                {
+                    throw new ArgumentException(
+                        $"\"{key}\" cannot be used as an attribute name: it contains '{character}'.",
+                        nameof(key));
+                }
+            }
+
+            return key;
         }
 
         /// <summary>

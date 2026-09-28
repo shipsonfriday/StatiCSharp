@@ -204,25 +204,30 @@ namespace StatiCSharp.HtmlComponents
 
         /// <summary>
         /// A wildcard to set custom attributes if the needed attribute is not supported yet.
+        /// <para>
+        /// Declared here only to keep the chain on <see cref="Input"/>; the work and the
+        /// name checking happen in <see cref="HtmlElement.Attribute(string, string?)"/>.
+        /// </para>
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public Input Attribute(string key, string? value)
+        /// <param name="key">The name of the attribute.</param>
+        /// <param name="value">The value of the attribute, or null for none.</param>
+        /// <returns>this - the element itself.</returns>
+        public new Input Attribute(string key, string? value)
         {
-            Attributes[key] = value;
+            base.Attribute(key, value);
             return this;
         }
 
         /// <summary>
-        /// A wildcard to set custom attributes if the needed attribute is not supported yet.
+        /// A wildcard to set a custom numeric attribute if the needed attribute is not
+        /// supported yet. Formatted invariantly.
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public Input Attribute(string key, int value)
+        /// <param name="key">The name of the attribute.</param>
+        /// <param name="value">The value of the attribute.</param>
+        /// <returns>this - the element itself.</returns>
+        public new Input Attribute(string key, int value)
         {
-            Attributes[key] = value.ToString(CultureInfo.InvariantCulture);
+            base.Attribute(key, value);
             return this;
         }
     }
