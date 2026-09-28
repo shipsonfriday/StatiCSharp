@@ -249,10 +249,12 @@ namespace StatiCSharp.HtmlComponents
             // Build leading tag
             elementBuilder.Append(CultureInfo.InvariantCulture, $"<{TagName}");
 
-            // Add attributes with key-value pairs
+            // Add attributes with key-value pairs. An empty value is still a value:
+            // aria-label="" and value="" say something, and dropping them silently loses
+            // whatever the caller asked for. Only null means "write the name alone".
             foreach (KeyValuePair<string, string?> attribute in Attributes)
             {
-                if (!string.IsNullOrEmpty(attribute.Key) && (!string.IsNullOrEmpty(attribute.Value)))
+                if (!string.IsNullOrEmpty(attribute.Key) && attribute.Value is not null)
                 {
                     // Encoded, so a quote in the value cannot end the attribute early
                     // and break the tag. Values are taken literally, not as markup.

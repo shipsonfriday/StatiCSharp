@@ -38,6 +38,27 @@ public class HtmlAttributeTests
     }
 
     [Fact]
+    public void AnEmptyValueIsStillWritten()
+    {
+        // It used to fall through both render branches and vanish: not "value present",
+        // not null either. aria-label="" and value="" both say something.
+        Assert.Equal("<div data-flag=\"\">body</div>", new Div("body").Attribute("data-flag", "").Render());
+    }
+
+    [Fact]
+    public void AnEmptyValueIsDistinctFromNoValue()
+    {
+        Assert.Equal("<div data-flag=\"\">body</div>", new Div("body").Attribute("data-flag", "").Render());
+        Assert.Equal("<div data-flag>body</div>", new Div("body").Attribute("data-flag", null).Render());
+    }
+
+    [Fact]
+    public void AnEmptyClassIsWrittenToo()
+    {
+        Assert.Equal("<div class=\"\">body</div>", new Div("body").Class("").Render());
+    }
+
+    [Fact]
     public void TheValueIsEncoded()
     {
         string html = new Div("body").Attribute("data-title", "The \"quoted\" & co").Render();
