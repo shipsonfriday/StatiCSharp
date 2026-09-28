@@ -172,8 +172,7 @@ public class DefaultHtmlFactory: IHtmlFactory
                     new Div(
                         new A(Plain(this.website.Name)).Href("/").Class("site-name"),
                         new Nav(
-                            new Ul(
-                                new Ul(navLinks)))).Class("wrapper"))
+                            new Ul(navLinks))).Class("wrapper"))
                 .Render();
         }
     }
