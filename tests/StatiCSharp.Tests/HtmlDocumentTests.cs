@@ -3,7 +3,7 @@ using Xunit;
 
 namespace StatiCSharp.Tests;
 
-public class AddLeadingHtmlCodeTests
+public class HtmlDocumentTests
 {
     private static Website AWebsite() =>
         Website.Create(url: "https://example.com", name: "My Website").WithLanguage("de-DE");
@@ -11,8 +11,12 @@ public class AddLeadingHtmlCodeTests
     private static string Head(Item site, Website? website = null)
     {
         website ??= AWebsite();
-        return WebsiteManager.For(website, "source")
-            .AddLeadingHtmlCode(website, site, head: string.Empty, body: string.Empty);
+        return HtmlDocument.Wrap(
+            website,
+            site,
+            themeHead: string.Empty,
+            parserHead: string.Empty,
+            body: string.Empty);
     }
 
     [Fact]
@@ -63,18 +67,20 @@ public class AddLeadingHtmlCodeTests
     }
 
     [Fact]
-    public void TheThemesHeadAndBodyAreWrittenThroughUnchanged()
+    public void TheHeadContentsAndTheBodyAreWrittenThroughUnchanged()
     {
         // Those two are html by the time they get here and must not be encoded, or every
         // page would render as visible source.
         Website website = AWebsite();
-        string html = WebsiteManager.For(website, "source").AddLeadingHtmlCode(
+        string html = HtmlDocument.Wrap(
             website,
             new Item(),
-            head: "<link rel=\"stylesheet\" href=\"/theme.css\">",
+            themeHead: "<link rel=\"stylesheet\" href=\"/theme.css\">",
+            parserHead: "<script src=\"/parser.js\"></script>",
             body: "<body><p>Hello & welcome</p></body>");
 
         Assert.Contains("<link rel=\"stylesheet\" href=\"/theme.css\">", html, StringComparison.Ordinal);
+        Assert.Contains("<script src=\"/parser.js\"></script>", html, StringComparison.Ordinal);
         Assert.Contains("<body><p>Hello & welcome</p></body>", html, StringComparison.Ordinal);
     }
 
@@ -82,15 +88,12 @@ public class AddLeadingHtmlCodeTests
     public void RejectsNullArguments()
     {
         Website website = AWebsite();
-        WebsiteManager manager = WebsiteManager.For(website, "source");
+        string empty = string.Empty;
 
-        Assert.Throws<ArgumentNullException>(
-            () => manager.AddLeadingHtmlCode(null!, new Item(), string.Empty, string.Empty));
-        Assert.Throws<ArgumentNullException>(
-            () => manager.AddLeadingHtmlCode(website, null!, string.Empty, string.Empty));
-        Assert.Throws<ArgumentNullException>(
-            () => manager.AddLeadingHtmlCode(website, new Item(), null!, string.Empty));
-        Assert.Throws<ArgumentNullException>(
-            () => manager.AddLeadingHtmlCode(website, new Item(), string.Empty, null!));
+        Assert.Throws<ArgumentNullException>(() => HtmlDocument.Wrap(null!, new Item(), empty, empty, empty));
+        Assert.Throws<ArgumentNullException>(() => HtmlDocument.Wrap(website, null!, empty, empty, empty));
+        Assert.Throws<ArgumentNullException>(() => HtmlDocument.Wrap(website, new Item(), null!, empty, empty));
+        Assert.Throws<ArgumentNullException>(() => HtmlDocument.Wrap(website, new Item(), empty, null!, empty));
+        Assert.Throws<ArgumentNullException>(() => HtmlDocument.Wrap(website, new Item(), empty, empty, null!));
     }
 }

@@ -15,7 +15,7 @@ public partial class WebsiteManager : IWebsiteManager
     /// Asynchronously creates and writes the tags pages of the website.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous tags generating operation.</returns>
-    private async Task MakeTagListsAsync()
+    private async Task MakeTagListsAsync(OutputWriter output)
     {
         // Collect all available tags
         List<string> tags = new List<string>();
@@ -77,17 +77,17 @@ public partial class WebsiteManager : IWebsiteManager
             tagPage.Title = $"{tag} | {Website.Name}";
             string body = HtmlFactory.MakeTagListHtml(itemsWithCurrentTag, tag);
             string head = HtmlFactory.MakeHeadHtml();
-            string page = AddLeadingHtmlCode(Website, tagPage, head, body);
+            string page = HtmlDocument.Wrap(Website, tagPage, head, _htmlBuilder.AdditionalHeaderContent, body);
 
             // Create directory, if it does not excist
             string path = Directory.CreateDirectory(Path.Combine(Output, "tag", slug)).ToString();
 
-            if (!ClaimPath(path))
+            if (!output.ClaimPath(path))
             {
                 WriteLine($"WARNING: The path {path} is already in use. Change the path in meta data to avoid duplicates.");
             }
 
-            await WriteFileAsync(path: path, filename: "index.html", content: page, gitMode: GitMode);
+            await output.WriteAsync(path, "index.html", page);
 
         }
     }

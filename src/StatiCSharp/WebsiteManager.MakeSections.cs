@@ -14,7 +14,7 @@ public partial class WebsiteManager : IWebsiteManager
     /// Asynchronously creates and writes the sections (not pages or items) of the website.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous sections generating operation.</returns>
-    private async Task MakeSectionsAsync()
+    private async Task MakeSectionsAsync(OutputWriter output)
     {
         List<Task> tasks = new List<Task>();
 
@@ -29,15 +29,15 @@ public partial class WebsiteManager : IWebsiteManager
         {
             string body = HtmlFactory.MakeSectionHtml(site);
             string head = HtmlFactory.MakeHeadHtml();
-            string page = AddLeadingHtmlCode(Website, site, head, body);
+            string page = HtmlDocument.Wrap(Website, site, head, _htmlBuilder.AdditionalHeaderContent, body);
             string path = Directory.CreateDirectory(Path.Combine(Output, site.SectionName)).ToString();
 
-            if (!ClaimPath(path))
+            if (!output.ClaimPath(path))
             {
                 WriteLine($"WARNING: The path {path} is already in use. Change the path in meta data to avoid duplicates.");
             }
 
-            await WriteFileAsync(path: path, filename: "index.html", content: page, gitMode: GitMode);
+            await output.WriteAsync(path, "index.html", page);
 
         }
     }

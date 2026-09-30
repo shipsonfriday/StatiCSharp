@@ -15,7 +15,7 @@ public partial class WebsiteManager : IWebsiteManager
     /// Asynchronous creates and writes the pages (not sections or items) of the website.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous pages generating operation.</returns>
-    private async Task MakePagesAsync()
+    private async Task MakePagesAsync(OutputWriter output)
     {
         List<Task> tasks = new List<Task>();
 
@@ -30,7 +30,7 @@ public partial class WebsiteManager : IWebsiteManager
         {
             string body = HtmlFactory.MakePageHtml(site);
             string head = HtmlFactory.MakeHeadHtml();
-            string page = AddLeadingHtmlCode(Website, site, head, body);
+            string page = HtmlDocument.Wrap(Website, site, head, _htmlBuilder.AdditionalHeaderContent, body);
             string defaultPath = FilenameToPath.From(site.MarkdownFileName);
 
             // Create directory, if it does not excist.
@@ -38,12 +38,12 @@ public partial class WebsiteManager : IWebsiteManager
             if (pathInHierachy == "index") { pathInHierachy = string.Empty; }
             string path = Directory.CreateDirectory(Path.Combine(Output, site.Hierarchy, pathInHierachy)).ToString();
 
-            if (!ClaimPath(path))
+            if (!output.ClaimPath(path))
             {
                 WriteLine($"WARNING: The path {path} is already in use. Change the path in meta data to avoid duplicates.");
             }
 
-            await WriteFileAsync(path: path, filename: "index.html", content: page, gitMode: GitMode);
+            await output.WriteAsync(path, "index.html", page);
         }
     }
 }

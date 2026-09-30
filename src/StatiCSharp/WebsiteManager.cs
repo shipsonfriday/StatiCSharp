@@ -1,6 +1,5 @@
 ﻿using StatiCSharp.Interfaces;
 using System;
-using System.Collections.Concurrent;
 using System.IO;
 using System.Threading.Tasks;
 using static StatiCSharp.StatiCSharpConsole;
@@ -40,18 +39,6 @@ public partial class WebsiteManager : IWebsiteManager
 
     /// <inheritdoc/>
     public bool GitMode { get; private set; }
-
-    /// <summary>
-    /// All paths written to while creating the sites.<br/>
-    /// Used to find identical paths from meta data and to find files that have no markdown
-    /// equivalent (got deleted) in GitMode.
-    /// <para>
-    /// Concurrent, because the Make… methods write the sites through Task.WhenAll and each
-    /// task records its path here. A List would be corrupted by that, and a Contains
-    /// followed by an Add would let two tasks claim the same path without noticing.
-    /// </para>
-    /// </summary>
-    private readonly ConcurrentDictionary<string, byte> _writtenPaths = new();
 
     /// <inheritdoc/>
     public IWebsite Website { get; }
@@ -191,18 +178,6 @@ public partial class WebsiteManager : IWebsiteManager
         return this;
     }
 
-    /// <summary>
-    /// Records that a path has been written to.
-    /// </summary>
-    /// <param name="path">The directory that was written to.</param>
-    /// <returns>False if the path was already claimed by another site.</returns>
-    private bool ClaimPath(string path) => _writtenPaths.TryAdd(path, 0);
-
-    /// <summary>
-    /// Whether anything has been written to the given path during this run.
-    /// </summary>
-    private bool WasWrittenTo(string path) => _writtenPaths.ContainsKey(path);
-
     /// <inheritdoc/>
     public async Task MakeAsync()
     {
@@ -215,36 +190,38 @@ public partial class WebsiteManager : IWebsiteManager
         WriteLine("Collecting markdown data...");
         await GenerateSitesFromMarkdownAsync();
 
+        // One writer per run: the paths it records are only meaningful for this run.
+        OutputWriter output = new(Output, onlyWriteWhatChanged: GitMode);
+
         if (!GitMode)
         {
             WriteLine("Deleting old output files...");
-            var deleteAllTask = Task.Run(() => DeleteAll(Output));
-            await deleteAllTask;
+            await Task.Run(output.Clear);
         }
 
         WriteLine("Copying theme resources...");
-        await CopyAllAsync(HtmlFactory.ResourcesPath, Output);
+        await output.CopyIntoOutputAsync(HtmlFactory.ResourcesPath);
 
         WriteLine("Writing index...");
-        await MakeIndexAsync();
+        await MakeIndexAsync(output);
 
         WriteLine("Writing pages...");
-        await MakePagesAsync();
+        await MakePagesAsync(output);
 
         WriteLine("Writing sections...");
-        await MakeSectionsAsync();
+        await MakeSectionsAsync(output);
 
         WriteLine("Writing items...");
-        await MakeItemsAsync();
+        await MakeItemsAsync(output);
 
         WriteLine("Writing tag lists...");
-        await MakeTagListsAsync();
+        await MakeTagListsAsync(output);
 
         WriteLine("Cleaning up...");
-        await CleanUpAsync();
+        await output.CleanUpAsync();
 
         WriteLine("Copying user resources...");
-        await CopyAllAsync(Resources, Output);
+        await output.CopyIntoOutputAsync(Resources);
 
         WriteLine($"Success! Your website has been generated at {Output}");
     }
