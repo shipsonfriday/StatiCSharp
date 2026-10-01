@@ -1,10 +1,8 @@
 ﻿using StatiCSharp.Interfaces;
 using StatiCSharp.Tools;
-using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.IO;
-using System;
 using System.Linq;
+using System.Threading.Tasks;
 using static StatiCSharp.StatiCSharpConsole;
 
 namespace StatiCSharp;
@@ -72,21 +70,15 @@ public partial class WebsiteManager : IWebsiteManager
                 }
             }
 
-            // Write tags sites to files
             Item tagPage = new();
             tagPage.Title = $"{tag} | {Website.Name}";
-            string body = HtmlFactory.MakeTagListHtml(itemsWithCurrentTag, tag);
-            string head = HtmlFactory.MakeHeadHtml();
-            string page = HtmlDocument.Wrap(Website, tagPage, head, _htmlBuilder.AdditionalHeaderContent, body);
 
-            // Create directory, if it does not excist
-            string path = Directory.CreateDirectory(Path.Combine(Output, "tag", slug)).ToString();
-
-            if (!await output.WriteAsync(path, "index.html", page))
-            {
-                WriteLine($"WARNING: The path {path} is already in use. Change the path in meta data to avoid duplicates.");
-            }
-
+            await RenderSiteAsync(
+                output,
+                tagPage,
+                HtmlFactory.MakeTagListHtml(itemsWithCurrentTag, tag),
+                "tag",
+                slug);
         }
     }
 }

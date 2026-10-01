@@ -1,11 +1,7 @@
 ﻿using StatiCSharp.Interfaces;
 using StatiCSharp.Tools;
-using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.IO;
-using System;
-
-using static StatiCSharp.StatiCSharpConsole;
+using System.Threading.Tasks;
 
 namespace StatiCSharp;
 
@@ -21,7 +17,7 @@ public partial class WebsiteManager : IWebsiteManager
 
         foreach (ISection section in Website.Sections)
         {
-            foreach(IItem site in section.Items)
+            foreach (IItem site in section.Items)
             {
                 tasks.Add(WriteItem(section, site));
             }
@@ -31,19 +27,15 @@ public partial class WebsiteManager : IWebsiteManager
 
         async Task WriteItem(ISection section, IItem site)
         {
-            string body = HtmlFactory.MakeItemHtml(site);
-            string head = HtmlFactory.MakeHeadHtml();
-            string page = HtmlDocument.Wrap(Website, site, head, _htmlBuilder.AdditionalHeaderContent, body);
             string defaultPath = FilenameToPath.From(site.MarkdownFileName);
-
             string itemPath = (site.Path != string.Empty) ? site.Path : defaultPath;
-            string path = Directory.CreateDirectory(Path.Combine(Output, section.SectionName, itemPath)).ToString();
 
-            if (!await output.WriteAsync(path, "index.html", page))
-            {
-                WriteLine($"WARNING: The path {path} is already in use. Change the path in meta data to avoid duplicates.");
-            }
-
+            await RenderSiteAsync(
+                output,
+                site,
+                HtmlFactory.MakeItemHtml(site),
+                section.SectionName,
+                itemPath);
         }
     }
 }

@@ -9,11 +9,6 @@ public partial class WebsiteManager : IWebsiteManager
     /// Asynchronous creates and writes the index (homepage) of the website.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous index generating operation.</returns>
-    private async Task MakeIndexAsync(OutputWriter output)
-    {
-            string body = HtmlFactory.MakeIndexHtml(Website.Index);
-            string head = HtmlFactory.MakeHeadHtml();
-            string index = HtmlDocument.Wrap(Website, Website.Index, head, _htmlBuilder.AdditionalHeaderContent, body);
-            await output.WriteAsync(Output, "index.html", index);
-        }
-    }
+    private Task MakeIndexAsync(OutputWriter output)
+        => RenderSiteAsync(output, Website.Index, HtmlFactory.MakeIndexHtml(Website.Index));
+}

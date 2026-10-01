@@ -2,10 +2,6 @@
 using StatiCSharp.Tools;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.IO;
-using System;
-
-using static StatiCSharp.StatiCSharpConsole;
 
 namespace StatiCSharp;
 
@@ -28,20 +24,17 @@ public partial class WebsiteManager : IWebsiteManager
 
         async Task WritePage(IPage site)
         {
-            string body = HtmlFactory.MakePageHtml(site);
-            string head = HtmlFactory.MakeHeadHtml();
-            string page = HtmlDocument.Wrap(Website, site, head, _htmlBuilder.AdditionalHeaderContent, body);
             string defaultPath = FilenameToPath.From(site.MarkdownFileName);
 
-            // Create directory, if it does not excist.
             string pathInHierachy = (site.Path == string.Empty) ? defaultPath : site.Path;
             if (pathInHierachy == "index") { pathInHierachy = string.Empty; }
-            string path = Directory.CreateDirectory(Path.Combine(Output, site.Hierarchy, pathInHierachy)).ToString();
 
-            if (!await output.WriteAsync(path, "index.html", page))
-            {
-                WriteLine($"WARNING: The path {path} is already in use. Change the path in meta data to avoid duplicates.");
-            }
+            await RenderSiteAsync(
+                output,
+                site,
+                HtmlFactory.MakePageHtml(site),
+                site.Hierarchy,
+                pathInHierachy);
         }
     }
 }

@@ -1,10 +1,6 @@
 ﻿using StatiCSharp.Interfaces;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
-
-using static StatiCSharp.StatiCSharpConsole;
 
 namespace StatiCSharp;
 
@@ -27,16 +23,7 @@ public partial class WebsiteManager : IWebsiteManager
 
         async Task WriteSection(ISection site)
         {
-            string body = HtmlFactory.MakeSectionHtml(site);
-            string head = HtmlFactory.MakeHeadHtml();
-            string page = HtmlDocument.Wrap(Website, site, head, _htmlBuilder.AdditionalHeaderContent, body);
-            string path = Directory.CreateDirectory(Path.Combine(Output, site.SectionName)).ToString();
-
-            if (!await output.WriteAsync(path, "index.html", page))
-            {
-                WriteLine($"WARNING: The path {path} is already in use. Change the path in meta data to avoid duplicates.");
-            }
-
+            await RenderSiteAsync(output, site, HtmlFactory.MakeSectionHtml(site), site.SectionName);
         }
     }
 }
