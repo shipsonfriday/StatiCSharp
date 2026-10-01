@@ -54,6 +54,18 @@ internal sealed class TempDirectory : IDisposable
         return full;
     }
 
+    /// <summary>
+    /// Creates an empty directory below this one and returns its absolute path.
+    /// </summary>
+    /// <param name="relativePath">Path relative to this directory, with forward slashes.</param>
+    public string EmptyDirectory(string relativePath)
+    {
+        string full = System.IO.Path.Combine(Path, relativePath.Replace('/', System.IO.Path.DirectorySeparatorChar));
+        Directory.CreateDirectory(full);
+
+        return full;
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(Path))

@@ -123,11 +123,11 @@ public class WebsiteManagerTests
     private sealed class StubHtmlFactory : IHtmlFactory
     {
         public string ResourcesPath => "resources";
-        public string MakeHeadHtml() => string.Empty;
-        public string MakeIndexHtml(IIndex index) => string.Empty;
-        public string MakePageHtml(IPage page) => string.Empty;
-        public string MakeSectionHtml(ISection section) => string.Empty;
-        public string MakeItemHtml(IItem item) => string.Empty;
-        public string MakeTagListHtml(List<IItem> items, string tag) => string.Empty;
+        public string MakeHeadHtml(ISite site, RenderContext context) => string.Empty;
+        public string MakeIndexHtml(IIndex index, RenderContext context) => string.Empty;
+        public string MakePageHtml(IPage page, RenderContext context) => string.Empty;
+        public string MakeSectionHtml(ISection section, RenderContext context) => string.Empty;
+        public string MakeItemHtml(IItem item, RenderContext context) => string.Empty;
+        public string MakeTagListHtml(List<IItem> items, string tag, RenderContext context) => string.Empty;
     }
 }

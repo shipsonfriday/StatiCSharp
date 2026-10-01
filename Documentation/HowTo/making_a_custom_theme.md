@@ -25,7 +25,7 @@ lowercased is the tag - with two exceptions that carry a short form, `Paragraph`
 | **Head** | `link` `meta` `script` `style` |
 
 There is no `html`, `head` or `title` element: the document shell around your body is
-written by StatiC# itself. Use `MakeHeadHtml()` to add to the `<head>`.
+written by StatiC# itself. Use `MakeHeadHtml(…)` to add to the `<head>`.
 
 Elements with attributes specific to them carry typed methods for those - `A.Href()`,
 `Link.Rel()`, `Time.DateTime()`, `Th.Scope()`, `Td.ColSpan()`, `Img.Alt()` and so on. For
@@ -109,12 +109,34 @@ namespace YourTemplate
 
 When adding `IHtmlFactory` your IDE will prompt you to add the following property and methods to your class:  
 - `public string ResourcesPath` The absolute path to the resources your template uses, like css files or images. How to work with those files is explained later.
-- `public string MakeHeadHtml()` Creates HTML-code for inside the \<head>-tag. This code is added to all sites.
-- `public string MakeIndexHtml(IIndex index)` Method that returns the \<body> HTML-code for the index site.
-- `public string MakePageHtml(IPage page)` Method that returns the \<body> HTML-code for a page (not section or item).
-- `public string MakeSectionHtml(ISection section)` Method that returns the \<body> HTML -code for a section site.
-- `public string MakeItemHtml(IItem item)` Method that returns the \<body> HTML -code for an item site.
-- `public string MakeTagListHtml(List<IItem> items, string tag)` Method that returns the \<body> HTML -code for the taglist site.
+- `public string ResourcesPath` The absolute path to the resources your template uses.
+- `public string MakeHeadHtml(ISite site, RenderContext context)` Creates HTML-code for inside the \<head>-tag. Called for every site, with that site, so you can add something that differs per site.
+- `public string MakeIndexHtml(IIndex index, RenderContext context)` Method that returns the \<body> HTML-code for the index site.
+- `public string MakePageHtml(IPage page, RenderContext context)` Method that returns the \<body> HTML-code for a page (not section or item).
+- `public string MakeSectionHtml(ISection section, RenderContext context)` Method that returns the \<body> HTML -code for a section site.
+- `public string MakeItemHtml(IItem item, RenderContext context)` Method that returns the \<body> HTML -code for an item site.
+- `public string MakeTagListHtml(List<IItem> items, string tag, RenderContext context)` Method that returns the \<body> HTML -code for the taglist site.
+
+### The render context
+
+Every method is given a `RenderContext`. It holds the website's configuration and everything
+that was read, so you never have to keep anything in your theme:
+
+| | |
+| --- | --- |
+| `context.Website` | the url, name, description and language you configured |
+| `context.Index` | the homepage |
+| `context.Pages` | every page |
+| `context.Sections` | every section with its items |
+
+That is what you reach for when a site needs more than itself - a navigation, a sitemap, a
+list of the newest articles across all sections, a tag cloud. Your theme itself stays
+stateless, which means one instance can render any website and you can build a context by
+hand in your own tests:
+
+```C#
+var context = new RenderContext { Website = Website.Create("https://example.com", "Test") };
+```
 
 ## Build your first site
 
@@ -124,10 +146,10 @@ You can access the content through the object given with the parameters. Those o
 By using the StatiC#-HTML-Components, you can write HTML-Code in C#. Let's check this out with an example with the `MakePageHtml()` method from the integrated default theme.
 
 ```C#
-public string MakePageHtml(IPage page)
+public string MakePageHtml(IPage page, RenderContext context)
 {
     return new Body(
-            new SiteHeader(Website),
+            new SiteHeader(context.Website),
             new Div(
                 new Article(
                     new Div(page.Content).Class("content"))).Class("wrapper"),
@@ -139,7 +161,7 @@ public string MakePageHtml(IPage page)
 In this case, inspect the [IPage interface](github.com/RolandBraunDev/StatiCSharp/blob/master/src/StatiCSharp/Interfaces/IPage.cs) for information about the content you can access via `page`. Pay attention to the fact that all parameter interfaces inherit from [ISite](github.com/RolandBraunDev/StatiCSharp/blob/master/src/StatiCSharp/Interfaces/ISite.cs), so you always have access to those properties, too.  
 Initiate a new `Body` object, which is a representation of your current body of the HTML site. Then follows the elements you want to add to the body of the page. You see that you can use chaining, and you are able to nest the elements. This makes your code more readable. Imagine: The code above is everything you need to display a page.  
 `SiteHeader` and `Footer` are not basic HTML elements. They are custom components that can be used across all your sites. You can create those components with the use of other components or whatever you want. But you need to implement [IHtmlComponent](github.com/RolandBraunDev/StatiCSharp/blob/master/src/StatiCSharp/Interfaces/IHtmlComponent.cs) to work with StatiC#. To ensure chaining, you have to return the element itself after every method you implement to customize the element.  
-Note that the property `Website` is not initialized in the method. If you want access to the whole website object (this can be useful for navigation or sitemap), use dependency injection in your custom constructor, e.g., `DefaultHtmlFactory(IWebsite website)`.  
+`SiteHeader` is given `context.Website` because it builds the navigation from the configured section names. Whatever a component needs, hand it over from the context - a theme has no `Website` of its own.  
 
 Here is an example from the [integrated default theme](https://github.com/RolandBraunDev/StatiCSharp/blob/master/src/StatiCSharp/DefaultHtmlFactory.cs) for a custom component called SiteFooter:
 
@@ -296,7 +318,7 @@ You have to provide these steps for all your files.
 Your file is available at `/yourthemename-theme/styles.css`. Add this CSS-reference  by using the `MakeHeadHtml()`:
 
 ```C#
-public string MakeHeadHtml()
+public string MakeHeadHtml(ISite site, RenderContext context)
 {
     return "<link rel=\"stylesheet\" href=\"/yourthemename-theme/styles.css\">";
 }

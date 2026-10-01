@@ -38,13 +38,13 @@ public class WebsiteRendererTests
     }
 
     private static WebsiteRenderer RendererFor(Website website, OutputWriter output, string outputDirectory)
-        => new(website, new DefaultHtmlFactory(website), new HtmlBuilder(useDefaultMarkdownParser: true), output, outputDirectory);
+        => new(website, new DefaultHtmlFactory(), new HtmlBuilder(useDefaultMarkdownParser: true), output, outputDirectory);
 
     [Fact]
     public void RejectsMissingArguments()
     {
         Website website = AWebsiteWithTags();
-        var factory = new DefaultHtmlFactory(website);
+        var factory = new DefaultHtmlFactory();
         var builder = new HtmlBuilder(useDefaultMarkdownParser: true);
         var output = new OutputWriter("/output", onlyWriteWhatChanged: true);
 

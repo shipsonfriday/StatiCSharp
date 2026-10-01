@@ -32,7 +32,7 @@ public class DefaultHtmlFactoryOrderingTests
         section.Items.Add(AnItem("oldest", "2024-01-01"));
 
         Website website = Website.Create(url: "https://example.com", name: "My Website");
-        string html = new DefaultHtmlFactory(website).MakeSectionHtml(section);
+        string html = new DefaultHtmlFactory().MakeSectionHtml(section, new RenderContext { Website = website });
 
         Assert.Equal(["newest", "middle", "oldest"], TitleOrder(html, "newest", "middle", "oldest"));
     }
@@ -49,7 +49,7 @@ public class DefaultHtmlFactoryOrderingTests
         string[] before = [.. section.Items.Select(item => item.Title)];
 
         Website website = Website.Create(url: "https://example.com", name: "My Website");
-        new DefaultHtmlFactory(website).MakeSectionHtml(section);
+        new DefaultHtmlFactory().MakeSectionHtml(section, new RenderContext { Website = website });
 
         Assert.Equal(before, section.Items.Select(item => item.Title));
     }
@@ -61,7 +61,7 @@ public class DefaultHtmlFactoryOrderingTests
         string[] before = [.. items.Select(item => item.Title)];
 
         Website website = Website.Create(url: "https://example.com", name: "My Website");
-        new DefaultHtmlFactory(website).MakeTagListHtml(items, "a-tag");
+        new DefaultHtmlFactory().MakeTagListHtml(items, "a-tag", new RenderContext { Website = website });
 
         Assert.Equal(before, items.Select(item => item.Title));
     }
@@ -72,7 +72,7 @@ public class DefaultHtmlFactoryOrderingTests
         List<IItem> items = [AnItem("oldest", "2024-01-01"), AnItem("newest", "2026-01-01")];
 
         Website website = Website.Create(url: "https://example.com", name: "My Website");
-        string html = new DefaultHtmlFactory(website).MakeTagListHtml(items, "a-tag");
+        string html = new DefaultHtmlFactory().MakeTagListHtml(items, "a-tag", new RenderContext { Website = website });
 
         Assert.Equal(["newest", "oldest"], TitleOrder(html, "newest", "oldest"));
     }
@@ -86,11 +86,13 @@ public class DefaultHtmlFactoryOrderingTests
         var notes = new Section { SectionName = "notes" };
         notes.AddItem(AnItem("from-notes", "2026-06-01"));
 
-        Website website = Website.Create(url: "https://example.com", name: "My Website");
-        website.Sections.Add(posts);
-        website.Sections.Add(notes);
+        var context = new RenderContext
+        {
+            Website = Website.Create(url: "https://example.com", name: "My Website"),
+            Sections = [posts, notes],
+        };
 
-        string html = new DefaultHtmlFactory(website).MakeIndexHtml(new Index());
+        string html = new DefaultHtmlFactory().MakeIndexHtml(new Index(), context);
 
         Assert.Equal(["from-notes", "from-posts"], TitleOrder(html, "from-notes", "from-posts"));
     }
@@ -104,10 +106,13 @@ public class DefaultHtmlFactoryOrderingTests
             section.AddItem(AnItem($"post-{day:00}", $"2025-01-{day:00}"));
         }
 
-        Website website = Website.Create(url: "https://example.com", name: "My Website");
-        website.Sections.Add(section);
+        var context = new RenderContext
+        {
+            Website = Website.Create(url: "https://example.com", name: "My Website"),
+            Sections = [section],
+        };
 
-        string html = new DefaultHtmlFactory(website).MakeIndexHtml(new Index());
+        string html = new DefaultHtmlFactory().MakeIndexHtml(new Index(), context);
 
         // The ten newest are the 15th down to the 6th.
         Assert.Contains("post-15", html, StringComparison.Ordinal);
@@ -131,7 +136,7 @@ public class DefaultHtmlFactoryOrderingTests
             List<IItem> items = [AnItem("oldest", "2024-01-01"), AnItem("newest", "2026-01-01")];
             Website website = Website.Create(url: "https://example.com", name: "My Website");
 
-            string html = new DefaultHtmlFactory(website).MakeTagListHtml(items, "a-tag");
+            string html = new DefaultHtmlFactory().MakeTagListHtml(items, "a-tag", new RenderContext { Website = website });
 
             Assert.Equal(["newest", "oldest"], TitleOrder(html, "newest", "oldest"));
         }

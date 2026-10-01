@@ -10,12 +10,15 @@ public class DefaultHtmlFactoryEscapingTests
     private static Website AWebsite(string name = "My Website") =>
         Website.Create(url: "https://example.com", name: name);
 
+    private static RenderContext AContext(string name = "My Website") =>
+        new() { Website = AWebsite(name) };
+
     [Fact]
     public void AnItemTitleIsEncodedInTheItemList()
     {
         List<IItem> items = [new Item { Title = "The \"quoted\" & <bold> post", Section = "posts" }];
 
-        string html = new DefaultHtmlFactory(AWebsite()).MakeTagListHtml(items, "a-tag");
+        string html = new DefaultHtmlFactory().MakeTagListHtml(items, "a-tag", AContext());
 
         Assert.Contains("The &quot;quoted&quot; &amp; &lt;bold&gt; post", html, StringComparison.Ordinal);
         Assert.DoesNotContain("<bold>", html, StringComparison.Ordinal);
@@ -26,7 +29,7 @@ public class DefaultHtmlFactoryEscapingTests
     {
         List<IItem> items = [new Item { Description = "Uses <script> & \"quotes\"", Section = "posts" }];
 
-        string html = new DefaultHtmlFactory(AWebsite()).MakeTagListHtml(items, "a-tag");
+        string html = new DefaultHtmlFactory().MakeTagListHtml(items, "a-tag", AContext());
 
         Assert.Contains("Uses &lt;script&gt; &amp; &quot;quotes&quot;", html, StringComparison.Ordinal);
         Assert.DoesNotContain("<script>", html, StringComparison.Ordinal);
@@ -37,7 +40,7 @@ public class DefaultHtmlFactoryEscapingTests
     {
         List<IItem> items = [new Item { Section = "posts", Tags = ["a&b"] }];
 
-        string html = new DefaultHtmlFactory(AWebsite()).MakeTagListHtml(items, "c<d");
+        string html = new DefaultHtmlFactory().MakeTagListHtml(items, "c<d", AContext());
 
         // The heading renders the tag being listed, the item renders its own tags.
         Assert.Contains("c&lt;d", html, StringComparison.Ordinal);
@@ -47,7 +50,7 @@ public class DefaultHtmlFactoryEscapingTests
     [Fact]
     public void TheWebsiteNameIsEncodedInTheSiteHeader()
     {
-        string html = new DefaultHtmlFactory(AWebsite("Roland's \"Blog\"")).MakePageHtml(new Page());
+        string html = new DefaultHtmlFactory().MakePageHtml(new Page(), AContext("Roland's \"Blog\""));
 
         Assert.Contains("Roland&#39;s &quot;Blog&quot;", html, StringComparison.Ordinal);
     }
@@ -57,7 +60,7 @@ public class DefaultHtmlFactoryEscapingTests
     {
         Website website = AWebsite().WithSections("a&b");
 
-        string html = new DefaultHtmlFactory(website).MakePageHtml(new Page());
+        string html = new DefaultHtmlFactory().MakePageHtml(new Page(), new RenderContext { Website = website });
 
         Assert.Contains("a&amp;b", html, StringComparison.Ordinal);
     }
@@ -69,7 +72,7 @@ public class DefaultHtmlFactoryEscapingTests
         // a space produced /tag/web dev and a tag with a slash nested the directory.
         List<IItem> items = [new Item { Section = "posts", Tags = ["Web Dev"] }];
 
-        string html = new DefaultHtmlFactory(AWebsite()).MakeTagListHtml(items, "Web Dev");
+        string html = new DefaultHtmlFactory().MakeTagListHtml(items, "Web Dev", AContext());
 
         Assert.Contains("href=\"/tag/web-dev\"", html, StringComparison.Ordinal);
         Assert.DoesNotContain("/tag/Web Dev", html, StringComparison.Ordinal);
@@ -80,7 +83,7 @@ public class DefaultHtmlFactoryEscapingTests
     {
         List<IItem> items = [new Item { Section = "posts", Tags = ["Web Dev"] }];
 
-        string html = new DefaultHtmlFactory(AWebsite()).MakeTagListHtml(items, "a-tag");
+        string html = new DefaultHtmlFactory().MakeTagListHtml(items, "a-tag", AContext());
 
         Assert.Contains("href=\"/tag/web-dev\">Web Dev</a>", html, StringComparison.Ordinal);
     }
@@ -92,7 +95,7 @@ public class DefaultHtmlFactoryEscapingTests
         // would print every page as visible source.
         var page = new Page { Content = "<p>Hello <em>world</em> &amp; welcome</p>" };
 
-        string html = new DefaultHtmlFactory(AWebsite()).MakePageHtml(page);
+        string html = new DefaultHtmlFactory().MakePageHtml(page, AContext());
 
         Assert.Contains("<p>Hello <em>world</em> &amp; welcome</p>", html, StringComparison.Ordinal);
     }

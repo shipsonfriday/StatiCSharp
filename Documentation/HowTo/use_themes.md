@@ -31,20 +31,26 @@ var myAwesomeWebsite = Website.Create(
     .WithLanguage("en-US")
     .WithSections("posts", "about");    // Folders that should be treated as sections.
 
-var theme = new FoundationHtmlFactory(myAwesomeWebsite);
-
 await WebsiteManager
     .For(myAwesomeWebsite, source: @"/path/to/your/project")   // Folder of your website project.
-    .WithTheme(theme)
+    .WithTheme(new FoundationHtmlFactory())
     .MakeAsync();
 ```
 
-A theme built against StatiC# 0.5 has to be rebuilt for 1.0. `IHtmlFactory` itself is
-unchanged, so the theme class needs no new members - but the html components it renders with
-did change, and a binary compiled against 0.5 calls methods that no longer exist.
+A theme no longer takes the website. It is given everything it needs when a site is rendered,
+so one instance works for any website and its constructor is free for the theme's own
+options, e.g. `new FoundationHtmlFactory(accentColor: "#c0392b")`.
+
+A theme built against StatiC# 0.5 has to be rebuilt for 1.0, and its source has to be
+adjusted: `IHtmlFactory` changed, and so did the html components it renders with.
 
 What a theme author has to do:
 
+- Add a `RenderContext context` parameter to every `Make…Html` method, and `ISite site` plus
+  `RenderContext context` to `MakeHeadHtml`. Whatever the theme took the website for is on
+  `context.Website`; the content it could not reach before is on `context.Sections`,
+  `context.Pages` and `context.Index`.
+- Drop the constructor that took an `IWebsite`.
 - Replace chained `.Add(...)` calls with constructor arguments or a collection initializer,
   as described in [making a custom theme](making_a_custom_theme.md#writing-a-tree).
 - Rename `Content` to `Children` in any custom element.

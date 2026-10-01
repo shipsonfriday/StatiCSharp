@@ -81,7 +81,7 @@ public sealed class WebsiteManager
     private WebsiteManager(IWebsite website, string source)
     {
         Website = website;
-        HtmlFactory = new DefaultHtmlFactory(website);
+        HtmlFactory = new DefaultHtmlFactory();
 
         SourceDir = source;
         Content = Path.Combine(source, "Content");

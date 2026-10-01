@@ -21,6 +21,7 @@ namespace StatiCSharp;
 internal sealed class WebsiteRenderer
 {
     private readonly IWebsite _website;
+    private readonly RenderContext _context;
     private readonly IHtmlFactory _htmlFactory;
     private readonly HtmlBuilder _htmlBuilder;
     private readonly OutputWriter _output;
@@ -51,6 +52,16 @@ internal sealed class WebsiteRenderer
 
         _website = website;
         _htmlFactory = htmlFactory;
+
+        // Built once and handed to every call, so the theme sees the same website throughout
+        // one run and does not have to hold anything itself.
+        _context = new RenderContext
+        {
+            Website = website,
+            Index = website.Index,
+            Pages = website.Pages,
+            Sections = website.Sections,
+        };
         _htmlBuilder = htmlBuilder;
         _output = output;
         _outputDirectory = outputDirectory;
@@ -61,7 +72,7 @@ internal sealed class WebsiteRenderer
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous index generating operation.</returns>
     internal Task RenderIndexAsync()
-        => RenderSiteAsync(_website.Index, _htmlFactory.MakeIndexHtml(_website.Index));
+        => RenderSiteAsync(_context.Index, _htmlFactory.MakeIndexHtml(_context.Index, _context));
 
     /// <summary>
     /// Renders the pages (not sections or items) of the website.
@@ -71,7 +82,7 @@ internal sealed class WebsiteRenderer
     {
         List<Task> tasks = new List<Task>();
 
-        foreach (IPage site in _website.Pages)
+        foreach (IPage site in _context.Pages)
         {
             tasks.Add(WritePage(site));
         }
@@ -87,7 +98,7 @@ internal sealed class WebsiteRenderer
 
             await RenderSiteAsync(
                 site,
-                _htmlFactory.MakePageHtml(site),
+                _htmlFactory.MakePageHtml(site, _context),
                 site.Hierarchy,
                 pathInHierachy);
         }
@@ -101,7 +112,7 @@ internal sealed class WebsiteRenderer
     {
         List<Task> tasks = new List<Task>();
 
-        foreach (ISection site in _website.Sections)
+        foreach (ISection site in _context.Sections)
         {
             tasks.Add(WriteSection(site));
         }
@@ -110,7 +121,7 @@ internal sealed class WebsiteRenderer
 
         async Task WriteSection(ISection site)
         {
-            await RenderSiteAsync(site, _htmlFactory.MakeSectionHtml(site), site.SectionName);
+            await RenderSiteAsync(site, _htmlFactory.MakeSectionHtml(site, _context), site.SectionName);
         }
     }
 
@@ -122,7 +133,7 @@ internal sealed class WebsiteRenderer
     {
         List<Task> tasks = new List<Task>();
 
-        foreach (ISection section in _website.Sections)
+        foreach (ISection section in _context.Sections)
         {
             foreach (IItem site in section.Items)
             {
@@ -139,7 +150,7 @@ internal sealed class WebsiteRenderer
 
             await RenderSiteAsync(
                 site,
-                _htmlFactory.MakeItemHtml(site),
+                _htmlFactory.MakeItemHtml(site, _context),
                 section.SectionName,
                 itemPath);
         }
@@ -153,7 +164,7 @@ internal sealed class WebsiteRenderer
     {
         // Collect all available tags
         List<string> tags = new List<string>();
-        foreach (ISection currentSection in _website.Sections)
+        foreach (ISection currentSection in _context.Sections)
         {
             foreach (IItem currentItem in currentSection.Items)
             {
@@ -195,7 +206,7 @@ internal sealed class WebsiteRenderer
 
             List<IItem> itemsWithCurrentTag = new();
             // Collect all items with the current tag
-            foreach (ISection currentSection in _website.Sections)
+            foreach (ISection currentSection in _context.Sections)
             {
                 foreach (IItem item in currentSection.Items)
                 {
@@ -211,7 +222,7 @@ internal sealed class WebsiteRenderer
 
             await RenderSiteAsync(
                 tagPage,
-                _htmlFactory.MakeTagListHtml(itemsWithCurrentTag, tag),
+                _htmlFactory.MakeTagListHtml(itemsWithCurrentTag, tag, _context),
                 "tag",
                 slug);
         }
@@ -237,7 +248,7 @@ internal sealed class WebsiteRenderer
         string document = HtmlDocument.Wrap(
             _website,
             site,
-            _htmlFactory.MakeHeadHtml(),
+            _htmlFactory.MakeHeadHtml(site, _context),
             _htmlBuilder.AdditionalHeaderContent,
             body);
 

@@ -26,49 +26,35 @@ public class DefaultHtmlFactory: IHtmlFactory
         }
     }
 
-    /// <summary>
-    /// The website the theme is used for. So that the theme can access additional information.
-    /// </summary>
-    private IWebsite Website { get; set; }
-
-    /// <summary>
-    /// Initiate a new default theme, using the given website.
-    /// </summary>
-    /// <param name="website"></param>
-    public DefaultHtmlFactory(IWebsite website)
-    {
-        Website = website;
-    }
-
     /// <inheritdoc/>
-    public string MakeHeadHtml()
+    public string MakeHeadHtml(ISite site, RenderContext context)
     {
         return new Link().Rel("stylesheet").Href("/default-theme/styles.css").Render();
     }
 
     /// <inheritdoc/>
-    public string MakeIndexHtml(IIndex index)
+    public string MakeIndexHtml(IIndex index, RenderContext context)
     {
         // Collect all items to show, newest first, 10 items max.
-        List<IItem> items = NewestFirst(Website.Sections.SelectMany(section => section.Items))
+        List<IItem> items = NewestFirst(context.Sections.SelectMany(section => section.Items))
             .Take(_numberOfArticlesOnHomepage)
             .ToList();
 
         return new Body(
-                new SiteHeader(Website),
+                new SiteHeader(context.Website),
                 new Div(
                     new Div(index.Content).Class("welcomeWrapper"),
                     new H2("Latest Content"),
-                    new ItemList(items, Website.Language)).Class("wrapper"),
+                    new ItemList(items, context.Website.Language)).Class("wrapper"),
                 new Footer())
             .Render();
     }
 
     /// <inheritdoc/>
-    public string MakePageHtml(IPage page)
+    public string MakePageHtml(IPage page, RenderContext context)
     {
         return new Body(
-                new SiteHeader(Website),
+                new SiteHeader(context.Website),
                 new Div(
                     new Article(
                         new Div(page.Content).Class("content"))).Class("wrapper"),
@@ -77,26 +63,26 @@ public class DefaultHtmlFactory: IHtmlFactory
     }
 
     /// <inheritdoc/>
-    public string MakeSectionHtml(ISection section)
+    public string MakeSectionHtml(ISection section, RenderContext context)
     {
         List<IItem> items = NewestFirst(section.Items).ToList();
         return new Body(
-                new SiteHeader(Website),
+                new SiteHeader(context.Website),
                 new Div(section.Content).Class("wrapper"),
                 new Div(
-                    new ItemList(items, Website.Language)).Class("wrapper"),
+                    new ItemList(items, context.Website.Language)).Class("wrapper"),
                 new Footer())
             .Render();
     }
 
     /// <inheritdoc/>
-    public string MakeItemHtml(IItem item)
+    public string MakeItemHtml(IItem item, RenderContext context)
     {
         return new Body(
-                new SiteHeader(Website),
+                new SiteHeader(context.Website),
                 new Div(
                     new TagList(item.Tags),
-                    new Text(FormatDate(item.Date, Website.Language))).Class("item-meta-data-header"),
+                    new Text(FormatDate(item.Date, context.Website.Language))).Class("item-meta-data-header"),
                 new Div(
                     new Article(
                         new Div(item.Content).Class("content"))).Class("wrapper"),
@@ -105,15 +91,15 @@ public class DefaultHtmlFactory: IHtmlFactory
     }
 
     /// <inheritdoc/>
-    public string MakeTagListHtml(List<IItem> items, string tag)
+    public string MakeTagListHtml(List<IItem> items, string tag, RenderContext context)
     {
         return new Body(
-                new SiteHeader(Website),
+                new SiteHeader(context.Website),
                 new Div(
                     new H1(
                         new Text("Tagged with "),
                         new bigTag(tag)),
-                    new ItemList(NewestFirst(items).ToList(), Website.Language)).Class("wrapper"),
+                    new ItemList(NewestFirst(items).ToList(), context.Website.Language)).Class("wrapper"),
                 new Footer())
             .Render();
     }

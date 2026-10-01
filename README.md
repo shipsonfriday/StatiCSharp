@@ -195,6 +195,9 @@ Themes have to be rebuilt. `IHtmlFactory` is unchanged, but the html components 
 | `Content` in a custom element | `Children` |
 | `Href($"/tag/{tag}")` | `Href($"/tag/{UrlSlug.From(tag)}")` |
 | `new Text(item.Title)` | encode it - meta data is plain text now |
+| `MakeIndexHtml(index)` | `MakeIndexHtml(index, RenderContext context)` - same for every `Make…Html` |
+| `MakeHeadHtml()` | `MakeHeadHtml(ISite site, RenderContext context)` |
+| `MyTheme(IWebsite website)` | no constructor needed - use `context.Website` |
 
 In exchange the element set grew from 20 to 67, every element takes any attribute through
 `Attribute()`, custom elements are actually possible, and a chain no longer depends on the

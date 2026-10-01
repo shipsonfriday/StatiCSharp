@@ -11,7 +11,7 @@ public class DefaultHtmlFactoryNavigationTests
         Website website = Website.Create(url: "https://example.com", name: "My Website")
             .WithSections(sections);
 
-        string html = new DefaultHtmlFactory(website).MakePageHtml(new Page());
+        string html = new DefaultHtmlFactory().MakePageHtml(new Page(), new RenderContext { Website = website });
 
         Match nav = Regex.Match(html, "<nav>.*?</nav>", RegexOptions.Singleline);
         Assert.True(nav.Success, "The page has no nav element.");

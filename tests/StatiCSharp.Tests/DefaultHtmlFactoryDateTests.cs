@@ -24,7 +24,7 @@ public class DefaultHtmlFactoryDateTests
         Website website = Website.Create(url: "https://example.com", name: "My Website")
             .WithLanguage(language);
 
-        string html = new DefaultHtmlFactory(website).MakeItemHtml(AMarchItem());
+        string html = new DefaultHtmlFactory().MakeItemHtml(AMarchItem(), new RenderContext { Website = website });
 
         Assert.Contains(expected, html, StringComparison.Ordinal);
     }
@@ -44,7 +44,7 @@ public class DefaultHtmlFactoryDateTests
             Website website = Website.Create(url: "https://example.com", name: "My Website")
                 .WithLanguage("en-US");
 
-            string html = new DefaultHtmlFactory(website).MakeItemHtml(AMarchItem());
+            string html = new DefaultHtmlFactory().MakeItemHtml(AMarchItem(), new RenderContext { Website = website });
 
             Assert.Contains("March 04, 2020", html, StringComparison.Ordinal);
         }
@@ -61,7 +61,7 @@ public class DefaultHtmlFactoryDateTests
             .WithLanguage("de-DE");
 
         List<IItem> items = [AMarchItem()];
-        string html = new DefaultHtmlFactory(website).MakeTagListHtml(items, "a-tag");
+        string html = new DefaultHtmlFactory().MakeTagListHtml(items, "a-tag", new RenderContext { Website = website });
 
         Assert.Contains("März 04, 2020", html, StringComparison.Ordinal);
     }
