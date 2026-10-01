@@ -23,9 +23,6 @@ public class WebsiteTests
         Assert.Equal(string.Empty, website.Description);
         Assert.Equal("en-US", website.Language.Name);
         Assert.Empty(website.MakeSectionsFor);
-        Assert.NotNull(website.Index);
-        Assert.Empty(website.Pages);
-        Assert.Empty(website.Sections);
     }
 
     [Fact]

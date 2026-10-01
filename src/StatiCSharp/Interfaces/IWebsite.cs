@@ -4,7 +4,13 @@ using System.Globalization; // CultureInfo
 namespace StatiCSharp.Interfaces
 {
     /// <summary>
-    /// Interface to confrom to for a website object while building templates.
+    /// The configuration of a website: what the author states about it before anything is
+    /// read.
+    /// <para>
+    /// The content that is read from the markdown files is not part of this. It is handed to a
+    /// theme through <see cref="RenderContext"/>, which carries both. Keeping them apart is
+    /// what lets a website be configured once and generated any number of times.
+    /// </para>
     /// </summary>
     public interface IWebsite
     {
@@ -27,21 +33,6 @@ namespace StatiCSharp.Interfaces
         /// The language the websites main content is written in.
         /// </summary>
         CultureInfo Language { get; }
-
-        /// <summary>
-        /// Represents the index (homepage) of the website.
-        /// </summary>
-        IIndex Index { get; }
-
-        /// <summary>
-        /// The collection of pages the website contains.
-        /// </summary>
-        List<IPage> Pages { get; }
-
-        /// <summary>
-        /// The collection of sections the website's sections (not pages).
-        /// </summary>
-        List<ISection> Sections { get; }
 
         /// <summary>
         /// Collection of the websites section-names. Folders in the content directory with names matching one item of this list a treated as sections.

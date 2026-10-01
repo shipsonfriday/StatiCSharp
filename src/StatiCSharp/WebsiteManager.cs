@@ -261,7 +261,7 @@ public sealed class WebsiteManager
         await Task.Run(() => EnvironmentCheck.Verify(Content, Resources, Output, HtmlFactory.ResourcesPath));
 
         WriteLine("Collecting markdown data...");
-        new ContentReader(Content, _htmlBuilder).ReadInto(Website);
+        RenderContext context = new ContentReader(Content, _htmlBuilder).Read(Website);
 
         // One writer per run: the paths it records are only meaningful for this run.
         OutputWriter output = new(Output, onlyWriteWhatChanged: IncrementalOutput, alsoPreserve: _preservedOutput);
@@ -275,7 +275,7 @@ public sealed class WebsiteManager
         WriteLine("Copying theme resources...");
         await output.CopyIntoOutputAsync(HtmlFactory.ResourcesPath);
 
-        WebsiteRenderer renderer = new(Website, HtmlFactory, _htmlBuilder, output, Output);
+        WebsiteRenderer renderer = new(context, HtmlFactory, _htmlBuilder, output, Output);
 
         WriteLine("Writing index...");
         await renderer.RenderIndexAsync();

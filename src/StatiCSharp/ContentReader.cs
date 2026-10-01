@@ -9,12 +9,18 @@ using static StatiCSharp.StatiCSharpConsole;
 namespace StatiCSharp;
 
 /// <summary>
-/// Reads the markdown files in the content directory and fills a website with what it finds:
-/// the index, the pages, the sections and their items.
+/// Reads the markdown files in the content directory and returns what it finds: the index, the
+/// pages, the sections and their items.
 /// <para>
 /// The counterpart of <see cref="OutputWriter"/>. The manager used to do both, which is why
 /// reading and writing shared fields and the order of the two was a matter of reading
 /// <c>MakeAsync</c> from top to bottom.
+/// </para>
+/// <para>
+/// It used to fill the website that was passed in. That made a website both the configuration
+/// its author wrote and the result of reading, so a second run had to start by emptying it,
+/// the index could not be replaced and a theme could not tell the two apart. Reading returns
+/// a new result now and touches nothing.
 /// </para>
 /// </summary>
 internal sealed class ContentReader
@@ -39,28 +45,26 @@ internal sealed class ContentReader
     }
 
     /// <summary>
-    /// Reads the content directory and puts the index, pages, sections and items into the
-    /// given website. Anything the website held before is discarded.
+    /// Reads the content directory and returns it together with the given configuration, ready
+    /// to be rendered.
     /// </summary>
-    /// <param name="website">The website to fill.</param>
+    /// <param name="website">The configuration of the website. It is only read.</param>
+    /// <returns>The index, the pages and the sections that were found.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="website"/> is null.</exception>
-    internal void ReadInto(IWebsite website)
+    internal RenderContext Read(IWebsite website)
     {
         ArgumentNullException.ThrowIfNull(website);
 
-        // Reading appends to the website, so a website used for a second run would end up
-        // holding every section and page twice - and the index would keep the values of the
-        // previous run if there is no index.md. Start from empty.
-        website.Pages.Clear();
-        website.Sections.Clear();
-        Reset(website.Index);
+        Index index = new();
+        List<IPage> pages = [];
+        List<ISection> sections = [];
 
         string[] directoriesOfContent = Directory.GetDirectories(_contentDirectory);
 
-        // Index
+        // Index. Stays empty when there is no index.md.
         string pathOfIndex = Path.Combine(_contentDirectory, "index.md");
         if (File.Exists(pathOfIndex))
-            ReadIndex(website, pathOfIndex);
+            FillFromMarkdown(index, pathOfIndex);
 
 
         // Pages
@@ -81,7 +85,7 @@ internal sealed class ContentReader
             foreach (string file in files)
             {
                 if (IsMarkdownFile(file))
-                    ReadPage(website, file);
+                    pages.Add(ReadPage(file));
             }
 
             foreach (string directory in dirs)
@@ -100,24 +104,23 @@ internal sealed class ContentReader
                 string pathOfSectionIndexFile = Path.Combine(directory, "index.md");
 
                 if (File.Exists(pathOfSectionIndexFile))
-                    ReadSection(website, pathOfSectionIndexFile);
+                    sections.Add(ReadSection(pathOfSectionIndexFile));
             }
         }
+
+        return new RenderContext
+        {
+            Website = website,
+            Index = index,
+            Pages = pages,
+            Sections = sections,
+        };
     }
 
     /// <summary>
-    /// Reads the index of the website. The index object cannot be replaced - a caller may
-    /// pass an <see cref="IWebsite"/> implementation of their own - so it is filled in place.
+    /// Reads a page.
     /// </summary>
-    private void ReadIndex(IWebsite website, string path)
-    {
-        FillFromMarkdown(website.Index, path);
-    }
-
-    /// <summary>
-    /// Reads a page and appends it to the website.
-    /// </summary>
-    private void ReadPage(IWebsite website, string path)
+    private Page ReadPage(string path)
     {
         Page page = new()
         {
@@ -126,14 +129,13 @@ internal sealed class ContentReader
 
         FillFromMarkdown(page, path);
 
-        website.Pages.Add(page);
+        return page;
     }
 
     /// <summary>
-    /// Reads a section from its index file, together with every item in the same directory,
-    /// and appends it to the website.
+    /// Reads a section from its index file, together with every item in the same directory.
     /// </summary>
-    private void ReadSection(IWebsite website, string path)
+    private Section ReadSection(string path)
     {
         string sectionFolder = Path.GetDirectoryName(path)!;
 
@@ -152,7 +154,7 @@ internal sealed class ContentReader
             }
         }
 
-        website.Sections.Add(section);
+        return section;
     }
 
     /// <summary>
@@ -289,33 +291,6 @@ internal sealed class ContentReader
             value = string.Empty;
             return false;
         }
-    }
-
-    /// <summary>
-    /// Puts a site back into the state a freshly created one is in.
-    /// <para>
-    /// Needed because the website carries both the configuration the caller gave and the
-    /// content read from disk. Separating those is the real fix; until then, reading starts
-    /// by undoing what an earlier run left behind.
-    /// </para>
-    /// <para>
-    /// Every settable property of <see cref="ISite"/> has to be listed here. A test walks
-    /// the interface and fails if one is missing.
-    /// </para>
-    /// </summary>
-    /// <param name="site">The site to reset.</param>
-    private static void Reset(ISite site)
-    {
-        site.Title = string.Empty;
-        site.Description = string.Empty;
-        site.Author = string.Empty;
-        site.Date = DateOnly.FromDateTime(DateTime.Now);
-        site.DateLastModified = DateOnly.FromDateTime(DateTime.Now);
-        site.Path = string.Empty;
-        site.Tags = [];
-        site.Content = string.Empty;
-        site.MarkdownFileName = string.Empty;
-        site.MarkdownFilePath = string.Empty;
     }
 
     /// <summary>

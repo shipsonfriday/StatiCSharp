@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -28,21 +29,18 @@ public class ContentReaderTests
         Website website = Website.Create(url: "https://example.com", name: "My Website")
             .WithSections("posts");
 
-        ReaderFor(directory).ReadInto(website);
+        RenderContext content = ReaderFor(directory).Read(website);
 
-        return Assert.Single(Assert.Single(website.Sections).Items);
+        return Assert.Single(Assert.Single(content.Sections).Items);
     }
 
     /// <summary>
-    /// Reads a content directory holding nothing but pages, and returns the website.
+    /// Reads a content directory holding nothing but pages.
     /// </summary>
-    private static Website PagesIn(TempDirectory directory)
-    {
-        Website website = Website.Create(url: "https://example.com", name: "My Website");
-        ReaderFor(directory).ReadInto(website);
-
-        return website;
-    }
+    private static IReadOnlyList<IPage> PagesIn(TempDirectory directory)
+        => ReaderFor(directory)
+            .Read(Website.Create(url: "https://example.com", name: "My Website"))
+            .Pages;
 
     [Fact]
     public void APageInAFolderTakesThatFolderAsItsHierarchy()
@@ -50,7 +48,7 @@ public class ContentReaderTests
         using var directory = new TempDirectory();
         directory.WriteFile("Content/about/index.md", "---", "title: About", "---", "About me.");
 
-        IPage page = Assert.Single(PagesIn(directory).Pages);
+        IPage page = Assert.Single(PagesIn(directory));
 
         Assert.Equal("about", page.Hierarchy);
         Assert.Equal("/about", page.Url);
@@ -62,10 +60,50 @@ public class ContentReaderTests
         using var directory = new TempDirectory();
         directory.WriteFile("Content/docs/guide/setup.md", "---", "title: Setup", "---", "Body.");
 
-        IPage page = Assert.Single(PagesIn(directory).Pages);
+        IPage page = Assert.Single(PagesIn(directory));
 
         Assert.Equal(Path.Combine("docs", "guide"), page.Hierarchy);
         Assert.Equal("/docs/guide/setup", page.Url);
+    }
+
+    [Fact]
+    public void ReadingTwiceReturnsIndependentContent()
+    {
+        // The reader used to fill the website that was passed in, so a second run appended to
+        // what the first had left there - every section and page once per run - and an index
+        // kept the values of the previous run when there was no index.md. Nothing is shared
+        // between two results now, so there is nothing to carry over.
+        using var directory = new TempDirectory();
+        directory.WriteFile("Content/index.md", "---", "title: Home", "---", "Welcome.");
+        directory.WriteFile("Content/about/index.md", "---", "title: About", "---", "About.");
+        directory.WriteFile("Content/posts/index.md", "---", "title: Posts", "---", "Section.");
+
+        Website website = Website.Create(url: "https://example.com", name: "My Website")
+            .WithSections("posts");
+        ContentReader reader = ReaderFor(directory);
+
+        RenderContext first = reader.Read(website);
+        RenderContext second = reader.Read(website);
+
+        Assert.Single(first.Sections);
+        Assert.Single(second.Sections);
+        Assert.Single(first.Pages);
+        Assert.Single(second.Pages);
+        Assert.NotSame(first.Index, second.Index);
+        Assert.NotSame(first.Sections, second.Sections);
+    }
+
+    [Fact]
+    public void WithoutAnIndexFileTheIndexIsEmpty()
+    {
+        using var directory = new TempDirectory();
+        directory.WriteFile("Content/about/index.md", "---", "title: About", "---", "About.");
+
+        RenderContext content = ReaderFor(directory)
+            .Read(Website.Create(url: "https://example.com", name: "My Website"));
+
+        Assert.Equal(string.Empty, content.Index.Title);
+        Assert.Equal(string.Empty, content.Index.Content);
     }
 
     [Fact]
@@ -83,7 +121,7 @@ public class ContentReaderTests
     {
         using var directory = new TempDirectory();
 
-        Assert.Throws<ArgumentNullException>(() => ReaderFor(directory).ReadInto(null!));
+        Assert.Throws<ArgumentNullException>(() => ReaderFor(directory).Read(null!));
     }
 
     [Fact]
@@ -169,9 +207,9 @@ public class ContentReaderTests
         Website website = Website.Create(url: "https://example.com", name: "My Website")
             .WithSections("posts");
 
-        ReaderFor(directory).ReadInto(website);
+        RenderContext content = ReaderFor(directory).Read(website);
 
-        return [.. Assert.Single(website.Sections).Items.Select(item => item.MarkdownFileName).Order()];
+        return [.. Assert.Single(content.Sections).Items.Select(item => item.MarkdownFileName).Order()];
     }
 
     [Fact]

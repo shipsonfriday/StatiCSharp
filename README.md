@@ -164,6 +164,7 @@ required values go into the entry point and everything optional follows fluently
 | `manager.AddParser(parser)` | unchanged, still chainable |
 | `IWebsiteManager` | gone - `WebsiteManager` is the type |
 | `IHtmlBuilder` | gone - it had no reachable implementation |
+| `website.Index`, `website.Pages`, `website.Sections` | gone - `IWebsite` is configuration; read content is on `RenderContext` |
 
 Four changes affect content rather than code:
 

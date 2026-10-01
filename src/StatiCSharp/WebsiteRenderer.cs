@@ -20,7 +20,6 @@ namespace StatiCSharp;
 /// </summary>
 internal sealed class WebsiteRenderer
 {
-    private readonly IWebsite _website;
     private readonly RenderContext _context;
     private readonly IHtmlFactory _htmlFactory;
     private readonly HtmlBuilder _htmlBuilder;
@@ -30,7 +29,7 @@ internal sealed class WebsiteRenderer
     /// <summary>
     /// Starts a renderer for one run.
     /// </summary>
-    /// <param name="website">The website to render, with its content already read.</param>
+    /// <param name="context">The website's configuration together with the content that was read.</param>
     /// <param name="htmlFactory">The theme that renders the bodies.</param>
     /// <param name="htmlBuilder">The pipeline, for the head content its parsers need.</param>
     /// <param name="output">The writer for this run.</param>
@@ -38,30 +37,22 @@ internal sealed class WebsiteRenderer
     /// <exception cref="ArgumentNullException">An argument is null.</exception>
     /// <exception cref="ArgumentException"><paramref name="outputDirectory"/> is empty or only whitespace.</exception>
     internal WebsiteRenderer(
-        IWebsite website,
+        RenderContext context,
         IHtmlFactory htmlFactory,
         HtmlBuilder htmlBuilder,
         OutputWriter output,
         string outputDirectory)
     {
-        ArgumentNullException.ThrowIfNull(website);
+        ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(htmlFactory);
         ArgumentNullException.ThrowIfNull(htmlBuilder);
         ArgumentNullException.ThrowIfNull(output);
         ArgumentException.ThrowIfNullOrWhiteSpace(outputDirectory);
 
-        _website = website;
+        // The same instance is handed to every call, so the theme sees one website throughout
+        // the run and does not have to hold anything itself.
+        _context = context;
         _htmlFactory = htmlFactory;
-
-        // Built once and handed to every call, so the theme sees the same website throughout
-        // one run and does not have to hold anything itself.
-        _context = new RenderContext
-        {
-            Website = website,
-            Index = website.Index,
-            Pages = website.Pages,
-            Sections = website.Sections,
-        };
         _htmlBuilder = htmlBuilder;
         _output = output;
         _outputDirectory = outputDirectory;
@@ -218,7 +209,7 @@ internal sealed class WebsiteRenderer
             }
 
             Item tagPage = new();
-            tagPage.Title = $"{tag} | {_website.Name}";
+            tagPage.Title = $"{tag} | {_context.Website.Name}";
 
             await RenderSiteAsync(
                 tagPage,
@@ -246,7 +237,7 @@ internal sealed class WebsiteRenderer
         string path = Directory.CreateDirectory(Path.Combine([_outputDirectory, .. pathSegments])).ToString();
 
         string document = HtmlDocument.Wrap(
-            _website,
+            _context.Website,
             site,
             _htmlFactory.MakeHeadHtml(site, _context),
             _htmlBuilder.AdditionalHeaderContent,

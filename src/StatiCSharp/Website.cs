@@ -39,15 +39,6 @@ public class Website : IWebsite
     public CultureInfo Language { get; private set; } = DefaultLanguage;
 
     /// <inheritdoc/>
-    public IIndex Index { get; } = new Index();
-
-    /// <inheritdoc/>
-    public List<IPage> Pages { get; } = [];
-
-    /// <inheritdoc/>
-    public List<ISection> Sections { get; } = [];
-
-    /// <inheritdoc/>
     public List<string> MakeSectionsFor { get; private set; } = [];
 
     private Website(string url, string name)

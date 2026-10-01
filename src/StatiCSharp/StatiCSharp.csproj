@@ -18,6 +18,7 @@
 - Meta data is treated as plain text and encoded on output, so a quote in a title or author name no longer breaks the page head.
 - Dates are read as ISO 8601 and rendered in the website's language, independent of the machine running the generator.
 - Output is written incrementally by default: unchanged files are left alone, and files the generator did not produce are removed. WithPreservedOutput names exceptions; .git, .nojekyll and CNAME are always kept.
+- A website is configuration only. Index, Pages and Sections are no longer on IWebsite: reading returns its result instead of filling the website, so one website can be generated any number of times.
 - Themes get a RenderContext: every IHtmlFactory method is handed the website's configuration and all of its content, so a theme no longer takes the website in its constructor and can build a navigation, a sitemap or a tag cloud.
 - Markdig raised to 1.4.0.
 
