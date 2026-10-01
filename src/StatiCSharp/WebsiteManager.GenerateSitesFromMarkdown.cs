@@ -13,6 +13,13 @@ public partial class WebsiteManager : IWebsiteManager
     /// <returns></returns>
     internal async Task GenerateSitesFromMarkdownAsync()
     {
+        // Reading appends to the website, so a website used for a second run would end up
+        // holding every section and page twice - and the index would keep the values of the
+        // previous run if there is no index.md. Start from empty.
+        Website.Pages.Clear();
+        Website.Sections.Clear();
+        Reset(Website.Index);
+
         string[] directoriesOfContent = Directory.GetDirectories(Content);
 
         // Index
@@ -150,6 +157,33 @@ public partial class WebsiteManager : IWebsiteManager
 
         throw new NotImplementedException(message:$"The given type-parameter {typeof(T)} is not supported by this method.");
 
+    }
+
+    /// <summary>
+    /// Puts a site back into the state a freshly created one is in.
+    /// <para>
+    /// Needed because the website carries both the configuration the caller gave and the
+    /// content read from disk. Separating those is the real fix; until then, reading starts
+    /// by undoing what an earlier run left behind.
+    /// </para>
+    /// <para>
+    /// Every settable property of <see cref="ISite"/> has to be listed here. A test walks
+    /// the interface and fails if one is missing.
+    /// </para>
+    /// </summary>
+    /// <param name="site">The site to reset.</param>
+    private static void Reset(ISite site)
+    {
+        site.Title = string.Empty;
+        site.Description = string.Empty;
+        site.Author = string.Empty;
+        site.Date = DateOnly.FromDateTime(DateTime.Now);
+        site.DateLastModified = DateOnly.FromDateTime(DateTime.Now);
+        site.Path = string.Empty;
+        site.Tags = [];
+        site.Content = string.Empty;
+        site.MarkdownFileName = string.Empty;
+        site.MarkdownFilePath = string.Empty;
     }
 
     /// <summary>
