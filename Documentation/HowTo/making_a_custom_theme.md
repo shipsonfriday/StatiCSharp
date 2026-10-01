@@ -117,6 +117,22 @@ When adding `IHtmlFactory` your IDE will prompt you to add the following propert
 - `public string MakeItemHtml(IItem item, RenderContext context)` Method that returns the \<body> HTML -code for an item site.
 - `public string MakeTagListHtml(List<IItem> items, string tag, RenderContext context)` Method that returns the \<body> HTML -code for the taglist site.
 
+### Writing a date
+
+`StatiCSharp.Tools.DateText.For(date, context.Website.Language)` writes a date the way the
+website's language writes it, in wording and in arrangement:
+
+| Language | Result |
+| --- | --- |
+| `en-US` | March 4, 2020 |
+| `de-DE` | 4. März 2020 |
+| `fr-FR` | 4 mars 2020 |
+| `ja-JP` | 2020年3月4日 |
+
+Reach for it rather than a fixed pattern. `date.ToString("MMMM dd, yyyy", culture)` looks
+right and is not: it takes the month name from the language but keeps an English order, so a
+German site reads `März 04, 2020`.
+
 ### The render context
 
 Every method is given a `RenderContext`. It holds the website's configuration and everything

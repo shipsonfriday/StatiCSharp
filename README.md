@@ -173,6 +173,12 @@ Four changes affect content rather than code:
   keep hand written files next to the generated ones, name them with
   `manager.WithPreservedOutput("robots.txt")` - `.git`, `.nojekyll` and `CNAME` are kept
   without asking. See [incremental output](Documentation/HowTo/incremental_output.md).
+- **Dates are written the way the website's language writes them.** A date used to be
+  rendered with a fixed `"MMMM dd, yyyy"`, which took the month name from the language but kept
+  an English arrangement: a German site read `März 04, 2020` instead of `4. März 2020`, a
+  Polish one `marca 04, 2020`. Both the wording and the order now come from the language, and
+  the day is no longer zero padded, so even an English site changes from `March 04` to
+  `March 4`. Themes can use `StatiCSharp.Tools.DateText.For(date, culture)`.
 - **The default theme's navigation changed.** A link now says the section's title from its
   `index.md` rather than the folder name - `posts` becomes `Posts` - and a section named in
   `WithSections` without an `index.md` is no longer linked, since there was never a page

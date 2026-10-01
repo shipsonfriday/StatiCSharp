@@ -82,7 +82,7 @@ public class DefaultHtmlFactory: IHtmlFactory
                 new SiteHeader(context),
                 new Div(
                     new TagList(item.Tags),
-                    new Text(FormatDate(item.Date, context.Website.Language))).Class("item-meta-data-header"),
+                    new Text(DateText.For(item.Date, context.Website.Language))).Class("item-meta-data-header"),
                 new Div(
                     new Article(
                         new Div(item.Content).Class("content"))).Class("wrapper"),
@@ -124,17 +124,6 @@ public class DefaultHtmlFactory: IHtmlFactory
     /// already html by then - meta data is not, so it has to be encoded here.
     /// </summary>
     private static Text Plain(string text) => new(WebUtility.HtmlEncode(text));
-
-    /// <summary>
-    /// Formats a date for display in the language the website declares.
-    /// <para>
-    /// Without an explicit culture the month name follows the machine that runs the
-    /// generator, so an English site built on a German machine would read "März".
-    /// </para>
-    /// </summary>
-    private static string FormatDate(DateOnly date, CultureInfo culture)
-        => date.ToString("MMMM dd, yyyy", culture);
-
 
     ////////////
     /// Components
@@ -192,7 +181,7 @@ public class DefaultHtmlFactory: IHtmlFactory
                             new A(Plain(item.Title)).Href(item.Url)),
                         new Div(
                             new TagList(item.Tags),
-                            new Text(FormatDate(item.Date, culture))).Class("item-meta-data"),
+                            new Text(DateText.For(item.Date, culture))).Class("item-meta-data"),
                         new Paragraph(Plain(item.Description)))))];
 
             return new Ul(listItems).Class("item-list").Render();

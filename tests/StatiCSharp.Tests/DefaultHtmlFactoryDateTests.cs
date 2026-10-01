@@ -16,9 +16,11 @@ public class DefaultHtmlFactoryDateTests
     };
 
     [Theory]
-    [InlineData("en-US", "March 04, 2020")]
-    [InlineData("de-DE", "März 04, 2020")]
-    [InlineData("fr-FR", "mars 04, 2020")]
+    // Wording and arrangement, see DateTextTests. The theme used to write "MMMM dd, yyyy",
+    // which took the month name from the culture but kept the English order.
+    [InlineData("en-US", "March 4, 2020")]
+    [InlineData("de-DE", "4. März 2020")]
+    [InlineData("fr-FR", "4 mars 2020")]
     public void TheRenderedDateFollowsTheWebsiteLanguage(string language, string expected)
     {
         Website website = Website.Create(url: "https://example.com", name: "My Website")
@@ -46,7 +48,7 @@ public class DefaultHtmlFactoryDateTests
 
             string html = new DefaultHtmlFactory().MakeItemHtml(AMarchItem(), new RenderContext { Website = website });
 
-            Assert.Contains("March 04, 2020", html, StringComparison.Ordinal);
+            Assert.Contains("March 4, 2020", html, StringComparison.Ordinal);
         }
         finally
         {
@@ -63,6 +65,6 @@ public class DefaultHtmlFactoryDateTests
         List<IItem> items = [AMarchItem()];
         string html = new DefaultHtmlFactory().MakeTagListHtml(items, "a-tag", new RenderContext { Website = website });
 
-        Assert.Contains("März 04, 2020", html, StringComparison.Ordinal);
+        Assert.Contains("4. März 2020", html, StringComparison.Ordinal);
     }
 }
