@@ -14,7 +14,7 @@
 
 - Requires .NET 10.
 - Fluent configuration: Website.Create(...).With... and WebsiteManager.For(...).With...MakeAsync(). The old constructors and settable properties are gone.
-- Generated urls now match the directories that are written, for index pages, nested page hierarchies and tags alike. Tag urls are normalized, so uppercase tags move to lowercase paths.
+- A site's url is the single answer to where it is written, so a link and the file behind it cannot disagree. Every segment is normalized: a folder named "My Section" is served from /my-section. A path entry in the front matter can no longer write outside the output directory.
 - Meta data is treated as plain text and encoded on output, so a quote in a title or author name no longer breaks the page head.
 - Dates are read as ISO 8601 and rendered in the website's language, independent of the machine running the generator.
 - Output is written incrementally by default: unchanged files are left alone, and files the generator did not produce are removed. WithPreservedOutput names exceptions; .git, .nojekyll and CNAME are always kept.

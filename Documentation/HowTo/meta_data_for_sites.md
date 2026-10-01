@@ -11,7 +11,7 @@ The following entries are currently available:
 - Description: A short description of the site. Is displayed in the item list e.g.
 - Author: The authors' name.
 - Date: The date this site was created by ISO 8601. E.g., 2022-06-26 Times are not supported.
-- Path: The path the site is available at relative to its hierarchy. If no path is provided, the filename is used.
+- Path: The path the site is available at relative to its hierarchy. If no path is provided, the filename is used. May name more than one level, e.g. `guide/setup`.
 - Tags: The tags the site corresponds to, separated by a comma. E.g. tag1, tag2, tag3
 
 All entries are plain text, not markdown. Writing `Title: My *great* post` puts the
@@ -23,6 +23,10 @@ Two more details worth knowing:
 - A key given twice keeps the last value, and StatiC# says so while generating. Blank lines
   and `#` comments between the markers are ignored; any other line without a colon is
   reported and skipped, without affecting the entries around it.
+- `Path` is normalized like everything else that ends up in a url: lowercased, with spaces
+  and punctuation becoming single hyphens. It cannot leave the site either - `../..` names no
+  directory, so what is left of it is used, and a path of nothing but symbols falls back to
+  the filename. A file whose name has no url usable characters either is reported and skipped.
 - Tags keep their spelling on the page but are normalized for the url, so `Web Dev` is
   listed as "Web Dev" and served from `/tag/web-dev`.
 

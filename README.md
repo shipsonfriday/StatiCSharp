@@ -177,10 +177,15 @@ Four changes affect content rather than code:
   `index.md` rather than the folder name - `posts` becomes `Posts` - and a section named in
   `WithSections` without an `index.md` is no longer linked, since there was never a page
   behind that link. The urls are unchanged.
-- **Tag urls are normalized.** A tag is lowercased and spaces become hyphens, so `CSharp`
-  is served from `/tag/csharp` and `Web Dev` from `/tag/web-dev`. External links to the old
-  spelling break. Themes should build tag links with `StatiCSharp.Tools.UrlSlug.From(tag)`
-  instead of interpolating the tag name.
+- **All urls are normalized, not just tag urls.** A folder named `My Section` is served from
+  `/my-section`, and a tag `Web Dev` from `/tag/web-dev`: lowercased, spaces and punctuation
+  become single hyphens. External links to the old spelling break. Themes should build tag
+  links with `StatiCSharp.Tools.UrlSlug.From(tag)` instead of interpolating the tag name.
+- **A `path` in the front matter can no longer leave the output directory.** `path: ../../x`
+  used to write the file next to `Output`, where nothing cleans it up; it now names a
+  directory inside the site, `/section/x`. A `path` of nothing but symbols falls back to the
+  filename, and a markdown file whose name has no url usable characters at all is reported
+  and skipped instead of overwriting the page above it.
 - **Meta data is plain text.** `Title` and `Description` are no longer run through the
   markdown parser, so `title: My *great* post` now shows the asterisks. In exchange, a
   quote or an ampersand in any meta data field no longer breaks the page.

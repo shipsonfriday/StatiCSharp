@@ -1,4 +1,5 @@
 ﻿using StatiCSharp.Interfaces;
+using StatiCSharp.Tools;
 using System;
 using System.Collections.Generic;
 
@@ -23,10 +24,10 @@ internal class Section : ISection
     public string Path { get; set; } = string.Empty;
 
     /// <summary>
-    /// The relative url of the section, which is its name.
-    /// WebsiteManager.MakeSections writes it to the same place.
+    /// The relative url of the section, which is its folder name as a url segment. The
+    /// renderer writes the section where this says, so the two cannot disagree.
     /// </summary>
-    public string Url => $"/{SectionName}";
+    public string Url => UrlPath.From(SectionName);
 
     public string Hierarchy { get; set; } = string.Empty;
 

@@ -135,6 +135,62 @@ public class ContentReaderTests
     }
 
     [Fact]
+    public void ASectionFolderWithoutUsableCharactersIsSkipped()
+    {
+        // Its url would be "/", so the section would be written over the index of the website.
+        using var directory = new TempDirectory();
+        directory.WriteFile("Content/index.md", "---", "title: Home", "---", "Welcome.");
+        directory.WriteFile("Content/+++/index.md", "---", "title: Nameless", "---", "Body.");
+
+        RenderContext content = ReaderFor(directory)
+            .Read(Website.Create(url: "https://example.com", name: "My Website").WithSections("+++"));
+
+        Assert.Empty(content.Sections);
+        Assert.Equal("Home", content.Index.Title);
+    }
+
+    [Fact]
+    public void AnItemWithoutUsableCharactersInItsNameIsSkipped()
+    {
+        // It would have no segment of its own and be written over the section's own page.
+        using var directory = new TempDirectory();
+        directory.WriteFile("Content/posts/index.md", "---", "title: Posts", "---", "Body.");
+        directory.WriteFile("Content/posts/+++.md", "---", "title: Nameless", "---", "Body.");
+        directory.WriteFile("Content/posts/a-post.md", "---", "title: A Post", "---", "Body.");
+
+        RenderContext content = ReaderFor(directory)
+            .Read(Website.Create(url: "https://example.com", name: "My Website").WithSections("posts"));
+
+        Assert.Equal(["A Post"], Assert.Single(content.Sections).Items.Select(item => item.Title));
+    }
+
+    [Fact]
+    public void APageNamedIndexKeepsNoSegmentOfItsOwn()
+    {
+        // The one case where having no segment is right: about/index.md is the page of the
+        // about folder, so it must not be mistaken for a nameless page and skipped.
+        using var directory = new TempDirectory();
+        directory.WriteFile("Content/about/index.md", "---", "title: About", "---", "Body.");
+
+        IPage page = Assert.Single(PagesIn(directory));
+
+        Assert.Equal("/about", page.Url);
+    }
+
+    [Fact]
+    public void AnEscapingPathStaysInsideItsSection()
+    {
+        using var directory = new TempDirectory();
+        directory.WriteFile("Content/posts/index.md", "---", "title: Posts", "---", "Body.");
+        directory.WriteFile("Content/posts/escaper.md", "---", "title: Escaper", "path: ../../escaped", "---", "Body.");
+
+        RenderContext content = ReaderFor(directory)
+            .Read(Website.Create(url: "https://example.com", name: "My Website").WithSections("posts"));
+
+        Assert.Equal("/posts/escaped", Assert.Single(Assert.Single(content.Sections).Items).Url);
+    }
+
+    [Fact]
     public void ReadingTwiceReturnsIndependentContent()
     {
         // The reader used to fill the website that was passed in, so a second run appended to

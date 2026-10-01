@@ -28,39 +28,21 @@ internal class Page : IPage
     public string Hierarchy { get; set; } = string.Empty;
 
     /// <summary>
-    /// The relative url of the page.
+    /// The relative url of the page: the folders it lies in, then the <c>path</c> from the
+    /// front matter or, without one, the filename. The renderer writes the page where this
+    /// says.
     /// <para>
-    /// Mirrors what WebsiteManager.MakePages writes: the segment comes from
-    /// <see cref="FilenameToPath"/>, and an "index" segment is dropped, because
-    /// "about/index.md" is written to "/about" and not to "/about/index".
-    /// </para>
-    /// <para>
-    /// <see cref="Hierarchy"/> is a file system path, so its separators are translated
-    /// to forward slashes. Without that, a page generated on Windows carries a backslash
-    /// into the url.
+    /// An "index" segment is dropped, because "about/index.md" is written to "/about" and not
+    /// to "/about/index".
     /// </para>
     /// </summary>
     public string Url
     {
         get
         {
-            string segment = string.IsNullOrEmpty(Path)
-                ? FilenameToPath.From(MarkdownFileName)
-                : Path;
+            string segment = SiteSegment.Of(Path, MarkdownFileName);
 
-            if (segment == "index")
-            {
-                segment = string.Empty;
-            }
-
-            string hierarchy = Hierarchy.Replace('\\', '/').Trim('/');
-
-            if (hierarchy.Length == 0)
-            {
-                return $"/{segment}";
-            }
-
-            return segment.Length == 0 ? $"/{hierarchy}" : $"/{hierarchy}/{segment}";
+            return UrlPath.From(Hierarchy, segment == "index" ? string.Empty : segment);
         }
     }
 

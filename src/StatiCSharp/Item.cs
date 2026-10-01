@@ -20,24 +20,10 @@ internal class Item : IItem
     public string Path { get; set; } = string.Empty;
 
     /// <summary>
-    /// The relative url of the item.
-    /// <para>
-    /// Derives the path segment through <see cref="FilenameToPath"/>, the same way
-    /// WebsiteManager.MakeItems derives the output directory. Both sides have to agree,
-    /// or every generated link points at a directory that is not there.
-    /// </para>
+    /// The relative url of the item: its section, then the <c>path</c> from the front matter
+    /// or, without one, the filename. The renderer writes the item where this says.
     /// </summary>
-    public string Url
-    {
-        get
-        {
-            string segment = string.IsNullOrEmpty(Path)
-                ? FilenameToPath.From(MarkdownFileName)
-                : Path;
-
-            return $"/{Section}/{segment}";
-        }
-    }
+    public string Url => UrlPath.From(Section, SiteSegment.Of(Path, MarkdownFileName));
 
     public string Section { get; set; } = string.Empty;
 

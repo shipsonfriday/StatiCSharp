@@ -25,6 +25,9 @@ public class WebsiteRendererTests
             section.AddItem(new Item
             {
                 Title = $"Post {i}",
+                // The section an item belongs to is part of its url, and the url is what the
+                // renderer writes to. The reader always sets it.
+                Section = "posts",
                 MarkdownFileName = $"post-{i}.md",
                 Tags = [.. tagsPerItem[i]],
             });

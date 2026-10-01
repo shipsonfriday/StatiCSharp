@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -300,6 +301,87 @@ public class MakeAsyncTests
                 .MakeAsync());
 
         Assert.False(Directory.Exists(Path.Combine(directory.Path, "Output")));
+    }
+
+    [Fact]
+    public async Task NothingIsWrittenOutsideTheOutputDirectory()
+    {
+        // A path entry in the front matter used to be used as given, so "../../escaped" wrote
+        // the file next to the Output folder - where the clean up never looks, so it stayed
+        // for good. With enough of them a markdown file could write anywhere.
+        using var directory = new TempDirectory();
+        Website website = WriteSource(directory);
+        directory.WriteFile(
+            "Content/posts/escaper.md",
+            "---", "title: Escaper", "path: ../../escaped", "---", "Body.");
+
+        await WebsiteManager.For(website, directory.Path).MakeAsync();
+
+        string[] outsideTheOutput =
+        [
+            .. Directory.GetFiles(directory.Path, "*.html", SearchOption.AllDirectories)
+                .Where(file => !file.StartsWith(Path.Combine(directory.Path, "Output"), StringComparison.Ordinal))
+        ];
+
+        Assert.Empty(outsideTheOutput);
+        Assert.True(File.Exists(Path.Combine(directory.Path, "Output", "posts", "escaped", "index.html")));
+    }
+
+    [Fact]
+    public async Task AFolderWithSpacesAndCapitalsBecomesASluggedUrl()
+    {
+        using var directory = new TempDirectory();
+        directory.WriteFile("Content/index.md", "---", "title: Home", "---", "Welcome.");
+        directory.WriteFile("Content/My Section/index.md", "---", "title: Section", "---", "Body.");
+        directory.WriteFile("Content/My Section/A Post.md", "---", "title: A Post", "---", "Body.");
+        directory.WriteFile("Content/My Docs/A Page.md", "---", "title: Page", "---", "Body.");
+        Directory.CreateDirectory(Path.Combine(directory.Path, "Resources"));
+
+        Website website = Website.Create(url: "https://example.com", name: "My Website")
+            .WithSections("My Section");
+
+        await WebsiteManager.For(website, directory.Path).MakeAsync();
+
+        string output = Path.Combine(directory.Path, "Output");
+
+        Assert.True(File.Exists(Path.Combine(output, "my-section", "index.html")));
+        Assert.True(File.Exists(Path.Combine(output, "my-section", "a-post", "index.html")));
+        Assert.True(File.Exists(Path.Combine(output, "my-docs", "a-page", "index.html")));
+    }
+
+    [Fact]
+    public async Task EveryUrlInTheOutputHasAFileBehindIt()
+    {
+        // The url and the output path used to be two calculations kept in step by a comment.
+        // This walks every link the theme produced for a site of its own and checks there is
+        // something there.
+        using var directory = new TempDirectory();
+        directory.WriteFile("Content/index.md", "---", "title: Home", "---", "Welcome.");
+        directory.WriteFile("Content/My Section/index.md", "---", "title: Section", "---", "Body.");
+        directory.WriteFile("Content/My Section/A Post.md", "---", "title: A Post", "tags: Web Dev", "---", "Body.");
+        directory.WriteFile("Content/My Section/custom.md", "---", "title: Custom", "path: deep/inside", "---", "Body.");
+        Directory.CreateDirectory(Path.Combine(directory.Path, "Resources"));
+
+        Website website = Website.Create(url: "https://example.com", name: "My Website")
+            .WithSections("My Section");
+
+        var reader = new ContentReader(Path.Combine(directory.Path, "Content"), new HtmlBuilder(useDefaultMarkdownParser: true));
+        RenderContext content = reader.Read(website);
+
+        await WebsiteManager.For(website, directory.Path).MakeAsync();
+
+        string output = Path.Combine(directory.Path, "Output");
+        List<string> urls = [content.Index.Url];
+        urls.AddRange(content.Pages.Select(page => page.Url));
+        urls.AddRange(content.Sections.Select(section => section.Url));
+        urls.AddRange(content.Sections.SelectMany(section => section.Items).Select(item => item.Url));
+
+        foreach (string url in urls)
+        {
+            string file = Path.Combine([output, .. url.Split('/', StringSplitOptions.RemoveEmptyEntries), "index.html"]);
+
+            Assert.True(File.Exists(file), $"{url} has no file at {file}");
+        }
     }
 
     [Fact]

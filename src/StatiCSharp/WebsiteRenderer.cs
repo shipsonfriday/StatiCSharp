@@ -65,6 +65,9 @@ internal sealed class WebsiteRenderer
     internal Task RenderIndexAsync()
         => RenderSiteAsync(_context.Index, _htmlFactory.MakeIndexHtml(_context.Index, _context));
 
+    // Nothing below decides where a site goes any more: RenderSiteAsync reads that off the
+    // site's own url.
+
     /// <summary>
     /// Renders the pages (not sections or items) of the website.
     /// </summary>
@@ -82,16 +85,7 @@ internal sealed class WebsiteRenderer
 
         async Task WritePage(IPage site)
         {
-            string defaultPath = FilenameToPath.From(site.MarkdownFileName);
-
-            string pathInHierachy = (site.Path == string.Empty) ? defaultPath : site.Path;
-            if (pathInHierachy == "index") { pathInHierachy = string.Empty; }
-
-            await RenderSiteAsync(
-                site,
-                _htmlFactory.MakePageHtml(site, _context),
-                site.Hierarchy,
-                pathInHierachy);
+            await RenderSiteAsync(site, _htmlFactory.MakePageHtml(site, _context));
         }
     }
 
@@ -112,7 +106,7 @@ internal sealed class WebsiteRenderer
 
         async Task WriteSection(ISection site)
         {
-            await RenderSiteAsync(site, _htmlFactory.MakeSectionHtml(site, _context), site.SectionName);
+            await RenderSiteAsync(site, _htmlFactory.MakeSectionHtml(site, _context));
         }
     }
 
@@ -128,22 +122,15 @@ internal sealed class WebsiteRenderer
         {
             foreach (IItem site in section.Items)
             {
-                tasks.Add(WriteItem(section, site));
+                tasks.Add(WriteItem(site));
             }
         }
 
         await Task.WhenAll(tasks);
 
-        async Task WriteItem(ISection section, IItem site)
+        async Task WriteItem(IItem site)
         {
-            string defaultPath = FilenameToPath.From(site.MarkdownFileName);
-            string itemPath = (site.Path != string.Empty) ? site.Path : defaultPath;
-
-            await RenderSiteAsync(
-                site,
-                _htmlFactory.MakeItemHtml(site, _context),
-                section.SectionName,
-                itemPath);
+            await RenderSiteAsync(site, _htmlFactory.MakeItemHtml(site, _context));
         }
     }
 
@@ -208,14 +195,17 @@ internal sealed class WebsiteRenderer
                 }
             }
 
-            Item tagPage = new();
-            tagPage.Title = $"{tag} | {_context.Website.Name}";
+            // A tag page is a site like any other, so it says where it goes: /tag/<slug>.
+            Item tagPage = new()
+            {
+                Title = $"{tag} | {_context.Website.Name}",
+                Section = "tag",
+                Path = slug,
+            };
 
             await RenderSiteAsync(
                 tagPage,
-                _htmlFactory.MakeTagListHtml(itemsWithCurrentTag, tag, _context),
-                "tag",
-                slug);
+                _htmlFactory.MakeTagListHtml(itemsWithCurrentTag, tag, _context));
         }
     }
 
@@ -225,16 +215,19 @@ internal sealed class WebsiteRenderer
     /// <para>
     /// The index, the pages, the sections, the items and the tag lists all did exactly this,
     /// each with its own copy. What actually differs between them is which theme method
-    /// produces the body and where the site goes, so that is what they still say.
+    /// produces the body, so that is all they say.
     /// </para>
     /// </summary>
-    /// <param name="site">The site, whose meta data goes into the document head.</param>
+    /// <param name="site">The site, whose meta data goes into the document head and whose url says where it goes.</param>
     /// <param name="body">The body, rendered by the theme.</param>
-    /// <param name="pathSegments">Where the site goes, below the output directory.</param>
     /// <returns>A <see cref="Task"/> that represents the asynchronous write operation.</returns>
-    private async Task RenderSiteAsync(ISite site, string body, params string[] pathSegments)
+    private async Task RenderSiteAsync(ISite site, string body)
     {
-        string path = Directory.CreateDirectory(Path.Combine([_outputDirectory, .. pathSegments])).ToString();
+        // The url decides where the file goes. There used to be a second calculation here,
+        // kept in step with the Url properties by a comment asking for it, which is how a
+        // path of "../.." in the front matter could write outside the output directory.
+        string path = Directory.CreateDirectory(
+            Path.Combine([_outputDirectory, .. UrlPath.SegmentsOf(site.Url)])).ToString();
 
         string document = HtmlDocument.Wrap(
             _context.Website,

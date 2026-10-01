@@ -1,4 +1,5 @@
 ﻿using StatiCSharp.Interfaces;
+using StatiCSharp.Tools;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -85,7 +86,16 @@ internal sealed class ContentReader
             foreach (string file in files)
             {
                 if (IsMarkdownFile(file))
-                    pages.Add(ReadPage(file));
+                {
+                    Page page = ReadPage(file);
+
+                    // An index.md is the page of its folder, so having no segment of its own
+                    // is exactly right for it.
+                    if (IsIndexFile(file) || HasItsOwnSegment(page, file))
+                    {
+                        pages.Add(page);
+                    }
+                }
             }
 
             foreach (string directory in dirs)
@@ -115,8 +125,20 @@ internal sealed class ContentReader
 
             string pathOfSectionIndexFile = Path.Combine(directory, "index.md");
 
-            if (File.Exists(pathOfSectionIndexFile))
-                sections.Add(ReadSection(pathOfSectionIndexFile));
+            if (!File.Exists(pathOfSectionIndexFile))
+            {
+                continue;
+            }
+
+            // A folder name of nothing but symbols leaves no url segment, so the section would
+            // be written over the index of the website.
+            if (!UrlPath.HasASegment(sectionName))
+            {
+                WriteLine($"WARNING: The section folder \"{sectionName}\" has no characters that can be used in a url. Skipping it.");
+                continue;
+            }
+
+            sections.Add(ReadSection(pathOfSectionIndexFile));
         }
 
         return new RenderContext
@@ -161,11 +183,31 @@ internal sealed class ContentReader
         {
             if (IsMarkdownFile(itemFile) && !IsIndexFile(itemFile))
             {
-                section.AddItem(ReadItem(itemFile, section.SectionName));
+                IItem item = ReadItem(itemFile, section.SectionName);
+
+                if (HasItsOwnSegment(item, itemFile))
+                {
+                    section.AddItem(item);
+                }
             }
         }
 
         return section;
+    }
+
+    /// <summary>
+    /// Whether the site read from this file gets a url segment of its own. Without one it would
+    /// be written over the page in the directory above it, so it is reported and left out.
+    /// </summary>
+    private static bool HasItsOwnSegment(ISite site, string path)
+    {
+        if (UrlPath.HasASegment(SiteSegment.Of(site.Path, site.MarkdownFileName)))
+        {
+            return true;
+        }
+
+        WriteLine($"WARNING: {path} has no characters that can be used in a url, neither in its filename nor in its path entry. Skipping it.");
+        return false;
     }
 
     /// <summary>
