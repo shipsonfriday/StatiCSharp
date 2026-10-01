@@ -173,6 +173,10 @@ Four changes affect content rather than code:
   keep hand written files next to the generated ones, name them with
   `manager.WithPreservedOutput("robots.txt")` - `.git`, `.nojekyll` and `CNAME` are kept
   without asking. See [incremental output](Documentation/HowTo/incremental_output.md).
+- **The default theme's navigation changed.** A link now says the section's title from its
+  `index.md` rather than the folder name - `posts` becomes `Posts` - and a section named in
+  `WithSections` without an `index.md` is no longer linked, since there was never a page
+  behind that link. The urls are unchanged.
 - **Tag urls are normalized.** A tag is lowercased and spaces become hyphens, so `CSharp`
   is served from `/tag/csharp` and `Web Dev` from `/tag/web-dev`. External links to the old
   spelling break. Themes should build tag links with `StatiCSharp.Tools.UrlSlug.From(tag)`

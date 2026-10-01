@@ -41,7 +41,7 @@ public class DefaultHtmlFactory: IHtmlFactory
             .ToList();
 
         return new Body(
-                new SiteHeader(context.Website),
+                new SiteHeader(context),
                 new Div(
                     new Div(index.Content).Class("welcomeWrapper"),
                     new H2("Latest Content"),
@@ -54,7 +54,7 @@ public class DefaultHtmlFactory: IHtmlFactory
     public string MakePageHtml(IPage page, RenderContext context)
     {
         return new Body(
-                new SiteHeader(context.Website),
+                new SiteHeader(context),
                 new Div(
                     new Article(
                         new Div(page.Content).Class("content"))).Class("wrapper"),
@@ -67,7 +67,7 @@ public class DefaultHtmlFactory: IHtmlFactory
     {
         List<IItem> items = NewestFirst(section.Items).ToList();
         return new Body(
-                new SiteHeader(context.Website),
+                new SiteHeader(context),
                 new Div(section.Content).Class("wrapper"),
                 new Div(
                     new ItemList(items, context.Website.Language)).Class("wrapper"),
@@ -79,7 +79,7 @@ public class DefaultHtmlFactory: IHtmlFactory
     public string MakeItemHtml(IItem item, RenderContext context)
     {
         return new Body(
-                new SiteHeader(context.Website),
+                new SiteHeader(context),
                 new Div(
                     new TagList(item.Tags),
                     new Text(FormatDate(item.Date, context.Website.Language))).Class("item-meta-data-header"),
@@ -94,7 +94,7 @@ public class DefaultHtmlFactory: IHtmlFactory
     public string MakeTagListHtml(List<IItem> items, string tag, RenderContext context)
     {
         return new Body(
-                new SiteHeader(context.Website),
+                new SiteHeader(context),
                 new Div(
                     new H1(
                         new Text("Tagged with "),
@@ -142,25 +142,36 @@ public class DefaultHtmlFactory: IHtmlFactory
     
     private class SiteHeader : IHtmlComponent
     {
-        List<string> sections;
-        IWebsite website;
-        public SiteHeader(IWebsite website)
+        private readonly RenderContext context;
+
+        public SiteHeader(RenderContext context)
         {
-            this.website=website;
-            this.sections = website.MakeSectionsFor;
+            this.context = context;
         }
+
         public string Render()
         {
-            Li[] navLinks = [.. sections.Select(section =>
-                new Li(new A(Plain(section)).Href($"/{section}")))];
+            // Built from the sections that were read, not from the folder names that were
+            // configured. That gives the title from the section's index.md instead of the
+            // folder name, and a section that was named but has no index.md no longer gets a
+            // link to a page that does not exist.
+            Li[] navLinks = [.. context.Sections.Select(section =>
+                new Li(new A(Plain(NameOf(section))).Href(section.Url)))];
 
             return new Header(
                     new Div(
-                        new A(Plain(this.website.Name)).Href("/").Class("site-name"),
+                        new A(Plain(this.context.Website.Name)).Href("/").Class("site-name"),
                         new Nav(
                             new Ul(navLinks))).Class("wrapper"))
                 .Render();
         }
+
+        /// <summary>
+        /// What the link says: the section's title, or its folder name when the index.md
+        /// carries no title - an empty link would be unclickable.
+        /// </summary>
+        private static string NameOf(ISection section)
+            => section.Title.Length > 0 ? section.Title : section.SectionName;
     }
 
     private class ItemList: IHtmlComponent

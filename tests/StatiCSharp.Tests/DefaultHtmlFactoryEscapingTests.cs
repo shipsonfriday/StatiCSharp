@@ -58,9 +58,15 @@ public class DefaultHtmlFactoryEscapingTests
     [Fact]
     public void ASectionNameIsEncodedInTheNavigation()
     {
-        Website website = AWebsite().WithSections("a&b");
+        // The fallback path: a section whose index.md carries no title is linked by its folder
+        // name, so that name is what reaches the html unencoded if nobody encodes it.
+        var context = new RenderContext
+        {
+            Website = AWebsite(),
+            Sections = [new Section { SectionName = "a&b" }],
+        };
 
-        string html = new DefaultHtmlFactory().MakePageHtml(new Page(), new RenderContext { Website = website });
+        string html = new DefaultHtmlFactory().MakePageHtml(new Page(), context);
 
         Assert.Contains("a&amp;b", html, StringComparison.Ordinal);
     }
