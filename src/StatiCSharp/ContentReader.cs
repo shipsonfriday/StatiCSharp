@@ -60,7 +60,7 @@ internal sealed class ContentReader
         // Index
         string pathOfIndex = Path.Combine(_contentDirectory, "index.md");
         if (File.Exists(pathOfIndex))
-            LoadSiteFromMarkdown<IIndex>(website, pathOfIndex);
+            ReadIndex(website, pathOfIndex);
 
 
         // Pages
@@ -81,7 +81,7 @@ internal sealed class ContentReader
             foreach (string file in files)
             {
                 if (IsMarkdownFile(file))
-                    LoadSiteFromMarkdown<IPage>(website, file);
+                    ReadPage(website, file);
             }
 
             foreach (string directory in dirs)
@@ -100,98 +100,117 @@ internal sealed class ContentReader
                 string pathOfSectionIndexFile = Path.Combine(directory, "index.md");
 
                 if (File.Exists(pathOfSectionIndexFile))
-                    LoadSiteFromMarkdown<ISection>(website, pathOfSectionIndexFile);
+                    ReadSection(website, pathOfSectionIndexFile);
             }
         }
     }
 
-    private void LoadSiteFromMarkdown<T>(IWebsite website, string path)
+    /// <summary>
+    /// Reads the index of the website. The index object cannot be replaced - a caller may
+    /// pass an <see cref="IWebsite"/> implementation of their own - so it is filled in place.
+    /// </summary>
+    private void ReadIndex(IWebsite website, string path)
     {
-        var metaData = MarkdownFactory.ParseMetaData(path);
-        var content = MarkdownFactory.ParseContent(path);
-        var contentAsHtml = _htmlBuilder.ToHtml(content);
-        var filename = Path.GetFileName(path);
+        FillFromMarkdown(website.Index, path);
+    }
 
-        if (typeof(T) == typeof(IIndex))
+    /// <summary>
+    /// Reads a page and appends it to the website.
+    /// </summary>
+    private void ReadPage(IWebsite website, string path)
+    {
+        Page page = new()
         {
-            website.Index.Content = contentAsHtml;
-            website.Index.MarkdownFileName = filename;
-            website.Index.MarkdownFilePath = path;
-            MapMetaData(metaData, website.Index);
-            return;
-        }
+            Hierarchy = HierarchyOf(path),
+        };
 
-        if (typeof(T) == typeof(IPage))
+        FillFromMarkdown(page, path);
+
+        website.Pages.Add(page);
+    }
+
+    /// <summary>
+    /// Reads a section from its index file, together with every item in the same directory,
+    /// and appends it to the website.
+    /// </summary>
+    private void ReadSection(IWebsite website, string path)
+    {
+        string sectionFolder = Path.GetDirectoryName(path)!;
+
+        Section section = new()
         {
-            Page currentPage = new();
-            currentPage.Content = contentAsHtml;
-            currentPage.MarkdownFileName = filename;
-            currentPage.MarkdownFilePath = path;
-            MapMetaData(metaData, currentPage);
+            SectionName = Path.GetFileName(sectionFolder),
+        };
 
-            string hierarchy = path.Remove(0, _contentDirectory.Length);
-            if (hierarchy[0] == '/' || hierarchy[0] == '\\')
+        FillFromMarkdown(section, path);
+
+        foreach (string itemFile in Directory.GetFiles(sectionFolder))
+        {
+            if (IsMarkdownFile(itemFile) && !IsIndexFile(itemFile))
             {
-                hierarchy = hierarchy.Remove(0, 1);
+                section.AddItem(ReadItem(itemFile, section.SectionName));
             }
-
-            hierarchy = Path.GetDirectoryName(hierarchy)!;
-
-            currentPage.Hierarchy = hierarchy;
-
-            website.Pages.Add(currentPage);
-            return;
         }
 
-        if (typeof(T) == typeof(ISection))
+        website.Sections.Add(section);
+    }
+
+    /// <summary>
+    /// Reads one item of a section.
+    /// </summary>
+    private IItem ReadItem(string path, string sectionName)
+    {
+        DateOnly lastModified = DateOnly.FromDateTime(File.GetLastWriteTime(path));
+
+        IItem item = new Item
         {
-            Section currentSection = new();
-            string currentSectionName = Path.GetDirectoryName(path)!;
-            currentSectionName = Path.GetFileName(currentSectionName);
-            currentSection.SectionName = currentSectionName;
-            currentSection.Content = contentAsHtml;
-            currentSection.MarkdownFileName = filename;
-            currentSection.MarkdownFilePath = path;
-            MapMetaData(metaData, currentSection);
+            Section = sectionName,
+            DateLastModified = lastModified,
 
-            string sectionFolder = Path.GetDirectoryName(path)!;
-            string[] itemFiles = Directory.GetFiles(sectionFolder);
+            // Fallback for items whose meta data carries no date. Set before filling, because
+            // MapMetaData leaves the value in place when no date is given - no need to route
+            // the date through the dictionary as a string, which also made it culture
+            // dependent.
+            Date = lastModified,
+        };
 
-            foreach (string itemFile in itemFiles)
-            {
-                if (IsMarkdownFile(itemFile) && !IsIndexFile(itemFile))
-                {
-                    var itemMetaData = MarkdownFactory.ParseMetaData(itemFile);
-                    var itemContent = MarkdownFactory.ParseContent(itemFile);
-                    var itemContentAsHtml = _htmlBuilder.ToHtml(itemContent);
-                    var itemLastModified = DateOnly.FromDateTime(File.GetLastWriteTime(itemFile));
+        FillFromMarkdown(item, path);
 
-                    IItem currentItem = new Item
-                    {
-                        Content = itemContentAsHtml,
-                        MarkdownFileName = Path.GetFileName(itemFile),
-                        MarkdownFilePath = itemFile,
-                        Section = currentSectionName,
-                        DateLastModified = itemLastModified,
+        return item;
+    }
 
-                        // Fallback for items whose meta data carries no date. Set before
-                        // mapping, because MapMetaData leaves the value in place when no
-                        // date is given - no need to route the date through the
-                        // dictionary as a string, which also made it culture dependent.
-                        Date = itemLastModified,
-                    };
+    /// <summary>
+    /// Fills what every site has, whatever kind it is: the content, where it came from, and
+    /// the meta data from the front matter.
+    /// <para>
+    /// The order matters. <c>MarkdownFilePath</c> is set before the meta data is mapped,
+    /// because a warning about an unusable value names the file it came from, and a value
+    /// already on the site survives mapping when the front matter does not give one.
+    /// </para>
+    /// </summary>
+    private void FillFromMarkdown(ISite site, string path)
+    {
+        site.Content = _htmlBuilder.ToHtml(MarkdownFactory.ParseContent(path));
+        site.MarkdownFileName = Path.GetFileName(path);
+        site.MarkdownFilePath = path;
 
-                    MapMetaData(itemMetaData, currentItem);
+        MapMetaData(MarkdownFactory.ParseMetaData(path), site);
+    }
 
-                    currentSection.AddItem(currentItem);
-                }
-            }
-            website.Sections.Add(currentSection);
-            return;
+    /// <summary>
+    /// The directories between the content directory and the file, e.g. "docs/guide" for
+    /// a page at "Content/docs/guide/a-page.md". That is where the page is written to.
+    /// </summary>
+    private string HierarchyOf(string path)
+    {
+        string hierarchy = path.Remove(0, _contentDirectory.Length);
+
+        if (hierarchy[0] == '/' || hierarchy[0] == '\\')
+        {
+            hierarchy = hierarchy.Remove(0, 1);
         }
 
-        throw new NotImplementedException(message:$"The given type-parameter {typeof(T)} is not supported by this method.");
-
+        return Path.GetDirectoryName(hierarchy)!;
     }
 
     /// <summary>

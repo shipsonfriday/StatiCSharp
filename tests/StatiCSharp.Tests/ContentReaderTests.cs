@@ -33,6 +33,41 @@ public class ContentReaderTests
         return Assert.Single(Assert.Single(website.Sections).Items);
     }
 
+    /// <summary>
+    /// Reads a content directory holding nothing but pages, and returns the website.
+    /// </summary>
+    private static Website PagesIn(TempDirectory directory)
+    {
+        Website website = Website.Create(url: "https://example.com", name: "My Website");
+        ReaderFor(directory).ReadInto(website);
+
+        return website;
+    }
+
+    [Fact]
+    public void APageInAFolderTakesThatFolderAsItsHierarchy()
+    {
+        using var directory = new TempDirectory();
+        directory.WriteFile("Content/about/index.md", "---", "title: About", "---", "About me.");
+
+        IPage page = Assert.Single(PagesIn(directory).Pages);
+
+        Assert.Equal("about", page.Hierarchy);
+        Assert.Equal("/about", page.Url);
+    }
+
+    [Fact]
+    public void ANestedPageKeepsEveryFolderOnTheWay()
+    {
+        using var directory = new TempDirectory();
+        directory.WriteFile("Content/docs/guide/setup.md", "---", "title: Setup", "---", "Body.");
+
+        IPage page = Assert.Single(PagesIn(directory).Pages);
+
+        Assert.Equal(Path.Combine("docs", "guide"), page.Hierarchy);
+        Assert.Equal("/docs/guide/setup", page.Url);
+    }
+
     [Fact]
     public void RejectsAnUnusableContentDirectory()
     {
