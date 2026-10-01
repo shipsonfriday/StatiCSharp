@@ -5,6 +5,9 @@ when its content actually changed, new files are created as needed, and files th
 longer belong to the website are deleted — so deleting a markdown file deletes the
 article it produced, and deleting a file from `Resources` removes it from the output too.
 
+That counts for the files in `Resources` as well, not only for the generated html. They are
+compared byte by byte, so an image stays untouched until you actually replace it.
+
 That is the default and needs no configuration:
 
 ```C#

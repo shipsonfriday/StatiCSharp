@@ -38,6 +38,22 @@ internal sealed class TempDirectory : IDisposable
         return full;
     }
 
+    /// <summary>
+    /// Writes a file of raw bytes below this directory, for the cases where a resource is
+    /// not text.
+    /// </summary>
+    /// <param name="relativePath">Path relative to this directory, with forward slashes.</param>
+    /// <param name="bytes">The content of the file.</param>
+    /// <returns>The absolute path of the file.</returns>
+    public string WriteBytes(string relativePath, byte[] bytes)
+    {
+        string full = System.IO.Path.Combine(Path, relativePath.Replace('/', System.IO.Path.DirectorySeparatorChar));
+        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(full)!);
+        File.WriteAllBytes(full, bytes);
+
+        return full;
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(Path))

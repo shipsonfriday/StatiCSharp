@@ -161,6 +161,134 @@ public class OutputWriterTests
     }
 
     [Fact]
+    public async Task AnUnchangedResourceIsNotCopiedAgain()
+    {
+        using var directory = new TempDirectory();
+        directory.WriteFile("Resources/styles.css", "body { color: red; }");
+        string outputPath = Path.Combine(directory.Path, "Output");
+        Directory.CreateDirectory(outputPath);
+        string source = Path.Combine(directory.Path, "Resources");
+
+        var output = new OutputWriter(outputPath, onlyWriteWhatChanged: true);
+        await output.CopyIntoOutputAsync(source);
+
+        string copy = Path.Combine(outputPath, "styles.css");
+        DateTime marker = File.GetLastWriteTimeUtc(copy).AddDays(-1);
+        File.SetLastWriteTimeUtc(copy, marker);
+
+        await new OutputWriter(outputPath, onlyWriteWhatChanged: true).CopyIntoOutputAsync(source);
+
+        Assert.Equal(marker, File.GetLastWriteTimeUtc(copy));
+    }
+
+    [Fact]
+    public async Task AChangedResourceIsCopiedAgain()
+    {
+        using var directory = new TempDirectory();
+        directory.WriteFile("Resources/styles.css", "body { color: red; }");
+        string outputPath = Path.Combine(directory.Path, "Output");
+        Directory.CreateDirectory(outputPath);
+        string source = Path.Combine(directory.Path, "Resources");
+
+        await new OutputWriter(outputPath, onlyWriteWhatChanged: true).CopyIntoOutputAsync(source);
+
+        directory.WriteFile("Resources/styles.css", "body { color: blue; }");
+        await new OutputWriter(outputPath, onlyWriteWhatChanged: true).CopyIntoOutputAsync(source);
+
+        Assert.Equal("body { color: blue; }", await File.ReadAllTextAsync(
+            Path.Combine(outputPath, "styles.css"), TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task AResourceChangedInOneByteOfTheSameLengthIsCopiedAgain()
+    {
+        // The length settles almost every case, which is why the byte comparison behind it
+        // is the part that needs a test. These two files are not text at all.
+        using var directory = new TempDirectory();
+        byte[] before = [0x89, 0x50, 0x4E, 0x47, 0xFF, 0x00, 0x80];
+        byte[] after = [0x89, 0x50, 0x4E, 0x47, 0xFE, 0x00, 0x80];
+
+        directory.WriteBytes("Resources/logo.png", before);
+        string outputPath = Path.Combine(directory.Path, "Output");
+        Directory.CreateDirectory(outputPath);
+        string source = Path.Combine(directory.Path, "Resources");
+
+        await new OutputWriter(outputPath, onlyWriteWhatChanged: true).CopyIntoOutputAsync(source);
+
+        directory.WriteBytes("Resources/logo.png", after);
+        await new OutputWriter(outputPath, onlyWriteWhatChanged: true).CopyIntoOutputAsync(source);
+
+        Assert.Equal(after, await File.ReadAllBytesAsync(
+            Path.Combine(outputPath, "logo.png"), TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task ADifferenceBeyondTheFirstBufferIsFound()
+    {
+        // The comparison reads in 64 KiB steps. A file that differs only after the first
+        // step would look unchanged to a comparison that stops there.
+        using var directory = new TempDirectory();
+        byte[] before = new byte[200 * 1024];
+        byte[] after = new byte[200 * 1024];
+        after[^1] = 0x01;
+
+        directory.WriteBytes("Resources/big.bin", before);
+        string outputPath = Path.Combine(directory.Path, "Output");
+        Directory.CreateDirectory(outputPath);
+        string source = Path.Combine(directory.Path, "Resources");
+
+        await new OutputWriter(outputPath, onlyWriteWhatChanged: true).CopyIntoOutputAsync(source);
+
+        directory.WriteBytes("Resources/big.bin", after);
+        await new OutputWriter(outputPath, onlyWriteWhatChanged: true).CopyIntoOutputAsync(source);
+
+        Assert.Equal(after, await File.ReadAllBytesAsync(
+            Path.Combine(outputPath, "big.bin"), TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task ALargeUnchangedResourceIsStillLeftAlone()
+    {
+        // The other side of the loop: reading to the end must report equality, not fall out
+        // of the loop as a difference.
+        using var directory = new TempDirectory();
+        directory.WriteBytes("Resources/big.bin", new byte[200 * 1024]);
+        string outputPath = Path.Combine(directory.Path, "Output");
+        Directory.CreateDirectory(outputPath);
+        string source = Path.Combine(directory.Path, "Resources");
+
+        await new OutputWriter(outputPath, onlyWriteWhatChanged: true).CopyIntoOutputAsync(source);
+
+        string copy = Path.Combine(outputPath, "big.bin");
+        DateTime marker = File.GetLastWriteTimeUtc(copy).AddDays(-1);
+        File.SetLastWriteTimeUtc(copy, marker);
+
+        await new OutputWriter(outputPath, onlyWriteWhatChanged: true).CopyIntoOutputAsync(source);
+
+        Assert.Equal(marker, File.GetLastWriteTimeUtc(copy));
+    }
+
+    [Fact]
+    public async Task WithoutIncrementalEveryResourceIsCopiedAgain()
+    {
+        using var directory = new TempDirectory();
+        directory.WriteFile("Resources/styles.css", "body { color: red; }");
+        string outputPath = Path.Combine(directory.Path, "Output");
+        Directory.CreateDirectory(outputPath);
+        string source = Path.Combine(directory.Path, "Resources");
+
+        await new OutputWriter(outputPath, onlyWriteWhatChanged: false).CopyIntoOutputAsync(source);
+
+        string copy = Path.Combine(outputPath, "styles.css");
+        DateTime marker = File.GetLastWriteTimeUtc(copy).AddDays(-1);
+        File.SetLastWriteTimeUtc(copy, marker);
+
+        await new OutputWriter(outputPath, onlyWriteWhatChanged: false).CopyIntoOutputAsync(source);
+
+        Assert.NotEqual(marker, File.GetLastWriteTimeUtc(copy));
+    }
+
+    [Fact]
     public async Task CopyIntoOutputRejectsAMissingSource()
     {
         using var directory = new TempDirectory();

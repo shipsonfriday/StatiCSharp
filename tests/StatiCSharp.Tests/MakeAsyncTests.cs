@@ -257,6 +257,38 @@ public class MakeAsyncTests
     }
 
     [Fact]
+    public async Task AnUnchangedResourceIsNotRewrittenEither()
+    {
+        // The incremental part used to cover the generated html only. Resources were copied
+        // over themselves on every run, so every image in the output looked modified.
+        using var directory = new TempDirectory();
+        Website website = WriteSource(directory);
+        directory.WriteFile("Resources/logo.png", "image");
+
+        await WebsiteManager.For(website, directory.Path).MakeAsync();
+
+        string[] copies =
+        [
+            Path.Combine(directory.Path, "Output", "logo.png"),
+            Path.Combine(directory.Path, "Output", "favicon.png"),
+            Path.Combine(directory.Path, "Output", "default-theme", "styles.css"),
+        ];
+
+        DateTime marker = DateTime.UtcNow.AddDays(-1);
+        foreach (string copy in copies)
+        {
+            File.SetLastWriteTimeUtc(copy, marker);
+        }
+
+        await WebsiteManager.For(website, directory.Path).MakeAsync();
+
+        foreach (string copy in copies)
+        {
+            Assert.Equal(marker, File.GetLastWriteTimeUtc(copy));
+        }
+    }
+
+    [Fact]
     public async Task WithPreservedOutputKeepsAHandWrittenFile()
     {
         using var directory = new TempDirectory();

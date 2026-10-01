@@ -136,7 +136,8 @@ internal sealed class OutputWriter
 
     /// <summary>
     /// Copies a directory with all its files and subdirectories into the output directory.
-    /// The copied files count as produced by this run, so the clean up keeps them.
+    /// The copied files count as produced by this run, so the clean up keeps them. A file
+    /// whose content is already in place is not copied again.
     /// </summary>
     /// <param name="sourceDir">The directory to copy from.</param>
     /// <returns>A task that represents the asynchronous copying operation.</returns>
@@ -179,6 +180,55 @@ internal sealed class OutputWriter
 
     private bool Record(string filePath) => _producedFiles.TryAdd(Path.GetFullPath(filePath), 0);
 
+    /// <summary>
+    /// Whether the file at <paramref name="destination"/> already holds exactly what
+    /// <paramref name="source"/> holds.
+    /// <para>
+    /// Compared byte by byte rather than as text, because resources are images, fonts and
+    /// archives as often as they are style sheets. The length settles almost every case
+    /// before a single byte is read.
+    /// </para>
+    /// </summary>
+    private static async Task<bool> HasTheSameContentAsync(FileInfo source, string destination)
+    {
+        FileInfo target = new(destination);
+
+        if (!target.Exists || target.Length != source.Length)
+        {
+            return false;
+        }
+
+        const int bufferSize = 64 * 1024;
+        byte[] fromSource = new byte[bufferSize];
+        byte[] fromTarget = new byte[bufferSize];
+
+        await using FileStream sourceStream = source.OpenRead();
+        await using FileStream targetStream = target.OpenRead();
+
+        while (true)
+        {
+            int read = await sourceStream.ReadAtLeastAsync(fromSource, bufferSize, throwOnEndOfStream: false);
+            int alsoRead = await targetStream.ReadAtLeastAsync(fromTarget, bufferSize, throwOnEndOfStream: false);
+
+            if (read != alsoRead)
+            {
+                // Cannot happen for two files of the same length, but a difference in what
+                // was read is a difference either way.
+                return false;
+            }
+
+            if (read == 0)
+            {
+                return true;
+            }
+
+            if (!fromSource.AsSpan(0, read).SequenceEqual(fromTarget.AsSpan(0, read)))
+            {
+                return false;
+            }
+        }
+    }
+
     private async Task CopyAllAsync(string sourceDir, string destinationDir)
     {
         // https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-copy-directories
@@ -197,8 +247,14 @@ internal sealed class OutputWriter
         foreach (FileInfo file in dir.GetFiles())
         {
             string destination = Path.Combine(destinationDir, file.Name);
-            file.CopyTo(destination, true);
             Record(destination);
+
+            if (_onlyWriteWhatChanged && await HasTheSameContentAsync(file, destination))
+            {
+                continue;
+            }
+
+            file.CopyTo(destination, true);
         }
 
         foreach (DirectoryInfo subDir in dirs)
