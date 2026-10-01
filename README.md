@@ -162,6 +162,7 @@ required values go into the entry point and everything optional follows fluently
 | `manager.Resources = path` | `manager.WithResourcesDirectory(path)` |
 | `manager.UseDefaultMarkdownParser = false` | `manager.NoDefaultMarkdownParser()` |
 | `manager.AddParser(parser)` | unchanged, still chainable |
+| `IWebsiteManager` | gone - `WebsiteManager` is the type |
 
 Four changes affect content rather than code:
 

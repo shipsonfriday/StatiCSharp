@@ -1,4 +1,5 @@
-﻿using StatiCSharp.Interfaces;
+﻿using StatiCSharp.Exceptions;
+using StatiCSharp.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,36 +20,62 @@ namespace StatiCSharp;
 /// </code>
 /// </para>
 /// </summary>
-public partial class WebsiteManager : IWebsiteManager
+public sealed class WebsiteManager
 {
     private readonly HtmlBuilder _htmlBuilder = new(useDefaultMarkdownParser: true);
     private readonly List<string> _preservedOutput = [.. OutputWriter.AlwaysPreserved];
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Whether the integrated Markdig parser runs at the end of the parser pipeline.
+    /// Default is true, see <see cref="NoDefaultMarkdownParser"/>.
+    /// </summary>
     public bool UseDefaultMarkdownParser => _htmlBuilder.UseDefaultMarkdownParser;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// The absolute path to the directory that contains the directories `Content`, `Output`
+    /// and `Resources`.
+    /// </summary>
     public string SourceDir { get; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// The absolute path to the content (markdown files) of the website.
+    /// </summary>
     public string Content { get; private set; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// The absolute path to the resources (static files) of the website.
+    /// </summary>
     public string Resources { get; private set; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// The absolute path to the output directory.
+    /// </summary>
     public string Output { get; private set; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// If true, the generator updates the output directory: it writes a file only when its
+    /// content changed and removes what no longer belongs to the website. If false, the
+    /// output directory is emptied first and every file is written anew. Default is true,
+    /// see <see cref="NoIncrementalOutput"/>.
+    /// </summary>
     public bool IncrementalOutput { get; private set; } = true;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Names of files and directories in the output that are kept although the generator did
+    /// not produce them. Always contains `.git`, `.nojekyll` and `CNAME`, see
+    /// <see cref="WithPreservedOutput"/>.
+    /// </summary>
     public IReadOnlyCollection<string> PreservedOutput => _preservedOutput;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// The website this manager generates.
+    /// </summary>
     public IWebsite Website { get; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// The theme the website is rendered with. Defaults to the built-in theme, see
+    /// <see cref="WithTheme"/>.
+    /// </summary>
     public IHtmlFactory HtmlFactory { get; private set; }
 
     private WebsiteManager(IWebsite website, string source)
@@ -215,7 +242,17 @@ public partial class WebsiteManager : IWebsiteManager
         return this;
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Generates the website and writes it into the output directory.
+    /// <para>
+    /// Reads the markdown files, renders every site with the theme, copies the resources and
+    /// removes what no longer belongs to the website.
+    /// </para>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous generating operation.</returns>
+    /// <exception cref="CannotCreateDirectoryException">A needed directory is missing and cannot be created.</exception>
+    /// <exception cref="DirectoryNotWriteableException">A needed directory exists but cannot be written to.</exception>
+    /// <exception cref="DirectoryNotFoundException">The theme's resources directory does not exist.</exception>
     public async Task MakeAsync()
     {
         WriteLine("Website generating process startet...");

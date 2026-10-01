@@ -28,7 +28,7 @@ await WebsiteManager.For(myAwesomeWebsite, source: @"/path/to/your/project")
 
 ## Deactivate the default parser
 
-If you use the `WebsiteManager` implementation of `IWebsiteManager` you can stop the default markdown parser by [Markdig](https://github.com/xoofx/markdig) from running:
+You can stop the default markdown parser by [Markdig](https://github.com/xoofx/markdig) from running:
 
 ```C#
 await WebsiteManager.For(myAwesomeWebsite, source: @"/path/to/your/project")
