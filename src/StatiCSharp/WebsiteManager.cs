@@ -225,7 +225,7 @@ public partial class WebsiteManager : IWebsiteManager
         await checkEnvTask;
 
         WriteLine("Collecting markdown data...");
-        await GenerateSitesFromMarkdownAsync();
+        new ContentReader(Content, _htmlBuilder).ReadInto(Website);
 
         // One writer per run: the paths it records are only meaningful for this run.
         OutputWriter output = new(Output, onlyWriteWhatChanged: IncrementalOutput, alsoPreserve: _preservedOutput);

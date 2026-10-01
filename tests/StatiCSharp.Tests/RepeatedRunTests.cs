@@ -107,7 +107,7 @@ public class RepeatedRunTests
             MarkdownFilePath = "fp",
         };
 
-        typeof(WebsiteManager)
+        typeof(ContentReader)
             .GetMethod("Reset", BindingFlags.NonPublic | BindingFlags.Static)!
             .Invoke(null, [site]);
 

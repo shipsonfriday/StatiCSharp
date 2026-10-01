@@ -1,44 +1,79 @@
 ﻿using StatiCSharp.Interfaces;
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
-using System.Threading.Tasks;
+using System.Linq;
+using static StatiCSharp.StatiCSharpConsole;
 
 namespace StatiCSharp;
 
-public partial class WebsiteManager : IWebsiteManager
+/// <summary>
+/// Reads the markdown files in the content directory and fills a website with what it finds:
+/// the index, the pages, the sections and their items.
+/// <para>
+/// The counterpart of <see cref="OutputWriter"/>. The manager used to do both, which is why
+/// reading and writing shared fields and the order of the two was a matter of reading
+/// <c>MakeAsync</c> from top to bottom.
+/// </para>
+/// </summary>
+internal sealed class ContentReader
 {
+    private readonly string _contentDirectory;
+    private readonly HtmlBuilder _htmlBuilder;
+
     /// <summary>
-    /// Asynchronous generates index, pages, sections and items for the IWebsite object from the markdown files in the Content directory.
+    /// Starts a reader for one content directory.
     /// </summary>
-    /// <returns></returns>
-    internal async Task GenerateSitesFromMarkdownAsync()
+    /// <param name="contentDirectory">The absolute path of the directory holding the markdown files.</param>
+    /// <param name="htmlBuilder">The pipeline that turns the markdown content into html.</param>
+    /// <exception cref="ArgumentNullException">An argument is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="contentDirectory"/> is empty or only whitespace.</exception>
+    internal ContentReader(string contentDirectory, HtmlBuilder htmlBuilder)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(contentDirectory);
+        ArgumentNullException.ThrowIfNull(htmlBuilder);
+
+        _contentDirectory = contentDirectory;
+        _htmlBuilder = htmlBuilder;
+    }
+
+    /// <summary>
+    /// Reads the content directory and puts the index, pages, sections and items into the
+    /// given website. Anything the website held before is discarded.
+    /// </summary>
+    /// <param name="website">The website to fill.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="website"/> is null.</exception>
+    internal void ReadInto(IWebsite website)
+    {
+        ArgumentNullException.ThrowIfNull(website);
+
         // Reading appends to the website, so a website used for a second run would end up
         // holding every section and page twice - and the index would keep the values of the
         // previous run if there is no index.md. Start from empty.
-        Website.Pages.Clear();
-        Website.Sections.Clear();
-        Reset(Website.Index);
+        website.Pages.Clear();
+        website.Sections.Clear();
+        Reset(website.Index);
 
-        string[] directoriesOfContent = Directory.GetDirectories(Content);
+        string[] directoriesOfContent = Directory.GetDirectories(_contentDirectory);
 
         // Index
-        string pathOfIndex = Path.Combine(Content, "index.md");
+        string pathOfIndex = Path.Combine(_contentDirectory, "index.md");
         if (File.Exists(pathOfIndex))
-            LoadSiteFromMarkdown<IIndex>(pathOfIndex);
+            LoadSiteFromMarkdown<IIndex>(website, pathOfIndex);
 
 
         // Pages
         foreach (string directory in directoriesOfContent)
         {
             string nameOfCurrentDirectory = Path.GetFileName(directory);
-            if (!Website.MakeSectionsFor.Contains(nameOfCurrentDirectory))
+            if (!website.MakeSectionsFor.Contains(nameOfCurrentDirectory))
             {
-                await ProcessAllPagesInDirectory(directory);
+                ProcessAllPagesInDirectory(directory);
             }
         }
 
-        async Task ProcessAllPagesInDirectory(string dir)
+        void ProcessAllPagesInDirectory(string dir)
         {
             string[] files = Directory.GetFiles(dir);
             var dirs = Directory.GetDirectories(dir);
@@ -46,12 +81,12 @@ public partial class WebsiteManager : IWebsiteManager
             foreach (string file in files)
             {
                 if (IsMarkdownFile(file))
-                    LoadSiteFromMarkdown<IPage>(file);
+                    LoadSiteFromMarkdown<IPage>(website, file);
             }
 
             foreach (string directory in dirs)
             {
-                await ProcessAllPagesInDirectory(directory);
+                ProcessAllPagesInDirectory(directory);
             }
         }
 
@@ -60,17 +95,17 @@ public partial class WebsiteManager : IWebsiteManager
         foreach (string directory in directoriesOfContent)
         {
             string nameOfCurrentDirectory = Path.GetFileName(directory);
-            if (Website.MakeSectionsFor.Contains(nameOfCurrentDirectory))
+            if (website.MakeSectionsFor.Contains(nameOfCurrentDirectory))
             {
                 string pathOfSectionIndexFile = Path.Combine(directory, "index.md");
 
                 if (File.Exists(pathOfSectionIndexFile))
-                    LoadSiteFromMarkdown<ISection>(pathOfSectionIndexFile);
+                    LoadSiteFromMarkdown<ISection>(website, pathOfSectionIndexFile);
             }
         }
     }
 
-    private void LoadSiteFromMarkdown<T>(string path)
+    private void LoadSiteFromMarkdown<T>(IWebsite website, string path)
     {
         var metaData = MarkdownFactory.ParseMetaData(path);
         var content = MarkdownFactory.ParseContent(path);
@@ -79,10 +114,10 @@ public partial class WebsiteManager : IWebsiteManager
 
         if (typeof(T) == typeof(IIndex))
         {
-            Website.Index.Content = contentAsHtml;
-            Website.Index.MarkdownFileName = filename;
-            Website.Index.MarkdownFilePath = path;
-            MapMetaData(metaData, Website.Index);
+            website.Index.Content = contentAsHtml;
+            website.Index.MarkdownFileName = filename;
+            website.Index.MarkdownFilePath = path;
+            MapMetaData(metaData, website.Index);
             return;
         }
 
@@ -94,7 +129,7 @@ public partial class WebsiteManager : IWebsiteManager
             currentPage.MarkdownFilePath = path;
             MapMetaData(metaData, currentPage);
 
-            string hierarchy = path.Remove(0, Content.Length);
+            string hierarchy = path.Remove(0, _contentDirectory.Length);
             if (hierarchy[0] == '/' || hierarchy[0] == '\\')
             {
                 hierarchy = hierarchy.Remove(0, 1);
@@ -104,7 +139,7 @@ public partial class WebsiteManager : IWebsiteManager
 
             currentPage.Hierarchy = hierarchy;
 
-            Website.Pages.Add(currentPage);
+            website.Pages.Add(currentPage);
             return;
         }
 
@@ -151,12 +186,90 @@ public partial class WebsiteManager : IWebsiteManager
                     currentSection.AddItem(currentItem);
                 }
             }
-            Website.Sections.Add(currentSection);
+            website.Sections.Add(currentSection);
             return;
         }
 
         throw new NotImplementedException(message:$"The given type-parameter {typeof(T)} is not supported by this method.");
 
+    }
+
+    /// <summary>
+    /// Adds the given meta data to a site (index, page, section or item).
+    /// <para>
+    /// A key that is absent, or present without a value, leaves the site's default in
+    /// place. A value that is there but unusable is reported instead of being dropped.
+    /// </para>
+    /// <para>
+    /// Every value is taken as plain text. Only the content below the front matter is
+    /// markdown; title and description are encoded where they are rendered.
+    /// </para>
+    /// </summary>
+    /// <param name="metaData">The meta data.</param>
+    /// <param name="site">The site where to add the meta data.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="metaData"/> or <paramref name="site"/> is null.</exception>
+    internal static void MapMetaData(Dictionary<string, string> metaData, ISite site)
+    {
+        ArgumentNullException.ThrowIfNull(metaData);
+        ArgumentNullException.ThrowIfNull(site);
+
+        // Plain text, not markup. These end up in <title> and in meta content
+        // attributes, where markup does not belong, and the render sites encode them.
+        if (TryRead("title", out string title))
+        {
+            site.Title = title;
+        }
+
+        if (TryRead("description", out string description))
+        {
+            site.Description = description;
+        }
+
+        if (TryRead("author", out string author))
+        {
+            site.Author = author;
+        }
+
+        if (TryRead("date", out string date))
+        {
+            // Invariant, because the documented format is ISO 8601. Parsing with the
+            // current culture would read the same file differently on another machine.
+            if (DateOnly.TryParse(date, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsed))
+            {
+                site.Date = parsed;
+            }
+            else
+            {
+                WriteLine($"WARNING: Could not read the date \"{date}\" in {site.MarkdownFilePath}. Expected ISO 8601, e.g. 2026-09-27. Using {site.Date:yyyy-MM-dd} instead.");
+            }
+        }
+
+        if (TryRead("path", out string path))
+        {
+            site.Path = path;
+        }
+
+        if (TryRead("tags", out string tags))
+        {
+            site.Tags = tags
+                .Split(',')
+                .Select(tag => tag.Trim())
+                .Where(tag => tag.Length > 0)
+                .ToList();
+        }
+
+        // Absent key or empty value means "not given", so the default survives.
+        bool TryRead(string key, out string value)
+        {
+            if (metaData.TryGetValue(key, out string? found) && !string.IsNullOrWhiteSpace(found))
+            {
+                value = found;
+                return true;
+            }
+
+            value = string.Empty;
+            return false;
+        }
     }
 
     /// <summary>
