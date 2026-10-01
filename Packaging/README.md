@@ -140,9 +140,8 @@ var manager = new WebsiteManager(website: site, source: path);
 manager.GitMode = true;
 await manager.Make();
 
-// 1.0
+// 1.0 - what GitMode did is the default now
 await WebsiteManager.For(site, source: path)
-    .WithGitMode()
     .MakeAsync();
 ```
 

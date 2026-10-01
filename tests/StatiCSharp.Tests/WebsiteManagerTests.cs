@@ -29,7 +29,7 @@ public class WebsiteManagerTests
     {
         WebsiteManager manager = WebsiteManager.For(AWebsite(), "source");
 
-        Assert.False(manager.GitMode);
+        Assert.True(manager.IncrementalOutput);
         Assert.True(manager.UseDefaultMarkdownParser);
         Assert.IsType<DefaultHtmlFactory>(manager.HtmlFactory);
     }
@@ -62,15 +62,15 @@ public class WebsiteManagerTests
 
         WebsiteManager result = manager
             .WithTheme(theme)
-            .WithGitMode()
+            .NoIncrementalOutput()
             .WithContentDirectory("other/Content")
             .WithResourcesDirectory("other/Resources")
             .WithOutputDirectory("other/Output")
-            .WithoutDefaultMarkdownParser();
+            .NoDefaultMarkdownParser();
 
         Assert.Same(manager, result);
         Assert.Same(theme, manager.HtmlFactory);
-        Assert.True(manager.GitMode);
+        Assert.False(manager.IncrementalOutput);
         Assert.Equal("other/Content", manager.Content);
         Assert.Equal("other/Resources", manager.Resources);
         Assert.Equal("other/Output", manager.Output);
@@ -78,13 +78,15 @@ public class WebsiteManagerTests
     }
 
     [Fact]
-    public void WithGitMode_CanBeTurnedOffAgain()
+    public void NoIncrementalOutput_SaysSoMoreThanOnce()
     {
+        // The methods that switch something off are not toggles. Calling one twice says the
+        // same thing twice, it does not say the opposite the second time.
         WebsiteManager manager = WebsiteManager.For(AWebsite(), "source")
-            .WithGitMode()
-            .WithGitMode(false);
+            .NoIncrementalOutput()
+            .NoIncrementalOutput();
 
-        Assert.False(manager.GitMode);
+        Assert.False(manager.IncrementalOutput);
     }
 
     [Fact]

@@ -13,7 +13,6 @@ namespace StatiCSharp;
 /// <code>
 /// await WebsiteManager.For(website, source: "/path/to/your/project")
 ///     .WithTheme(myTheme)
-///     .WithGitMode()
 ///     .MakeAsync();
 /// </code>
 /// </para>
@@ -38,7 +37,7 @@ public partial class WebsiteManager : IWebsiteManager
     public string Output { get; private set; }
 
     /// <inheritdoc/>
-    public bool GitMode { get; private set; }
+    public bool IncrementalOutput { get; private set; } = true;
 
     /// <inheritdoc/>
     public IWebsite Website { get; }
@@ -93,14 +92,18 @@ public partial class WebsiteManager : IWebsiteManager
     }
 
     /// <summary>
-    /// Turns on GitMode: output files are only rewritten when their content changed, and
-    /// files without a corresponding markdown file are deleted. Off by default.
+    /// Writes the whole website from scratch instead of updating what is already there:
+    /// the output directory is emptied first and every file is written anew.
+    /// <para>
+    /// Incremental output is the default and is what you want in almost every case. Reach
+    /// for this when you want a guaranteed clean result, for instance after changing a
+    /// theme in a way the generator cannot see.
+    /// </para>
     /// </summary>
-    /// <param name="enabled">Whether GitMode is on.</param>
     /// <returns>this - the manager itself.</returns>
-    public WebsiteManager WithGitMode(bool enabled = true)
+    public WebsiteManager NoIncrementalOutput()
     {
-        GitMode = enabled;
+        IncrementalOutput = false;
         return this;
     }
 
@@ -172,7 +175,7 @@ public partial class WebsiteManager : IWebsiteManager
     /// It is on by default.
     /// </summary>
     /// <returns>this - the manager itself.</returns>
-    public WebsiteManager WithoutDefaultMarkdownParser()
+    public WebsiteManager NoDefaultMarkdownParser()
     {
         _htmlBuilder.UseDefaultMarkdownParser = false;
         return this;
@@ -191,9 +194,9 @@ public partial class WebsiteManager : IWebsiteManager
         await GenerateSitesFromMarkdownAsync();
 
         // One writer per run: the paths it records are only meaningful for this run.
-        OutputWriter output = new(Output, onlyWriteWhatChanged: GitMode);
+        OutputWriter output = new(Output, onlyWriteWhatChanged: IncrementalOutput);
 
-        if (!GitMode)
+        if (!IncrementalOutput)
         {
             WriteLine("Deleting old output files...");
             await Task.Run(output.Clear);

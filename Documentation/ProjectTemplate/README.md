@@ -28,5 +28,5 @@ myWebsite
 Add a section by creating a folder under `Content` and naming it in `WithSections(...)`.
 Any other folder becomes a page.
 
-See the [how-to's](../) for metadata, themes, GitMode and custom parsers, and the
+See the [how-to's](../) for metadata, themes, incremental output and custom parsers, and the
 [readme](../../README.md) for the full quick start.

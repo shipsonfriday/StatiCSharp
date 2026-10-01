@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -112,17 +113,17 @@ public class MakeAsyncTests
     }
 
     [Fact]
-    public async Task ASecondRunInGitModeKeepsEveryFile()
+    public async Task ASecondRunKeepsEveryFile()
     {
-        // GitMode also deletes output without a markdown equivalent, so a lost path entry
+        // Incremental output deletes what has no markdown equivalent, so a lost path entry
         // is even more destructive on a second run.
         using var directory = new TempDirectory();
         Website website = WriteSource(directory);
 
-        await WebsiteManager.For(website, directory.Path).WithGitMode().MakeAsync();
+        await WebsiteManager.For(website, directory.Path).MakeAsync();
 
         Website second = WriteSource(directory);
-        await WebsiteManager.For(second, directory.Path).WithGitMode().MakeAsync();
+        await WebsiteManager.For(second, directory.Path).MakeAsync();
 
         string output = Path.Combine(directory.Path, "Output");
         int written = Directory.GetFiles(output, "index.html", SearchOption.AllDirectories).Length;
@@ -137,7 +138,7 @@ public class MakeAsyncTests
         using var directory = new TempDirectory();
         Website website = WriteSource(directory);
 
-        await WebsiteManager.For(website, directory.Path).WithGitMode().MakeAsync();
+        await WebsiteManager.For(website, directory.Path).MakeAsync();
 
         string orphan = Path.Combine(directory.Path, "Output", "posts", "deleted-post");
         Directory.CreateDirectory(orphan);
@@ -147,8 +148,61 @@ public class MakeAsyncTests
             TestContext.Current.CancellationToken);
 
         Website second = WriteSource(directory);
-        await WebsiteManager.For(second, directory.Path).WithGitMode().MakeAsync();
+        await WebsiteManager.For(second, directory.Path).MakeAsync();
 
         Assert.False(Directory.Exists(orphan));
+    }
+
+    [Fact]
+    public async Task AnUnchangedFileIsNotRewritten()
+    {
+        // The point of the default: a website under source control shows no change when no
+        // content changed.
+        using var directory = new TempDirectory();
+        Website website = WriteSource(directory);
+        string index = Path.Combine(directory.Path, "Output", "index.html");
+
+        await WebsiteManager.For(website, directory.Path).MakeAsync();
+
+        DateTime marker = File.GetLastWriteTimeUtc(index).AddDays(-1);
+        File.SetLastWriteTimeUtc(index, marker);
+        await WebsiteManager.For(website, directory.Path).MakeAsync();
+
+        Assert.Equal(marker, File.GetLastWriteTimeUtc(index));
+    }
+
+    [Fact]
+    public async Task NoIncrementalOutputRewritesEveryFile()
+    {
+        using var directory = new TempDirectory();
+        Website website = WriteSource(directory);
+        string index = Path.Combine(directory.Path, "Output", "index.html");
+
+        await WebsiteManager.For(website, directory.Path).NoIncrementalOutput().MakeAsync();
+
+        DateTime marker = File.GetLastWriteTimeUtc(index).AddDays(-1);
+        File.SetLastWriteTimeUtc(index, marker);
+        await WebsiteManager.For(website, directory.Path).NoIncrementalOutput().MakeAsync();
+
+        Assert.NotEqual(marker, File.GetLastWriteTimeUtc(index));
+    }
+
+    [Fact]
+    public async Task NoIncrementalOutputEmptiesTheOutputDirectoryFirst()
+    {
+        // Not the same as the clean up an incremental run does: that one only removes an
+        // index.html it did not write, because anything else could be a resource. Starting
+        // from scratch means everything goes, whatever it is.
+        using var directory = new TempDirectory();
+        Website website = WriteSource(directory);
+
+        await WebsiteManager.For(website, directory.Path).MakeAsync();
+
+        string leftover = Path.Combine(directory.Path, "Output", "old-photo.png");
+        await File.WriteAllTextAsync(leftover, "image", TestContext.Current.CancellationToken);
+
+        await WebsiteManager.For(website, directory.Path).NoIncrementalOutput().MakeAsync();
+
+        Assert.False(File.Exists(leftover));
     }
 }

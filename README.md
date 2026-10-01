@@ -156,11 +156,11 @@ required values go into the entry point and everything optional follows fluently
 | `new WebsiteManager(website, source)` | `WebsiteManager.For(website, source)` |
 | `new WebsiteManager(website, theme, source)` | `WebsiteManager.For(website, source).WithTheme(theme)` |
 | `manager.Make()` | `manager.MakeAsync()` |
-| `manager.GitMode = true` | `manager.WithGitMode()` |
+| `manager.GitMode = true` | nothing - incremental output is the default now |
 | `manager.Content = path` | `manager.WithContentDirectory(path)` |
 | `manager.Output = path` | `manager.WithOutputDirectory(path)` |
 | `manager.Resources = path` | `manager.WithResourcesDirectory(path)` |
-| `manager.UseDefaultMarkdownParser = false` | `manager.WithoutDefaultMarkdownParser()` |
+| `manager.UseDefaultMarkdownParser = false` | `manager.NoDefaultMarkdownParser()` |
 | `manager.AddParser(parser)` | unchanged, still chainable |
 
 Three changes affect content rather than code:

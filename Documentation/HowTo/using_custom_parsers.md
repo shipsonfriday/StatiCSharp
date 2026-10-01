@@ -33,7 +33,7 @@ If you use the `WebsiteManager` implementation of `IWebsiteManager` you can stop
 ```C#
 await WebsiteManager.For(myAwesomeWebsite, source: @"/path/to/your/project")
     .AddParser(myParser)
-    .WithoutDefaultMarkdownParser()
+    .NoDefaultMarkdownParser()
     .MakeAsync();
 ```
 

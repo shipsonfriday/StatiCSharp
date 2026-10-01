@@ -33,10 +33,11 @@ public interface IWebsiteManager
     string Output { get; }
 
     /// <summary>
-    /// If true, the site generator only writes files if there are any changes.<br/>
-    /// If false, all output files are rewritten.
+    /// If true, the generator updates the output directory: it writes a file only when its
+    /// content changed and removes what no longer belongs to the website. If false, the
+    /// output directory is emptied first and every file is written anew. Default is true.
     /// </summary>
-    bool GitMode { get; }
+    bool IncrementalOutput { get; }
 
     /// <summary>
     /// The website of the current context.
