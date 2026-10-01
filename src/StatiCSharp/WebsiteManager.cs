@@ -221,8 +221,7 @@ public partial class WebsiteManager : IWebsiteManager
         WriteLine("Website generating process startet...");
 
         WriteLine("Checking environment...");
-        var checkEnvTask = Task.Run(() => CheckEnvironment(HtmlFactory.ResourcesPath)).ConfigureAwait(false);
-        await checkEnvTask;
+        await Task.Run(() => EnvironmentCheck.Verify(Content, Resources, Output, HtmlFactory.ResourcesPath));
 
         WriteLine("Collecting markdown data...");
         new ContentReader(Content, _htmlBuilder).ReadInto(Website);

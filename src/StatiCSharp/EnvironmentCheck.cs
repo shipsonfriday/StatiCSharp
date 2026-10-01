@@ -1,23 +1,41 @@
-﻿using StatiCSharp.Interfaces;
-using StatiCSharp.Exceptions;
-using System.IO;
+﻿using StatiCSharp.Exceptions;
 using System;
+using System.IO;
 
 namespace StatiCSharp;
 
-public partial class WebsiteManager : IWebsiteManager
+/// <summary>
+/// Makes sure a run can do its work before it starts: the directories it needs exist and can
+/// be written to.
+/// <para>
+/// Holds nothing, so it is a static class rather than a third object created per run. It does
+/// more than its name says - a directory that is missing is created, and only a directory
+/// that cannot be created is an error.
+/// </para>
+/// </summary>
+internal static class EnvironmentCheck
 {
     /// <summary>
-    /// Checks if all nessessary directories exist and if it can read and write in this folders.<br/>
-    /// If a directory does not exist, it tries to create it.
+    /// Checks the directories a run reads from and writes to, creating the ones that are
+    /// missing.
     /// </summary>
-    /// <param name="templateResources">The theme's resources directory, or null to skip that check.</param>
+    /// <param name="content">The directory holding the markdown files.</param>
+    /// <param name="resources">The directory holding the static files.</param>
+    /// <param name="output">The directory the website is written to.</param>
+    /// <param name="themeResources">The theme's resources directory, or null to skip that check.</param>
+    /// <exception cref="ArgumentNullException">A directory is null.</exception>
+    /// <exception cref="ArgumentException">A directory is empty or only whitespace.</exception>
     /// <exception cref="DirectoryNotFoundException">The theme's resources directory does not exist.</exception>
     /// <exception cref="CannotCreateDirectoryException">A needed directory is missing and cannot be created.</exception>
     /// <exception cref="DirectoryNotWriteableException">A needed directory exists but cannot be written to.</exception>
-    internal void CheckEnvironment(string? templateResources = null)
+    internal static void Verify(string content, string resources, string output, string? themeResources = null)
     {
-        string[] assumedDirectories = [Output, Content, Resources];
+        ArgumentException.ThrowIfNullOrWhiteSpace(content);
+        ArgumentException.ThrowIfNullOrWhiteSpace(resources);
+        ArgumentException.ThrowIfNullOrWhiteSpace(output);
+
+        // The output comes first: a run that cannot write anywhere is not worth starting.
+        string[] assumedDirectories = [output, content, resources];
 
         foreach (string assumedDirectory in assumedDirectories)
         {
@@ -25,11 +43,11 @@ public partial class WebsiteManager : IWebsiteManager
             CheckIfDirectoryIsWritable(assumedDirectory);
         }
 
-        if (templateResources is not null)
+        if (themeResources is not null)
         {
-            if (!Directory.Exists(templateResources))
+            if (!Directory.Exists(themeResources))
             {
-                throw new DirectoryNotFoundException($"Your template resources directory does not exist. Do you have read and write access to {templateResources} ?");
+                throw new DirectoryNotFoundException($"Your template resources directory does not exist. Do you have read and write access to {themeResources} ?");
             }
         }
 

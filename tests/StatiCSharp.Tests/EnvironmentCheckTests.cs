@@ -5,10 +5,15 @@ using Xunit;
 
 namespace StatiCSharp.Tests;
 
-public class CheckEnvironmentTests
+public class EnvironmentCheckTests
 {
-    private static Website AWebsite() =>
-        Website.Create(url: "https://example.com", name: "My Website");
+    /// <summary>
+    /// The three directories a run needs, below the given directory.
+    /// </summary>
+    private static (string Content, string Resources, string Output) DirectoriesIn(TempDirectory directory) => (
+        Path.Combine(directory.Path, "Content"),
+        Path.Combine(directory.Path, "Resources"),
+        Path.Combine(directory.Path, "Output"));
 
     [Fact]
     public void BothExceptionTypesArePublic()
@@ -24,12 +29,12 @@ public class CheckEnvironmentTests
     {
         using var directory = new TempDirectory();
 
-        WebsiteManager manager = WebsiteManager.For(AWebsite(), directory.Path);
-        manager.CheckEnvironment();
+        var (content, resources, output) = DirectoriesIn(directory);
+        EnvironmentCheck.Verify(content, resources, output);
 
-        Assert.True(Directory.Exists(manager.Content));
-        Assert.True(Directory.Exists(manager.Resources));
-        Assert.True(Directory.Exists(manager.Output));
+        Assert.True(Directory.Exists(content));
+        Assert.True(Directory.Exists(resources));
+        Assert.True(Directory.Exists(output));
     }
 
     [Fact]
@@ -41,10 +46,10 @@ public class CheckEnvironmentTests
         // every platform.
         string blocker = directory.WriteFile("blocker", "not a directory");
 
-        WebsiteManager manager = WebsiteManager.For(AWebsite(), directory.Path)
-            .WithOutputDirectory(Path.Combine(blocker, "Output"));
+        var (content, resources, _) = DirectoriesIn(directory);
 
-        var thrown = Assert.Throws<CannotCreateDirectoryException>(() => manager.CheckEnvironment());
+        var thrown = Assert.Throws<CannotCreateDirectoryException>(
+            () => EnvironmentCheck.Verify(content, resources, Path.Combine(blocker, "Output")));
 
         Assert.NotNull(thrown.InnerException);
         Assert.Contains("Output", thrown.Message, StringComparison.Ordinal);
@@ -72,9 +77,10 @@ public class CheckEnvironmentTests
 
         try
         {
-            WebsiteManager manager = WebsiteManager.For(AWebsite(), directory.Path);
+            var (content, resources, _) = DirectoriesIn(directory);
 
-            var thrown = Assert.Throws<DirectoryNotWriteableException>(() => manager.CheckEnvironment());
+            var thrown = Assert.Throws<DirectoryNotWriteableException>(
+                () => EnvironmentCheck.Verify(content, resources, output));
 
             Assert.NotNull(thrown.InnerException);
             Assert.Contains("Output", thrown.Message, StringComparison.Ordinal);
@@ -93,10 +99,19 @@ public class CheckEnvironmentTests
     {
         using var directory = new TempDirectory();
 
-        WebsiteManager manager = WebsiteManager.For(AWebsite(), directory.Path);
+        var (content, resources, output) = DirectoriesIn(directory);
 
         Assert.Throws<DirectoryNotFoundException>(
-            () => manager.CheckEnvironment(Path.Combine(directory.Path, "no-such-theme")));
+            () => EnvironmentCheck.Verify(content, resources, output, Path.Combine(directory.Path, "no-such-theme")));
+    }
+
+    [Fact]
+    public void RejectsAnUnusableDirectory()
+    {
+        Assert.Throws<ArgumentNullException>(() => EnvironmentCheck.Verify(null!, "/resources", "/output"));
+        Assert.Throws<ArgumentNullException>(() => EnvironmentCheck.Verify("/content", null!, "/output"));
+        Assert.Throws<ArgumentNullException>(() => EnvironmentCheck.Verify("/content", "/resources", null!));
+        Assert.Throws<ArgumentException>(() => EnvironmentCheck.Verify("   ", "/resources", "/output"));
     }
 
     private static bool CanStillWriteTo(string path)
