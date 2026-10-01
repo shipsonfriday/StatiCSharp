@@ -1,4 +1,3 @@
-using System;
 using StatiCSharp.HtmlComponents;
 using Xunit;
 

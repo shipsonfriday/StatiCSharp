@@ -1,4 +1,3 @@
-using System;
 using System.Text.RegularExpressions;
 using StatiCSharp.Interfaces;
 using Xunit;

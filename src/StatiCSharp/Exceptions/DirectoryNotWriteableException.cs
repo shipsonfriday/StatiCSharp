@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace StatiCSharp.Exceptions;
+﻿namespace StatiCSharp.Exceptions;
 
 /// <summary>
 /// Thrown when a directory StatiC# needs exists but cannot be written to.

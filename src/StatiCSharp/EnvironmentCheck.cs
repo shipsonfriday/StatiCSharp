@@ -1,6 +1,4 @@
 ﻿using StatiCSharp.Exceptions;
-using System;
-using System.IO;
 
 namespace StatiCSharp;
 

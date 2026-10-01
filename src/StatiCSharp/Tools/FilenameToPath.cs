@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-
-namespace StatiCSharp.Tools
+﻿namespace StatiCSharp.Tools
 {
     /// <summary>
     /// Provides methods to generate paths from filenames.

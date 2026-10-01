@@ -1,0 +1,11 @@
+<Project>
+
+  <!-- Applies after the SDK has added the implicit usings, which is why this is not in
+       Directory.Build.props: those are evaluated before the item exists, so a Remove there
+       does nothing. StatiC# writes files to disk and never speaks http, so an HttpClient in
+       scope of every file is noise. -->
+  <ItemGroup>
+    <Using Remove="System.Net.Http" />
+  </ItemGroup>
+
+</Project>

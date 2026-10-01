@@ -1,5 +1,4 @@
 ﻿using StatiCSharp.Interfaces;
-using System;
 using System.Globalization;
 using System.Net;
 using System.Text;

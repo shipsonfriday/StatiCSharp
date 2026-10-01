@@ -1,0 +1,8 @@
+<!--
+  Deliberately empty, for the same reason as Directory.Build.props beside it: MSBuild walks up
+  from a project until it finds the first Directory.Build.targets, so this one stops the
+  repository-wide targets at the root from reaching the project template below. Without it the
+  template would lose System.Net.Http from its implicit usings, which a console project made
+  with "dotnet new" has, and would behave differently here than after someone copies it out.
+-->
+<Project />

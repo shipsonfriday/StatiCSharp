@@ -5,7 +5,9 @@
     <TargetFramework>net10.0</TargetFramework>
     <LangVersion>14.0</LangVersion>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>disable</ImplicitUsings>
+    <!-- System, System.Collections.Generic, System.IO, System.Linq and the task namespaces
+         come from the SDK. System.Net.Http is taken back out in Directory.Build.targets. -->
+    <ImplicitUsings>enable</ImplicitUsings>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <!-- Release only: a warning must not block work in progress locally, but it must not
          reach a package or a merge either. CI builds Release. -->

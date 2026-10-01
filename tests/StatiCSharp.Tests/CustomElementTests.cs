@@ -1,5 +1,4 @@
-﻿using System;
-using StatiCSharp.HtmlComponents;
+﻿using StatiCSharp.HtmlComponents;
 using StatiCSharp.Interfaces;
 using Xunit;
 

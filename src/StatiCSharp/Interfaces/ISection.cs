@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace StatiCSharp.Interfaces
+﻿namespace StatiCSharp.Interfaces
 {
     /// <summary>
     /// The interface a section of the website must implement.

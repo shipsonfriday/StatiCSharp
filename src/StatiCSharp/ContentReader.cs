@@ -1,10 +1,6 @@
 ﻿using StatiCSharp.Interfaces;
 using StatiCSharp.Tools;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using static StatiCSharp.StatiCSharpConsole;
 
 namespace StatiCSharp;

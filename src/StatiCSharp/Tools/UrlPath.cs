@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace StatiCSharp.Tools;
+﻿namespace StatiCSharp.Tools;
 
 /// <summary>
 /// Builds the relative url of a site, which is also where the site is written.

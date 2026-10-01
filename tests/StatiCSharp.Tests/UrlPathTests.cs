@@ -1,4 +1,3 @@
-using System;
 using StatiCSharp.Tools;
 using Xunit;
 

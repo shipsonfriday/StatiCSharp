@@ -1,5 +1,4 @@
 ﻿using StatiCSharp.Interfaces;
-using System;
 
 namespace StatiCSharp.HtmlComponents
 {

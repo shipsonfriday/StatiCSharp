@@ -1,7 +1,5 @@
 ﻿using StatiCSharp.Interfaces;
 using StatiCSharp.Tools;
-using System;
-using System.Collections.Generic;
 
 namespace StatiCSharp;
 

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace StatiCSharp.Tools;
+﻿namespace StatiCSharp.Tools;
 
 /// <summary>
 /// The last segment of a site's url: what the author asked for, or the filename.
