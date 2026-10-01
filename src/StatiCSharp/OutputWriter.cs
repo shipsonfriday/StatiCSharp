@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace StatiCSharp;
@@ -14,15 +16,32 @@ namespace StatiCSharp;
 /// every path from the first run already taken and warned about all of them.
 /// </para>
 /// <para>
-/// The bookkeeping is concurrent because the sites are written through
-/// <see cref="Task.WhenAll(Task[])"/>. Today every claim happens before the first await and
+/// The bookkeeping records every file the run produces, written or copied. Everything else
+/// in the output directory did not come from this website and is removed, which is what
+/// makes a deleted markdown file or a renamed resource disappear from the output. The
+/// preserved names are the exception, see <see cref="AlwaysPreserved"/>.
+/// </para>
+/// <para>
+/// It is concurrent because the sites are written through
+/// <see cref="Task.WhenAll(Task[])"/>. Today every record happens before the first await and
 /// therefore in sequence, so nothing depends on it - which is exactly why it is expressed in
 /// the type rather than left to the position of an await in another file.
 /// </para>
 /// </summary>
 internal sealed class OutputWriter
 {
-    private readonly ConcurrentDictionary<string, byte> _claimedPaths = new();
+    /// <summary>
+    /// Never deleted, whatever the run produces.
+    /// <para>
+    /// <c>.git</c> because a published output directory often is the repository it is
+    /// deployed from - clearing it would destroy the history. <c>.nojekyll</c> and
+    /// <c>CNAME</c> because GitHub Pages reads them and nothing generates them.
+    /// </para>
+    /// </summary>
+    internal static readonly string[] AlwaysPreserved = [".git", ".nojekyll", "CNAME"];
+
+    private readonly ConcurrentDictionary<string, byte> _producedFiles = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _preserved;
     private readonly string _output;
     private readonly bool _onlyWriteWhatChanged;
 
@@ -34,28 +53,40 @@ internal sealed class OutputWriter
     /// If true, an existing file is left alone when its content did not change, and the
     /// output directory is not cleared before writing.
     /// </param>
+    /// <param name="alsoPreserve">
+    /// Names to keep besides <see cref="AlwaysPreserved"/>. Null counts as none.
+    /// </param>
     /// <exception cref="ArgumentNullException"><paramref name="output"/> is null.</exception>
     /// <exception cref="ArgumentException"><paramref name="output"/> is empty or only whitespace.</exception>
-    internal OutputWriter(string output, bool onlyWriteWhatChanged)
+    internal OutputWriter(string output, bool onlyWriteWhatChanged, IEnumerable<string>? alsoPreserve = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(output);
 
-        _output = output;
+        _output = Path.GetFullPath(output);
         _onlyWriteWhatChanged = onlyWriteWhatChanged;
+
+        // Case insensitive: deleting someone's CNAME because they wrote it lowercase is the
+        // expensive mistake here, keeping a file one did not mean to keep is not.
+        _preserved = new HashSet<string>(AlwaysPreserved, StringComparer.OrdinalIgnoreCase);
+        if (alsoPreserve is not null)
+        {
+            _preserved.UnionWith(alsoPreserve);
+        }
     }
 
     /// <summary>
-    /// Records that a directory is being written to.
+    /// Whether the given file was written or copied during this run, and is therefore part
+    /// of the website.
     /// </summary>
-    /// <param name="path">The directory.</param>
-    /// <returns>False if another site already claimed it.</returns>
-    internal bool ClaimPath(string path) => _claimedPaths.TryAdd(path, 0);
+    /// <param name="filePath">The path of the file.</param>
+    internal bool Produced(string filePath) => _producedFiles.ContainsKey(Path.GetFullPath(filePath));
 
     /// <summary>
-    /// Whether anything was written to the given directory during this run.
+    /// Whether a file or directory of this name is kept even though the run did not produce it.
     /// </summary>
-    /// <param name="path">The directory.</param>
-    internal bool WasWrittenTo(string path) => _claimedPaths.ContainsKey(path);
+    /// <param name="path">The path of the file or directory.</param>
+    internal bool IsPreserved(string path) => _preserved.Contains(Path.GetFileName(path.TrimEnd(
+        Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)));
 
     /// <summary>
     /// Writes a file into the output.
@@ -63,10 +94,14 @@ internal sealed class OutputWriter
     /// <param name="path">The target directory.</param>
     /// <param name="filename">The filename.</param>
     /// <param name="content">The content of the file.</param>
-    /// <returns>A task that represents the asynchronous write operation.</returns>
-    internal async Task WriteAsync(string path, string filename, string content)
+    /// <returns>
+    /// False if this run already wrote that file. The file is written either way, so the
+    /// later site wins - the caller reports it, because it means two sites claim one url.
+    /// </returns>
+    internal async Task<bool> WriteAsync(string path, string filename, string content)
     {
         string filePath = Path.Combine(path, filename);
+        bool isTheFirst = Record(filePath);
 
         if (_onlyWriteWhatChanged && File.Exists(filePath))
         {
@@ -74,20 +109,34 @@ internal sealed class OutputWriter
 
             if (existing == content)
             {
-                return;
+                return isTheFirst;
             }
         }
 
         await File.WriteAllTextAsync(filePath, content);
+        return isTheFirst;
     }
 
     /// <summary>
-    /// Deletes everything inside the output directory, without deleting the directory itself.
+    /// Deletes everything inside the output directory except the preserved names, without
+    /// deleting the directory itself.
     /// </summary>
-    internal void Clear() => DeleteContentsOf(_output);
+    internal void Clear()
+    {
+        foreach (string file in Directory.GetFiles(_output).Where(file => !IsPreserved(file)))
+        {
+            File.Delete(file);
+        }
+
+        foreach (string subdirectory in Directory.GetDirectories(_output).Where(directory => !IsPreserved(directory)))
+        {
+            Directory.Delete(subdirectory, true);
+        }
+    }
 
     /// <summary>
     /// Copies a directory with all its files and subdirectories into the output directory.
+    /// The copied files count as produced by this run, so the clean up keeps them.
     /// </summary>
     /// <param name="sourceDir">The directory to copy from.</param>
     /// <returns>A task that represents the asynchronous copying operation.</returns>
@@ -95,56 +144,42 @@ internal sealed class OutputWriter
     internal Task CopyIntoOutputAsync(string sourceDir) => CopyAllAsync(sourceDir, _output);
 
     /// <summary>
-    /// Removes the html files in the output that have no corresponding markdown file, and any
-    /// directory left empty by that.
+    /// Removes everything in the output directory this run did not produce, and any directory
+    /// left empty by that. The preserved names stay, and a preserved directory is not even
+    /// looked into.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous clean up operation.</returns>
-    internal async Task CleanUpAsync() => await CleanUpDirectoryAsync(_output);
+    internal Task CleanUpAsync() => Task.Run(() => CleanUp(_output));
 
-    private async Task CleanUpDirectoryAsync(string directory)
+    private void CleanUp(string directory)
     {
-        if (!WasWrittenTo(directory))
+        foreach (string file in Directory.GetFiles(directory))
         {
-            // Delete only files named index.html. Other files could be resources!
-            if (File.Exists(Path.Combine(directory, "index.html")))
+            if (!Produced(file) && !IsPreserved(file))
             {
-                File.Delete(Path.Combine(directory, "index.html"));
+                File.Delete(file);
             }
         }
 
-        if (Directory.GetDirectories(directory).Length == 0 && Directory.GetFiles(directory).Length == 0)
+        foreach (string subdirectory in Directory.GetDirectories(directory))
         {
-            // Do not delete output directory!
-            if (directory != _output)
+            if (IsPreserved(subdirectory))
             {
-                Directory.Delete(directory);
+                continue;
             }
-        }
-        else
-        {
-            foreach (string subdir in Directory.GetDirectories(directory))
+
+            CleanUp(subdirectory);
+
+            if (Directory.GetFileSystemEntries(subdirectory).Length == 0)
             {
-                await CleanUpDirectoryAsync(subdir);
+                Directory.Delete(subdirectory);
             }
         }
     }
 
-    private static void DeleteContentsOf(string path)
-    {
-        DirectoryInfo directory = new(path);
+    private bool Record(string filePath) => _producedFiles.TryAdd(Path.GetFullPath(filePath), 0);
 
-        foreach (FileInfo file in directory.GetFiles())
-        {
-            file.Delete();
-        }
-
-        foreach (DirectoryInfo subdirectory in directory.GetDirectories())
-        {
-            subdirectory.Delete(true);
-        }
-    }
-
-    private static async Task CopyAllAsync(string sourceDir, string destinationDir)
+    private async Task CopyAllAsync(string sourceDir, string destinationDir)
     {
         // https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-copy-directories
         var dir = new DirectoryInfo(sourceDir);
@@ -161,7 +196,9 @@ internal sealed class OutputWriter
 
         foreach (FileInfo file in dir.GetFiles())
         {
-            file.CopyTo(Path.Combine(destinationDir, file.Name), true);
+            string destination = Path.Combine(destinationDir, file.Name);
+            file.CopyTo(destination, true);
+            Record(destination);
         }
 
         foreach (DirectoryInfo subDir in dirs)

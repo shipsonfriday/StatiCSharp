@@ -8,21 +8,23 @@ namespace StatiCSharp.Tests;
 public class OutputWriterTests
 {
     [Fact]
-    public void APathCanOnlyBeClaimedOnce()
+    public async Task AFileCanOnlyBeWrittenOncePerRun()
     {
         using var directory = new TempDirectory();
         var output = new OutputWriter(directory.Path, onlyWriteWhatChanged: false);
 
-        Assert.True(output.ClaimPath("/somewhere"));
-        Assert.False(output.ClaimPath("/somewhere"));
-        Assert.True(output.WasWrittenTo("/somewhere"));
-        Assert.False(output.WasWrittenTo("/elsewhere"));
+        Assert.True(await output.WriteAsync(directory.Path, "index.html", "first"));
+        Assert.False(await output.WriteAsync(directory.Path, "index.html", "second"));
+
+        // The later site still wins, which is why the caller reports the collision.
+        Assert.Equal("second", await File.ReadAllTextAsync(
+            Path.Combine(directory.Path, "index.html"), TestContext.Current.CancellationToken));
     }
 
     [Fact]
-    public void TwoWritersDoNotShareTheirClaims()
+    public async Task TwoWritersDoNotShareTheirBookkeeping()
     {
-        // This is the point of creating one per run. As a field on the manager the claims
+        // This is the point of creating one per run. As a field on the manager the records
         // survived, so a second MakeAsync considered every path from the first run taken and
         // warned about all of them.
         using var directory = new TempDirectory();
@@ -30,8 +32,8 @@ public class OutputWriterTests
         var first = new OutputWriter(directory.Path, onlyWriteWhatChanged: false);
         var second = new OutputWriter(directory.Path, onlyWriteWhatChanged: false);
 
-        Assert.True(first.ClaimPath("/somewhere"));
-        Assert.True(second.ClaimPath("/somewhere"));
+        Assert.True(await first.WriteAsync(directory.Path, "index.html", "x"));
+        Assert.True(await second.WriteAsync(directory.Path, "index.html", "x"));
     }
 
     [Fact]
@@ -79,6 +81,22 @@ public class OutputWriterTests
     }
 
     [Fact]
+    public async Task AnUnchangedFileStillCountsAsProduced()
+    {
+        // The skipped write must not make the clean up think the file is an orphan.
+        using var directory = new TempDirectory();
+        directory.WriteFile("Output/index.html", "same");
+
+        string outputPath = Path.Combine(directory.Path, "Output");
+        var output = new OutputWriter(outputPath, onlyWriteWhatChanged: true);
+
+        await output.WriteAsync(outputPath, "index.html", "same");
+        await output.CleanUpAsync();
+
+        Assert.True(File.Exists(Path.Combine(outputPath, "index.html")));
+    }
+
+    [Fact]
     public async Task WithIncrementalAChangedFileIsWritten()
     {
         using var directory = new TempDirectory();
@@ -103,6 +121,26 @@ public class OutputWriterTests
 
         Assert.True(Directory.Exists(outputPath));
         Assert.Empty(Directory.GetFileSystemEntries(outputPath));
+    }
+
+    [Fact]
+    public void ClearKeepsThePreservedNames()
+    {
+        // An output directory often is the repository it is deployed from. Clearing it used
+        // to delete .git with it.
+        using var directory = new TempDirectory();
+        directory.WriteFile("Output/.git/HEAD", "ref: refs/heads/main");
+        directory.WriteFile("Output/CNAME", "example.com");
+        directory.WriteFile("Output/.nojekyll", "");
+        directory.WriteFile("Output/index.html", "x");
+
+        string outputPath = Path.Combine(directory.Path, "Output");
+        new OutputWriter(outputPath, onlyWriteWhatChanged: false).Clear();
+
+        Assert.True(File.Exists(Path.Combine(outputPath, ".git", "HEAD")));
+        Assert.True(File.Exists(Path.Combine(outputPath, "CNAME")));
+        Assert.True(File.Exists(Path.Combine(outputPath, ".nojekyll")));
+        Assert.False(File.Exists(Path.Combine(outputPath, "index.html")));
     }
 
     [Fact]
@@ -133,28 +171,27 @@ public class OutputWriterTests
     }
 
     [Fact]
-    public async Task CleanUpRemovesAnUnclaimedIndexAndTheEmptyDirectory()
+    public async Task CleanUpRemovesAnOrphanedSiteAndTheEmptyDirectory()
     {
         using var directory = new TempDirectory();
         directory.WriteFile("Output/stale/index.html", "stale");
 
         string outputPath = Path.Combine(directory.Path, "Output");
-        var output = new OutputWriter(outputPath, onlyWriteWhatChanged: true);
 
-        await output.CleanUpAsync();
+        await new OutputWriter(outputPath, onlyWriteWhatChanged: true).CleanUpAsync();
 
         Assert.False(Directory.Exists(Path.Combine(outputPath, "stale")));
     }
 
     [Fact]
-    public async Task CleanUpKeepsWhatWasClaimed()
+    public async Task CleanUpKeepsWhatTheRunWrote()
     {
         using var directory = new TempDirectory();
-        directory.WriteFile("Output/posts/index.html", "written this run");
-
         string outputPath = Path.Combine(directory.Path, "Output");
+        Directory.CreateDirectory(Path.Combine(outputPath, "posts"));
+
         var output = new OutputWriter(outputPath, onlyWriteWhatChanged: true);
-        output.ClaimPath(Path.Combine(outputPath, "posts"));
+        await output.WriteAsync(Path.Combine(outputPath, "posts"), "index.html", "written this run");
 
         await output.CleanUpAsync();
 
@@ -162,18 +199,99 @@ public class OutputWriterTests
     }
 
     [Fact]
-    public async Task CleanUpLeavesFilesThatAreNotAnIndex()
+    public async Task CleanUpRemovesAnyOrphanedFileNotJustAnIndex()
     {
-        // Other files could be resources, so cleanup only removes index.html. That is the
-        // reason a deleted resource lingers in the output, which is a separate matter.
+        // The bookkeeping used to be per directory and only index.html was removed, because
+        // any other file might have been a resource. A resource deleted from the Resources
+        // directory therefore stayed in the output forever.
         using var directory = new TempDirectory();
-        directory.WriteFile("Output/stale/photo.png", "image");
+        directory.WriteFile("Output/old-photo.png", "image");
 
         string outputPath = Path.Combine(directory.Path, "Output");
 
         await new OutputWriter(outputPath, onlyWriteWhatChanged: true).CleanUpAsync();
 
-        Assert.True(File.Exists(Path.Combine(outputPath, "stale", "photo.png")));
+        Assert.False(File.Exists(Path.Combine(outputPath, "old-photo.png")));
+    }
+
+    [Fact]
+    public async Task CleanUpKeepsACopiedResource()
+    {
+        using var directory = new TempDirectory();
+        directory.WriteFile("Resources/favicon.png", "icon");
+        string outputPath = Path.Combine(directory.Path, "Output");
+        Directory.CreateDirectory(outputPath);
+
+        var output = new OutputWriter(outputPath, onlyWriteWhatChanged: true);
+        await output.CopyIntoOutputAsync(Path.Combine(directory.Path, "Resources"));
+        await output.CleanUpAsync();
+
+        Assert.True(File.Exists(Path.Combine(outputPath, "favicon.png")));
+    }
+
+    [Fact]
+    public async Task CleanUpKeepsThePreservedNamesAndDoesNotEnterThem()
+    {
+        using var directory = new TempDirectory();
+        directory.WriteFile("Output/.git/objects/ab/cdef", "an object");
+        directory.WriteFile("Output/CNAME", "example.com");
+        directory.WriteFile("Output/.nojekyll", "");
+
+        string outputPath = Path.Combine(directory.Path, "Output");
+
+        await new OutputWriter(outputPath, onlyWriteWhatChanged: true).CleanUpAsync();
+
+        Assert.True(File.Exists(Path.Combine(outputPath, ".git", "objects", "ab", "cdef")));
+        Assert.True(File.Exists(Path.Combine(outputPath, "CNAME")));
+        Assert.True(File.Exists(Path.Combine(outputPath, ".nojekyll")));
+    }
+
+    [Fact]
+    public async Task CleanUpKeepsAnAdditionallyPreservedNameAnywhereInTheOutput()
+    {
+        using var directory = new TempDirectory();
+        directory.WriteFile("Output/robots.txt", "User-agent: *");
+        directory.WriteFile("Output/posts/.DS_Store", "noise");
+        directory.WriteFile("Output/posts/orphan.html", "orphan");
+
+        string outputPath = Path.Combine(directory.Path, "Output");
+
+        await new OutputWriter(
+                outputPath,
+                onlyWriteWhatChanged: true,
+                alsoPreserve: ["robots.txt", ".DS_Store"])
+            .CleanUpAsync();
+
+        Assert.True(File.Exists(Path.Combine(outputPath, "robots.txt")));
+        Assert.True(File.Exists(Path.Combine(outputPath, "posts", ".DS_Store")));
+        Assert.False(File.Exists(Path.Combine(outputPath, "posts", "orphan.html")));
+    }
+
+    [Fact]
+    public async Task APreservedNameIsMatchedWithoutRegardToCase()
+    {
+        using var directory = new TempDirectory();
+        directory.WriteFile("Output/cname", "example.com");
+
+        string outputPath = Path.Combine(directory.Path, "Output");
+
+        await new OutputWriter(outputPath, onlyWriteWhatChanged: true).CleanUpAsync();
+
+        Assert.True(File.Exists(Path.Combine(outputPath, "cname")));
+    }
+
+    [Fact]
+    public async Task CleanUpKeepsADirectoryThatOnlyHoldsAPreservedFile()
+    {
+        using var directory = new TempDirectory();
+        directory.WriteFile("Output/.well-known/security.txt", "Contact: mailto:me@example.com");
+
+        string outputPath = Path.Combine(directory.Path, "Output");
+
+        await new OutputWriter(outputPath, onlyWriteWhatChanged: true, alsoPreserve: ["security.txt"])
+            .CleanUpAsync();
+
+        Assert.True(File.Exists(Path.Combine(outputPath, ".well-known", "security.txt")));
     }
 
     [Fact]

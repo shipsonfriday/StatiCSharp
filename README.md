@@ -163,8 +163,13 @@ required values go into the entry point and everything optional follows fluently
 | `manager.UseDefaultMarkdownParser = false` | `manager.NoDefaultMarkdownParser()` |
 | `manager.AddParser(parser)` | unchanged, still chainable |
 
-Three changes affect content rather than code:
+Four changes affect content rather than code:
 
+- **The output directory holds the website and nothing else.** Files the generator did not
+  produce are deleted, so a renamed article or a deleted resource no longer lingers. If you
+  keep hand written files next to the generated ones, name them with
+  `manager.WithPreservedOutput("robots.txt")` - `.git`, `.nojekyll` and `CNAME` are kept
+  without asking. See [incremental output](Documentation/HowTo/incremental_output.md).
 - **Tag urls are normalized.** A tag is lowercased and spaces become hyphens, so `CSharp`
   is served from `/tag/csharp` and `Web Dev` from `/tag/web-dev`. External links to the old
   spelling break. Themes should build tag links with `StatiCSharp.Tools.UrlSlug.From(tag)`

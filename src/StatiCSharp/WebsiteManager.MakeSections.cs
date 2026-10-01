@@ -32,12 +32,10 @@ public partial class WebsiteManager : IWebsiteManager
             string page = HtmlDocument.Wrap(Website, site, head, _htmlBuilder.AdditionalHeaderContent, body);
             string path = Directory.CreateDirectory(Path.Combine(Output, site.SectionName)).ToString();
 
-            if (!output.ClaimPath(path))
+            if (!await output.WriteAsync(path, "index.html", page))
             {
                 WriteLine($"WARNING: The path {path} is already in use. Change the path in meta data to avoid duplicates.");
             }
-
-            await output.WriteAsync(path, "index.html", page);
 
         }
     }

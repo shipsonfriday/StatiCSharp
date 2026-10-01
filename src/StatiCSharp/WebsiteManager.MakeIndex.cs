@@ -15,6 +15,5 @@ public partial class WebsiteManager : IWebsiteManager
             string head = HtmlFactory.MakeHeadHtml();
             string index = HtmlDocument.Wrap(Website, Website.Index, head, _htmlBuilder.AdditionalHeaderContent, body);
             await output.WriteAsync(Output, "index.html", index);
-            output.ClaimPath(Output);
         }
     }

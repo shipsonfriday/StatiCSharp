@@ -17,6 +17,7 @@
 - Generated urls now match the directories that are written, for index pages, nested page hierarchies and tags alike. Tag urls are normalized, so uppercase tags move to lowercase paths.
 - Meta data is treated as plain text and encoded on output, so a quote in a title or author name no longer breaks the page head.
 - Dates are read as ISO 8601 and rendered in the website's language, independent of the machine running the generator.
+- Output is written incrementally by default: unchanged files are left alone, and files the generator did not produce are removed. WithPreservedOutput names exceptions; .git, .nojekyll and CNAME are always kept.
 - Markdig raised to 1.4.0.
 
 See the readme for the full upgrade notes.</PackageReleaseNotes>

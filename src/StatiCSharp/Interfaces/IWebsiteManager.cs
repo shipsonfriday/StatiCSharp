@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace StatiCSharp.Interfaces;
 
@@ -38,6 +39,12 @@ public interface IWebsiteManager
     /// output directory is emptied first and every file is written anew. Default is true.
     /// </summary>
     bool IncrementalOutput { get; }
+
+    /// <summary>
+    /// Names of files and directories in the output that are kept although the generator did
+    /// not produce them. Always contains `.git`, `.nojekyll` and `CNAME`.
+    /// </summary>
+    IReadOnlyCollection<string> PreservedOutput { get; }
 
     /// <summary>
     /// The website of the current context.

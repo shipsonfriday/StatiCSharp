@@ -39,12 +39,10 @@ public partial class WebsiteManager : IWebsiteManager
             string itemPath = (site.Path != string.Empty) ? site.Path : defaultPath;
             string path = Directory.CreateDirectory(Path.Combine(Output, section.SectionName, itemPath)).ToString();
 
-            if (!output.ClaimPath(path))
+            if (!await output.WriteAsync(path, "index.html", page))
             {
                 WriteLine($"WARNING: The path {path} is already in use. Change the path in meta data to avoid duplicates.");
             }
-
-            await output.WriteAsync(path, "index.html", page);
 
         }
     }

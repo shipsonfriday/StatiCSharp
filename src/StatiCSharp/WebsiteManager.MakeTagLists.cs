@@ -82,12 +82,10 @@ public partial class WebsiteManager : IWebsiteManager
             // Create directory, if it does not excist
             string path = Directory.CreateDirectory(Path.Combine(Output, "tag", slug)).ToString();
 
-            if (!output.ClaimPath(path))
+            if (!await output.WriteAsync(path, "index.html", page))
             {
                 WriteLine($"WARNING: The path {path} is already in use. Change the path in meta data to avoid duplicates.");
             }
-
-            await output.WriteAsync(path, "index.html", page);
 
         }
     }

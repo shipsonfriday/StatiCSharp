@@ -31,6 +31,7 @@ public class WebsiteManagerTests
 
         Assert.True(manager.IncrementalOutput);
         Assert.True(manager.UseDefaultMarkdownParser);
+        Assert.Equal([".git", ".nojekyll", "CNAME"], manager.PreservedOutput);
         Assert.IsType<DefaultHtmlFactory>(manager.HtmlFactory);
     }
 
@@ -66,6 +67,7 @@ public class WebsiteManagerTests
             .WithContentDirectory("other/Content")
             .WithResourcesDirectory("other/Resources")
             .WithOutputDirectory("other/Output")
+            .WithPreservedOutput("robots.txt")
             .NoDefaultMarkdownParser();
 
         Assert.Same(manager, result);
@@ -75,6 +77,25 @@ public class WebsiteManagerTests
         Assert.Equal("other/Resources", manager.Resources);
         Assert.Equal("other/Output", manager.Output);
         Assert.False(manager.UseDefaultMarkdownParser);
+    }
+
+    [Fact]
+    public void WithPreservedOutput_AddsInsteadOfReplacing()
+    {
+        // The built in names are not a default a caller can overwrite by accident: losing
+        // .git to a careless call is worse than having no way to drop it.
+        WebsiteManager manager = WebsiteManager.For(AWebsite(), "source")
+            .WithPreservedOutput("robots.txt")
+            .WithPreservedOutput("  .well-known  ", "", "   ");
+
+        Assert.Equal([".git", ".nojekyll", "CNAME", "robots.txt", ".well-known"], manager.PreservedOutput);
+    }
+
+    [Fact]
+    public void WithPreservedOutput_RejectsNull()
+    {
+        Assert.Throws<ArgumentNullException>(
+            () => WebsiteManager.For(AWebsite(), "source").WithPreservedOutput(null!));
     }
 
     [Fact]

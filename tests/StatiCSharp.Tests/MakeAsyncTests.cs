@@ -190,9 +190,6 @@ public class MakeAsyncTests
     [Fact]
     public async Task NoIncrementalOutputEmptiesTheOutputDirectoryFirst()
     {
-        // Not the same as the clean up an incremental run does: that one only removes an
-        // index.html it did not write, because anything else could be a resource. Starting
-        // from scratch means everything goes, whatever it is.
         using var directory = new TempDirectory();
         Website website = WriteSource(directory);
 
@@ -204,5 +201,74 @@ public class MakeAsyncTests
         await WebsiteManager.For(website, directory.Path).NoIncrementalOutput().MakeAsync();
 
         Assert.False(File.Exists(leftover));
+    }
+
+    [Fact]
+    public async Task ADeletedResourceDisappearsFromTheOutput()
+    {
+        // The bookkeeping used to be per directory and removed nothing but index.html,
+        // because any other file might have been a resource. A resource deleted from the
+        // Resources directory therefore stayed in the output for good.
+        using var directory = new TempDirectory();
+        Website website = WriteSource(directory);
+        directory.WriteFile("Resources/old-logo.png", "image");
+
+        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        string copied = Path.Combine(directory.Path, "Output", "old-logo.png");
+        Assert.True(File.Exists(copied));
+
+        File.Delete(Path.Combine(directory.Path, "Resources", "old-logo.png"));
+        await WebsiteManager.For(website, directory.Path).MakeAsync();
+
+        Assert.False(File.Exists(copied));
+    }
+
+    [Fact]
+    public async Task AResourceThatIsStillThereSurvivesTheCleanUp()
+    {
+        using var directory = new TempDirectory();
+        Website website = WriteSource(directory);
+        directory.WriteFile("Resources/logo.png", "image");
+
+        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).MakeAsync();
+
+        Assert.True(File.Exists(Path.Combine(directory.Path, "Output", "logo.png")));
+        Assert.True(File.Exists(Path.Combine(directory.Path, "Output", "favicon.png")));
+    }
+
+    [Fact]
+    public async Task TheRepositoryInTheOutputDirectorySurvivesBothModes()
+    {
+        // An output directory is often the repository it is deployed from, so .git lives
+        // inside it. Deleting that is the one unrecoverable thing the generator could do.
+        using var directory = new TempDirectory();
+        Website website = WriteSource(directory);
+        directory.WriteFile("Output/.git/HEAD", "ref: refs/heads/main");
+        directory.WriteFile("Output/CNAME", "example.com");
+        string head = Path.Combine(directory.Path, "Output", ".git", "HEAD");
+
+        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        Assert.True(File.Exists(head));
+
+        await WebsiteManager.For(website, directory.Path).NoIncrementalOutput().MakeAsync();
+        Assert.True(File.Exists(head));
+        Assert.True(File.Exists(Path.Combine(directory.Path, "Output", "CNAME")));
+    }
+
+    [Fact]
+    public async Task WithPreservedOutputKeepsAHandWrittenFile()
+    {
+        using var directory = new TempDirectory();
+        Website website = WriteSource(directory);
+        directory.WriteFile("Output/robots.txt", "User-agent: *");
+        directory.WriteFile("Output/leftover.txt", "not mine");
+
+        await WebsiteManager.For(website, directory.Path)
+            .WithPreservedOutput("robots.txt")
+            .MakeAsync();
+
+        Assert.True(File.Exists(Path.Combine(directory.Path, "Output", "robots.txt")));
+        Assert.False(File.Exists(Path.Combine(directory.Path, "Output", "leftover.txt")));
     }
 }

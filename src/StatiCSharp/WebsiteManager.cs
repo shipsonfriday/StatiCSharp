@@ -1,6 +1,8 @@
 ﻿using StatiCSharp.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using static StatiCSharp.StatiCSharpConsole;
 
@@ -20,6 +22,7 @@ namespace StatiCSharp;
 public partial class WebsiteManager : IWebsiteManager
 {
     private readonly HtmlBuilder _htmlBuilder = new(useDefaultMarkdownParser: true);
+    private readonly List<string> _preservedOutput = [.. OutputWriter.AlwaysPreserved];
 
     /// <inheritdoc/>
     public bool UseDefaultMarkdownParser => _htmlBuilder.UseDefaultMarkdownParser;
@@ -38,6 +41,9 @@ public partial class WebsiteManager : IWebsiteManager
 
     /// <inheritdoc/>
     public bool IncrementalOutput { get; private set; } = true;
+
+    /// <inheritdoc/>
+    public IReadOnlyCollection<string> PreservedOutput => _preservedOutput;
 
     /// <inheritdoc/>
     public IWebsite Website { get; }
@@ -104,6 +110,34 @@ public partial class WebsiteManager : IWebsiteManager
     public WebsiteManager NoIncrementalOutput()
     {
         IncrementalOutput = false;
+        return this;
+    }
+
+    /// <summary>
+    /// Keeps files and directories of these names in the output, although the generator did
+    /// not produce them. Everything else in the output directory is removed, so that a
+    /// deleted markdown file or a renamed resource disappears from the website.
+    /// <para>
+    /// A name matches a file or a directory anywhere in the output, and a preserved directory
+    /// is kept whole. Case does not matter.
+    /// </para>
+    /// <para>
+    /// Adds to the list instead of replacing it: <c>.git</c>, <c>.nojekyll</c> and
+    /// <c>CNAME</c> are always kept, and losing one of those to a careless call is worse than
+    /// having no way to drop them.
+    /// </para>
+    /// </summary>
+    /// <param name="names">The names to keep. Entries are trimmed; empty ones are ignored.</param>
+    /// <returns>this - the manager itself.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="names"/> is null.</exception>
+    public WebsiteManager WithPreservedOutput(params string[] names)
+    {
+        ArgumentNullException.ThrowIfNull(names);
+
+        _preservedOutput.AddRange(names
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Select(name => name.Trim()));
+
         return this;
     }
 
@@ -194,7 +228,7 @@ public partial class WebsiteManager : IWebsiteManager
         await GenerateSitesFromMarkdownAsync();
 
         // One writer per run: the paths it records are only meaningful for this run.
-        OutputWriter output = new(Output, onlyWriteWhatChanged: IncrementalOutput);
+        OutputWriter output = new(Output, onlyWriteWhatChanged: IncrementalOutput, alsoPreserve: _preservedOutput);
 
         if (!IncrementalOutput)
         {
@@ -220,11 +254,14 @@ public partial class WebsiteManager : IWebsiteManager
         WriteLine("Writing tag lists...");
         await MakeTagListsAsync(output);
 
-        WriteLine("Cleaning up...");
-        await output.CleanUpAsync();
-
         WriteLine("Copying user resources...");
         await output.CopyIntoOutputAsync(Resources);
+
+        // Last, because it removes everything the steps above did not produce. User
+        // resources are copied before it for that reason - and after the theme resources,
+        // so a user file still wins over a theme file of the same name.
+        WriteLine("Cleaning up...");
+        await output.CleanUpAsync();
 
         WriteLine($"Success! Your website has been generated at {Output}");
     }
