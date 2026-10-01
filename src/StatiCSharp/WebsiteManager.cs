@@ -253,6 +253,7 @@ public sealed class WebsiteManager
     /// <exception cref="CannotCreateDirectoryException">A needed directory is missing and cannot be created.</exception>
     /// <exception cref="DirectoryNotWriteableException">A needed directory exists but cannot be written to.</exception>
     /// <exception cref="DirectoryNotFoundException">The theme's resources directory does not exist.</exception>
+    /// <exception cref="InvalidOperationException">A directory that is copied into the output contains the output.</exception>
     public async Task MakeAsync()
     {
         WriteLine("Website generating process startet...");

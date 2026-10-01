@@ -289,6 +289,20 @@ public class MakeAsyncTests
     }
 
     [Fact]
+    public async Task AResourcesDirectoryHoldingTheOutputFailsBeforeAnythingIsWritten()
+    {
+        using var directory = new TempDirectory();
+        Website website = WriteSource(directory);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => WebsiteManager.For(website, directory.Path)
+                .WithResourcesDirectory(directory.Path)
+                .MakeAsync());
+
+        Assert.False(Directory.Exists(Path.Combine(directory.Path, "Output")));
+    }
+
+    [Fact]
     public async Task WithPreservedOutputKeepsAHandWrittenFile()
     {
         using var directory = new TempDirectory();

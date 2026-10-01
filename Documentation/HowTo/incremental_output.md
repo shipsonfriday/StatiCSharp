@@ -40,6 +40,14 @@ since the generator cannot tell that the html it would produce now differs from 
 in the output. Everything in the output directory is deleted, except the names listed
 below.
 
+## Where the resources may live
+
+Everything below your `Resources` directory, and below your theme's resources directory, is
+copied into the output. Neither may therefore be the output directory or hold it - the output
+would be copied into itself, one level deeper on every run. StatiC# refuses such a run before
+it writes anything. A resources directory *inside* the output is fine; those files are simply
+copied up into it.
+
 ## Files StatiC# never deletes
 
 Both modes remove what does not belong to the website, so anything you put into the output

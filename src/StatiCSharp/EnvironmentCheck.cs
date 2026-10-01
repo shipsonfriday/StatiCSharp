@@ -25,6 +25,7 @@ internal static class EnvironmentCheck
     /// <param name="themeResources">The theme's resources directory, or null to skip that check.</param>
     /// <exception cref="ArgumentNullException">A directory is null.</exception>
     /// <exception cref="ArgumentException">A directory is empty or only whitespace.</exception>
+    /// <exception cref="InvalidOperationException">A directory that is copied into the output contains the output.</exception>
     /// <exception cref="DirectoryNotFoundException">The theme's resources directory does not exist.</exception>
     /// <exception cref="CannotCreateDirectoryException">A needed directory is missing and cannot be created.</exception>
     /// <exception cref="DirectoryNotWriteableException">A needed directory exists but cannot be written to.</exception>
@@ -33,6 +34,15 @@ internal static class EnvironmentCheck
         ArgumentException.ThrowIfNullOrWhiteSpace(content);
         ArgumentException.ThrowIfNullOrWhiteSpace(resources);
         ArgumentException.ThrowIfNullOrWhiteSpace(output);
+
+        // Paths first, before anything is created: a configuration that cannot work should be
+        // refused without leaving directories behind.
+        RejectIfItHoldsTheOutput(resources, output, "The resources directory");
+
+        if (themeResources is not null)
+        {
+            RejectIfItHoldsTheOutput(themeResources, output, "The theme's resources directory");
+        }
 
         // The output comes first: a run that cannot write anywhere is not worth starting.
         string[] assumedDirectories = [output, content, resources];
@@ -67,6 +77,32 @@ internal static class EnvironmentCheck
             }
         }
 
+
+        static void RejectIfItHoldsTheOutput(string directory, string output, string what)
+        {
+            if (!Holds(directory, output))
+            {
+                return;
+            }
+
+            throw new InvalidOperationException(
+                $"{what} ({directory}) is the output directory ({output}) or contains it. " +
+                "Everything below it is copied into the output, so the output would be copied " +
+                "into itself, one level deeper on every run. Point it at a directory beside " +
+                "the output instead.");
+        }
+
+        // Whether the second path is the first one or lies below it. Case is ignored: a run
+        // refused by mistake says so, while one that slips through quietly nests the output
+        // inside itself.
+        static bool Holds(string directory, string candidate)
+        {
+            string outer = Path.TrimEndingDirectorySeparator(Path.GetFullPath(directory));
+            string inner = Path.TrimEndingDirectorySeparator(Path.GetFullPath(candidate));
+
+            return inner.Equals(outer, StringComparison.OrdinalIgnoreCase)
+                || inner.StartsWith(outer + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+        }
 
         static void CheckIfDirectoryIsWritable(string path)
         {

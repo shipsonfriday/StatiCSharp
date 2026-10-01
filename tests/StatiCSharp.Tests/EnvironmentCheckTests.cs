@@ -106,6 +106,72 @@ public class EnvironmentCheckTests
     }
 
     [Fact]
+    public void ADirectoryThatHoldsTheOutputIsRefused()
+    {
+        // Everything below the resources directory is copied into the output. Point it at the
+        // directory the output sits in and the output is copied into itself - and since the
+        // copies count as produced by the run, the clean up keeps them, so the nesting grows
+        // by one level on every run.
+        using var directory = new TempDirectory();
+        var (content, _, output) = DirectoriesIn(directory);
+
+        var thrown = Assert.Throws<InvalidOperationException>(
+            () => EnvironmentCheck.Verify(content, directory.Path, output));
+
+        Assert.Contains("resources directory", thrown.Message, StringComparison.Ordinal);
+        Assert.Contains("copied into itself", thrown.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AResourcesDirectoryThatIsTheOutputIsRefused()
+    {
+        using var directory = new TempDirectory();
+        var (content, _, output) = DirectoriesIn(directory);
+
+        Assert.Throws<InvalidOperationException>(
+            () => EnvironmentCheck.Verify(content, output, output));
+    }
+
+    [Fact]
+    public void AThemeResourcesDirectoryThatHoldsTheOutputIsRefused()
+    {
+        using var directory = new TempDirectory();
+        var (content, resources, output) = DirectoriesIn(directory);
+
+        var thrown = Assert.Throws<InvalidOperationException>(
+            () => EnvironmentCheck.Verify(content, resources, output, directory.Path));
+
+        Assert.Contains("theme's resources directory", thrown.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheUsualLayoutIsAccepted()
+    {
+        // Content, Resources and Output side by side below the source directory, which is what
+        // the defaults produce.
+        using var directory = new TempDirectory();
+        var (content, resources, output) = DirectoriesIn(directory);
+        string theme = directory.EmptyDirectory("Theme");
+
+        EnvironmentCheck.Verify(content, resources, output, theme);
+
+        Assert.True(Directory.Exists(output));
+    }
+
+    [Fact]
+    public void AResourcesDirectoryBelowTheOutputIsAccepted()
+    {
+        // The other way round is harmless: those files are copied up into the output, and
+        // nothing is copied into itself.
+        using var directory = new TempDirectory();
+        var (content, _, output) = DirectoriesIn(directory);
+
+        EnvironmentCheck.Verify(content, Path.Combine(output, "static"), output);
+
+        Assert.True(Directory.Exists(Path.Combine(output, "static")));
+    }
+
+    [Fact]
     public void RejectsAnUnusableDirectory()
     {
         Assert.Throws<ArgumentNullException>(() => EnvironmentCheck.Verify(null!, "/resources", "/output"));

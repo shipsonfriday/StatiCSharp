@@ -138,6 +138,12 @@ internal sealed class OutputWriter
     /// Copies a directory with all its files and subdirectories into the output directory.
     /// The copied files count as produced by this run, so the clean up keeps them. A file
     /// whose content is already in place is not copied again.
+    /// <para>
+    /// <paramref name="sourceDir"/> must not hold the output directory, or the output is
+    /// copied into itself - one level deeper on every run, since the copies count as produced
+    /// and survive the clean up. <see cref="EnvironmentCheck"/> refuses such a run before
+    /// anything is written.
+    /// </para>
     /// </summary>
     /// <param name="sourceDir">The directory to copy from.</param>
     /// <returns>A task that represents the asynchronous copying operation.</returns>
