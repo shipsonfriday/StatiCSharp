@@ -163,6 +163,7 @@ required values go into the entry point and everything optional follows fluently
 | `manager.UseDefaultMarkdownParser = false` | `manager.NoDefaultMarkdownParser()` |
 | `manager.AddParser(parser)` | unchanged, still chainable |
 | `IWebsiteManager` | gone - `WebsiteManager` is the type |
+| `IHtmlBuilder` | gone - it had no reachable implementation |
 
 Four changes affect content rather than code:
 
