@@ -95,17 +95,28 @@ internal sealed class ContentReader
         }
 
 
-        // Sections
-        foreach (string directory in directoriesOfContent)
+        // Sections, in the order the author named them rather than the order the file system
+        // happens to return the directories in. A navigation built from them is then the
+        // navigation that was asked for.
+        //
+        // Matched against the directories that are actually there, not by building the path
+        // from the name: on a case insensitive file system "Posts" would otherwise find the
+        // folder "posts", while the loop above - comparing exactly - would have read the same
+        // files as pages already. Distinct, because a name said twice is still one section.
+        foreach (string sectionName in website.MakeSectionsFor.Distinct(StringComparer.Ordinal))
         {
-            string nameOfCurrentDirectory = Path.GetFileName(directory);
-            if (website.MakeSectionsFor.Contains(nameOfCurrentDirectory))
-            {
-                string pathOfSectionIndexFile = Path.Combine(directory, "index.md");
+            string? directory = directoriesOfContent.FirstOrDefault(
+                candidate => Path.GetFileName(candidate).Equals(sectionName, StringComparison.Ordinal));
 
-                if (File.Exists(pathOfSectionIndexFile))
-                    sections.Add(ReadSection(pathOfSectionIndexFile));
+            if (directory is null)
+            {
+                continue;
             }
+
+            string pathOfSectionIndexFile = Path.Combine(directory, "index.md");
+
+            if (File.Exists(pathOfSectionIndexFile))
+                sections.Add(ReadSection(pathOfSectionIndexFile));
         }
 
         return new RenderContext

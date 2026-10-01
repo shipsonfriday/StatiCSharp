@@ -66,6 +66,74 @@ public class ContentReaderTests
         Assert.Equal("/docs/guide/setup", page.Url);
     }
 
+    /// <summary>
+    /// Writes a section with an index file and returns the sections that were read.
+    /// </summary>
+    private static IReadOnlyList<ISection> SectionsFor(TempDirectory directory, params string[] declared)
+    {
+        foreach (string name in declared.Distinct())
+        {
+            directory.WriteFile($"Content/{name}/index.md", "---", $"title: {name} section", "---", "Body.");
+        }
+
+        return ReaderFor(directory)
+            .Read(Website.Create(url: "https://example.com", name: "My Website").WithSections(declared))
+            .Sections;
+    }
+
+    [Fact]
+    public void SectionsComeInTheOrderTheyWereDeclared()
+    {
+        // Not in the order the file system returns the directories, which is arbitrary and
+        // differs between platforms. A navigation built from these is then the one that was
+        // asked for.
+        using var directory = new TempDirectory();
+
+        IReadOnlyList<ISection> sections = SectionsFor(directory, "zeta", "alpha", "middle");
+
+        Assert.Equal(["zeta", "alpha", "middle"], sections.Select(section => section.SectionName));
+    }
+
+    [Fact]
+    public void ASectionNamedTwiceIsReadOnce()
+    {
+        using var directory = new TempDirectory();
+
+        IReadOnlyList<ISection> sections = SectionsFor(directory, "posts", "posts");
+
+        Assert.Single(sections);
+    }
+
+    [Fact]
+    public void ASectionDeclaredWithoutAFolderIsSkipped()
+    {
+        using var directory = new TempDirectory();
+        directory.WriteFile("Content/posts/index.md", "---", "title: Posts", "---", "Body.");
+
+        IReadOnlyList<ISection> sections = ReaderFor(directory)
+            .Read(Website.Create(url: "https://example.com", name: "My Website")
+                .WithSections("posts", "no-such-folder"))
+            .Sections;
+
+        Assert.Equal(["posts"], sections.Select(section => section.SectionName));
+    }
+
+    [Fact]
+    public void ASectionNameThatDiffersInCaseIsNotASection()
+    {
+        // The folder is read as pages, so it must not be read as a section as well - on a
+        // case insensitive file system that would have produced both from the same files.
+        using var directory = new TempDirectory();
+        directory.WriteFile("Content/posts/index.md", "---", "title: Posts", "---", "Body.");
+        directory.WriteFile("Content/posts/a-post.md", "---", "title: A Post", "---", "Body.");
+
+        RenderContext content = ReaderFor(directory)
+            .Read(Website.Create(url: "https://example.com", name: "My Website").WithSections("Posts"));
+
+        Assert.Empty(content.Sections);
+        Assert.Equal(2, content.Pages.Count);
+    }
+
     [Fact]
     public void ReadingTwiceReturnsIndependentContent()
     {
