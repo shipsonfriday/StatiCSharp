@@ -12,23 +12,34 @@ namespace StatiCSharp;
 internal static class MarkdownFactory
 {
     /// <summary>
-    /// Parses the meta data (yaml) of a markdown file.
+    /// Reads a markdown file: the entries of its front matter and the content below it.
     /// <para>
-    /// A malformed line is skipped on its own. Blank lines and comments inside the front
-    /// matter are ignored, anything else without a colon is reported. A key that appears
+    /// A malformed line in the front matter is skipped on its own. Blank lines and comments
+    /// inside it are ignored, anything else without a colon is reported. A key that appears
     /// twice keeps the last value and is reported as well.
+    /// </para>
+    /// <para>
+    /// The file is opened once. <see cref="File.ReadAllLines(string)"/> consumes a byte order
+    /// mark, which the search for the markers depends on - it looks at the first line being
+    /// exactly "---".
     /// </para>
     /// </summary>
     /// <param name="path">Path to the markdown file.</param>
-    /// <returns>A Dictionary&lt;string, string&gt; with the parsed meta data.</returns>
+    /// <returns>The front matter and the content.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
-    public static Dictionary<string, string> ParseMetaData(string path)
+    public static MarkdownFile Read(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
 
-        Dictionary<string, string> metaData = [];
         string[] lines = File.ReadAllLines(path);
         List<int> yamlMarker = YamlMarkers(lines);
+
+        return new MarkdownFile(MetaDataIn(lines, yamlMarker, path), ContentIn(lines, yamlMarker));
+    }
+
+    private static Dictionary<string, string> MetaDataIn(string[] lines, List<int> yamlMarker, string path)
+    {
+        Dictionary<string, string> metaData = [];
 
         if (yamlMarker.Count != 2)
         {
@@ -68,19 +79,8 @@ internal static class MarkdownFactory
         return metaData;
     }
 
-    /// <summary>
-    /// Parses the content of the markdownfile, while slicing the meta data.
-    /// </summary>
-    /// <param name="path">Path to the markdown file.</param>
-    /// <returns>A string with the parsed content.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
-    public static string ParseContent(string path)
+    private static string ContentIn(string[] lines, List<int> yamlMarker)
     {
-        ArgumentNullException.ThrowIfNull(path);
-
-        string[] lines = File.ReadAllLines(path);
-        List<int> yamlMarker = YamlMarkers(lines);
-
         if (yamlMarker.Count == 0) // No meta data available
         {
             return string.Join("\n", lines);

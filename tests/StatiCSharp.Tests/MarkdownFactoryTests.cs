@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Text;
 using Xunit;
 
 namespace StatiCSharp.Tests;
@@ -8,7 +10,7 @@ namespace StatiCSharp.Tests;
 public class MarkdownFactoryTests
 {
     [Fact]
-    public void ParseMetaData_ReadsKeysFromFrontMatter()
+    public void Read_ReadsKeysFromFrontMatter()
     {
         using var directory = new TempDirectory();
         string path = directory.WriteFile(
@@ -19,19 +21,19 @@ public class MarkdownFactoryTests
             "---",
             "# Heading");
 
-        Dictionary<string, string> metaData = MarkdownFactory.ParseMetaData(path);
+        Dictionary<string, string> metaData = MarkdownFactory.Read(path).MetaData;
 
         Assert.Equal("My Post", metaData["title"]);
         Assert.Equal("Roland", metaData["author"]);
     }
 
     [Fact]
-    public void ParseContent_SkipsTheFrontMatter()
+    public void Read_SkipsTheFrontMatterInTheContent()
     {
         using var directory = new TempDirectory();
         string path = directory.WriteFile("content.md", "---", "title: My Post", "---", "# Heading", "Body.");
 
-        Assert.Equal("# Heading\nBody.", MarkdownFactory.ParseContent(path));
+        Assert.Equal("# Heading\nBody.", MarkdownFactory.Read(path).Content);
     }
 
     [Fact]
@@ -42,8 +44,8 @@ public class MarkdownFactoryTests
         using var directory = new TempDirectory();
         string path = directory.WriteFile("content.md");
 
-        Assert.Empty(MarkdownFactory.ParseMetaData(path));
-        Assert.Equal(string.Empty, MarkdownFactory.ParseContent(path));
+        Assert.Empty(MarkdownFactory.Read(path).MetaData);
+        Assert.Equal(string.Empty, MarkdownFactory.Read(path).Content);
     }
 
     [Fact]
@@ -61,7 +63,7 @@ public class MarkdownFactoryTests
             "---",
             "Body.");
 
-        Dictionary<string, string> metaData = MarkdownFactory.ParseMetaData(path);
+        Dictionary<string, string> metaData = MarkdownFactory.Read(path).MetaData;
 
         Assert.Equal("Second", metaData["title"]);
         Assert.Equal("Roland", metaData["author"]);
@@ -81,7 +83,7 @@ public class MarkdownFactoryTests
             "---",
             "Body.");
 
-        Dictionary<string, string> metaData = MarkdownFactory.ParseMetaData(path);
+        Dictionary<string, string> metaData = MarkdownFactory.Read(path).MetaData;
 
         Assert.Equal("My Post", metaData["title"]);
         Assert.Equal("Roland", metaData["author"]);
@@ -100,7 +102,7 @@ public class MarkdownFactoryTests
             "---",
             "Body.");
 
-        Dictionary<string, string> metaData = MarkdownFactory.ParseMetaData(path);
+        Dictionary<string, string> metaData = MarkdownFactory.Read(path).MetaData;
 
         Assert.Equal(2, metaData.Count);
         Assert.Equal("Roland", metaData["author"]);
@@ -118,7 +120,7 @@ public class MarkdownFactoryTests
             "---",
             "Body.");
 
-        Dictionary<string, string> metaData = MarkdownFactory.ParseMetaData(path);
+        Dictionary<string, string> metaData = MarkdownFactory.Read(path).MetaData;
 
         Assert.Equal("My Post", Assert.Single(metaData).Value);
     }
@@ -129,7 +131,7 @@ public class MarkdownFactoryTests
         using var directory = new TempDirectory();
         string path = directory.WriteFile("content.md", "---", "TITLE: My Post", "---", "Body.");
 
-        Assert.Equal("My Post", MarkdownFactory.ParseMetaData(path)["title"]);
+        Assert.Equal("My Post", MarkdownFactory.Read(path).MetaData["title"]);
     }
 
     [Theory]
@@ -147,7 +149,7 @@ public class MarkdownFactoryTests
             using var directory = new TempDirectory();
             string path = directory.WriteFile("content.md", "---", "TITLE: My Post", "---", "Body.");
 
-            Assert.True(MarkdownFactory.ParseMetaData(path).ContainsKey("title"));
+            Assert.True(MarkdownFactory.Read(path).MetaData.ContainsKey("title"));
         }
         finally
         {
@@ -161,7 +163,7 @@ public class MarkdownFactoryTests
         using var directory = new TempDirectory();
         string path = directory.WriteFile("content.md", "---", "title: Note: on urls", "---", "Body.");
 
-        Assert.Equal("Note: on urls", MarkdownFactory.ParseMetaData(path)["title"]);
+        Assert.Equal("Note: on urls", MarkdownFactory.Read(path).MetaData["title"]);
     }
 
     [Fact]
@@ -170,8 +172,8 @@ public class MarkdownFactoryTests
         using var directory = new TempDirectory();
         string path = directory.WriteFile("content.md", "---", "title: My Post", "Body.");
 
-        Assert.Empty(MarkdownFactory.ParseMetaData(path));
-        Assert.Equal("---\ntitle: My Post\nBody.", MarkdownFactory.ParseContent(path));
+        Assert.Empty(MarkdownFactory.Read(path).MetaData);
+        Assert.Equal("---\ntitle: My Post\nBody.", MarkdownFactory.Read(path).Content);
     }
 
     [Fact]
@@ -180,14 +182,32 @@ public class MarkdownFactoryTests
         using var directory = new TempDirectory();
         string path = directory.WriteFile("content.md", "# Heading", "Body.");
 
-        Assert.Empty(MarkdownFactory.ParseMetaData(path));
-        Assert.Equal("# Heading\nBody.", MarkdownFactory.ParseContent(path));
+        Assert.Empty(MarkdownFactory.Read(path).MetaData);
+        Assert.Equal("# Heading\nBody.", MarkdownFactory.Read(path).Content);
+    }
+
+    [Fact]
+    public void AByteOrderMarkDoesNotHideTheFrontMatter()
+    {
+        // The markers are found by comparing the first line against exactly "---", so a file
+        // saved with a BOM would carry it into that comparison. File.ReadAllLines consumes it;
+        // this test is here so that a change of how the file is read cannot break that quietly.
+        using var directory = new TempDirectory();
+        string path = Path.Combine(directory.Path, "with-bom.md");
+        File.WriteAllText(
+            path,
+            "---\ntitle: My Post\n---\nBody.",
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+
+        MarkdownFile file = MarkdownFactory.Read(path);
+
+        Assert.Equal("My Post", file.MetaData["title"]);
+        Assert.Equal("Body.", file.Content);
     }
 
     [Fact]
     public void RejectsNull()
     {
-        Assert.Throws<ArgumentNullException>(() => MarkdownFactory.ParseMetaData(null!));
-        Assert.Throws<ArgumentNullException>(() => MarkdownFactory.ParseContent(null!));
+        Assert.Throws<ArgumentNullException>(() => MarkdownFactory.Read(null!));
     }
 }

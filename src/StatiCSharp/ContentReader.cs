@@ -245,11 +245,13 @@ internal sealed class ContentReader
     /// </summary>
     private void FillFromMarkdown(ISite site, string path)
     {
-        site.Content = _htmlBuilder.ToHtml(MarkdownFactory.ParseContent(path));
+        MarkdownFile file = MarkdownFactory.Read(path);
+
+        site.Content = _htmlBuilder.ToHtml(file.Content);
         site.MarkdownFileName = Path.GetFileName(path);
         site.MarkdownFilePath = path;
 
-        MapMetaData(MarkdownFactory.ParseMetaData(path), site);
+        MapMetaData(file.MetaData, site);
     }
 
     /// <summary>
