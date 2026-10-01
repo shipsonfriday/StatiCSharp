@@ -1,0 +1,249 @@
+﻿using StatiCSharp.Interfaces;
+using StatiCSharp.Tools;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using static StatiCSharp.StatiCSharpConsole;
+
+namespace StatiCSharp;
+
+/// <summary>
+/// Turns a website that has been read into the html files that make it up: the index, the
+/// pages, the sections, their items and a list per tag.
+/// <para>
+/// The counterpart of <see cref="ContentReader"/>. Where the reader makes a model out of
+/// files, this makes files out of the model, and what it needs to do that stands in its
+/// constructor instead of being reached for on the manager.
+/// </para>
+/// </summary>
+internal sealed class WebsiteRenderer
+{
+    private readonly IWebsite _website;
+    private readonly IHtmlFactory _htmlFactory;
+    private readonly HtmlBuilder _htmlBuilder;
+    private readonly OutputWriter _output;
+    private readonly string _outputDirectory;
+
+    /// <summary>
+    /// Starts a renderer for one run.
+    /// </summary>
+    /// <param name="website">The website to render, with its content already read.</param>
+    /// <param name="htmlFactory">The theme that renders the bodies.</param>
+    /// <param name="htmlBuilder">The pipeline, for the head content its parsers need.</param>
+    /// <param name="output">The writer for this run.</param>
+    /// <param name="outputDirectory">The absolute path of the output directory.</param>
+    /// <exception cref="ArgumentNullException">An argument is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="outputDirectory"/> is empty or only whitespace.</exception>
+    internal WebsiteRenderer(
+        IWebsite website,
+        IHtmlFactory htmlFactory,
+        HtmlBuilder htmlBuilder,
+        OutputWriter output,
+        string outputDirectory)
+    {
+        ArgumentNullException.ThrowIfNull(website);
+        ArgumentNullException.ThrowIfNull(htmlFactory);
+        ArgumentNullException.ThrowIfNull(htmlBuilder);
+        ArgumentNullException.ThrowIfNull(output);
+        ArgumentException.ThrowIfNullOrWhiteSpace(outputDirectory);
+
+        _website = website;
+        _htmlFactory = htmlFactory;
+        _htmlBuilder = htmlBuilder;
+        _output = output;
+        _outputDirectory = outputDirectory;
+    }
+
+    /// <summary>
+    /// Renders the index (homepage) of the website.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous index generating operation.</returns>
+    internal Task RenderIndexAsync()
+        => RenderSiteAsync(_website.Index, _htmlFactory.MakeIndexHtml(_website.Index));
+
+    /// <summary>
+    /// Renders the pages (not sections or items) of the website.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous pages generating operation.</returns>
+    internal async Task RenderPagesAsync()
+    {
+        List<Task> tasks = new List<Task>();
+
+        foreach (IPage site in _website.Pages)
+        {
+            tasks.Add(WritePage(site));
+        }
+
+        await Task.WhenAll(tasks);
+
+        async Task WritePage(IPage site)
+        {
+            string defaultPath = FilenameToPath.From(site.MarkdownFileName);
+
+            string pathInHierachy = (site.Path == string.Empty) ? defaultPath : site.Path;
+            if (pathInHierachy == "index") { pathInHierachy = string.Empty; }
+
+            await RenderSiteAsync(
+                site,
+                _htmlFactory.MakePageHtml(site),
+                site.Hierarchy,
+                pathInHierachy);
+        }
+    }
+
+    /// <summary>
+    /// Renders the sections (not pages or items) of the website.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous sections generating operation.</returns>
+    internal async Task RenderSectionsAsync()
+    {
+        List<Task> tasks = new List<Task>();
+
+        foreach (ISection site in _website.Sections)
+        {
+            tasks.Add(WriteSection(site));
+        }
+
+        await Task.WhenAll(tasks);
+
+        async Task WriteSection(ISection site)
+        {
+            await RenderSiteAsync(site, _htmlFactory.MakeSectionHtml(site), site.SectionName);
+        }
+    }
+
+    /// <summary>
+    /// Renders the items (not sections or pages) of the website.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous items generating operation.</returns>
+    internal async Task RenderItemsAsync()
+    {
+        List<Task> tasks = new List<Task>();
+
+        foreach (ISection section in _website.Sections)
+        {
+            foreach (IItem site in section.Items)
+            {
+                tasks.Add(WriteItem(section, site));
+            }
+        }
+
+        await Task.WhenAll(tasks);
+
+        async Task WriteItem(ISection section, IItem site)
+        {
+            string defaultPath = FilenameToPath.From(site.MarkdownFileName);
+            string itemPath = (site.Path != string.Empty) ? site.Path : defaultPath;
+
+            await RenderSiteAsync(
+                site,
+                _htmlFactory.MakeItemHtml(site),
+                section.SectionName,
+                itemPath);
+        }
+    }
+
+    /// <summary>
+    /// Renders the tag pages of the website.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous tags generating operation.</returns>
+    internal async Task RenderTagListsAsync()
+    {
+        // Collect all available tags
+        List<string> tags = new List<string>();
+        foreach (ISection currentSection in _website.Sections)
+        {
+            foreach (IItem currentItem in currentSection.Items)
+            {
+                foreach (string tag in currentItem.Tags)
+                {
+                    // Check if tag is already in list. If not, add it
+                    if (!tags.Contains(tag)) { tags.Add(tag); }
+                }
+            }
+        }
+
+        // Two tags can share a slug, e.g. "Web Dev" and "web-dev". They would be written
+        // to the same directory, so say so rather than letting one overwrite the other.
+        foreach (var collision in tags.GroupBy(UrlSlug.From).Where(group => group.Count() > 1))
+        {
+            WriteLine($"WARNING: The tags {string.Join(", ", collision.Select(tag => $"\"{tag}\""))} all lead to /tag/{collision.Key}. Only one of them will be written.");
+        }
+
+        List<Task> tasks = new List<Task>();
+
+        foreach (string tag in tags)
+        {
+            tasks.Add(WriteTagList(tag));
+        }
+
+        await Task.WhenAll(tasks);
+
+        async Task WriteTagList(string tag)
+        {
+            string slug = UrlSlug.From(tag);
+
+            if (slug.Length == 0)
+            {
+                // Nothing usable is left, e.g. for a tag written as "+++". An empty segment
+                // would put the tag page into the /tag directory itself.
+                WriteLine($"WARNING: The tag \"{tag}\" has no characters that can be used in a url. Skipping it.");
+                return;
+            }
+
+            List<IItem> itemsWithCurrentTag = new();
+            // Collect all items with the current tag
+            foreach (ISection currentSection in _website.Sections)
+            {
+                foreach (IItem item in currentSection.Items)
+                {
+                    if (item.Tags.Contains(tag))
+                    {
+                        itemsWithCurrentTag.Add(item);
+                    }
+                }
+            }
+
+            Item tagPage = new();
+            tagPage.Title = $"{tag} | {_website.Name}";
+
+            await RenderSiteAsync(
+                tagPage,
+                _htmlFactory.MakeTagListHtml(itemsWithCurrentTag, tag),
+                "tag",
+                slug);
+        }
+    }
+
+    /// <summary>
+    /// Writes one site into the output: wraps the body the theme rendered in the html
+    /// document around it, makes sure the target directory exists, and writes index.html.
+    /// <para>
+    /// The index, the pages, the sections, the items and the tag lists all did exactly this,
+    /// each with its own copy. What actually differs between them is which theme method
+    /// produces the body and where the site goes, so that is what they still say.
+    /// </para>
+    /// </summary>
+    /// <param name="site">The site, whose meta data goes into the document head.</param>
+    /// <param name="body">The body, rendered by the theme.</param>
+    /// <param name="pathSegments">Where the site goes, below the output directory.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous write operation.</returns>
+    private async Task RenderSiteAsync(ISite site, string body, params string[] pathSegments)
+    {
+        string path = Directory.CreateDirectory(Path.Combine([_outputDirectory, .. pathSegments])).ToString();
+
+        string document = HtmlDocument.Wrap(
+            _website,
+            site,
+            _htmlFactory.MakeHeadHtml(),
+            _htmlBuilder.AdditionalHeaderContent,
+            body);
+
+        if (!await _output.WriteAsync(path, "index.html", document))
+        {
+            WriteLine($"WARNING: The path {path} is already in use. Change the path in meta data to avoid duplicates.");
+        }
+    }
+}

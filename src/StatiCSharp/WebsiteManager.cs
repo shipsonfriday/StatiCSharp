@@ -239,20 +239,22 @@ public partial class WebsiteManager : IWebsiteManager
         WriteLine("Copying theme resources...");
         await output.CopyIntoOutputAsync(HtmlFactory.ResourcesPath);
 
+        WebsiteRenderer renderer = new(Website, HtmlFactory, _htmlBuilder, output, Output);
+
         WriteLine("Writing index...");
-        await MakeIndexAsync(output);
+        await renderer.RenderIndexAsync();
 
         WriteLine("Writing pages...");
-        await MakePagesAsync(output);
+        await renderer.RenderPagesAsync();
 
         WriteLine("Writing sections...");
-        await MakeSectionsAsync(output);
+        await renderer.RenderSectionsAsync();
 
         WriteLine("Writing items...");
-        await MakeItemsAsync(output);
+        await renderer.RenderItemsAsync();
 
         WriteLine("Writing tag lists...");
-        await MakeTagListsAsync(output);
+        await renderer.RenderTagListsAsync();
 
         WriteLine("Copying user resources...");
         await output.CopyIntoOutputAsync(Resources);
