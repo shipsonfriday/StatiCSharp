@@ -1,4 +1,4 @@
-﻿namespace StatiCSharp;
+namespace StatiCSharp;
 
 /// <summary>
 /// A markdown file as the generator sees it: the entries of its front matter and the content

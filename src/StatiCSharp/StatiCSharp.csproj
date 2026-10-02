@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <!-- Framework, language version and shared metadata come from Directory.Build.props. -->
     <PropertyGroup>

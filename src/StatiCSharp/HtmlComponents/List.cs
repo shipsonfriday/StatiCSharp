@@ -1,4 +1,4 @@
-﻿using StatiCSharp.Interfaces;
+using StatiCSharp.Interfaces;
 using System.Globalization;
 
 namespace StatiCSharp.HtmlComponents

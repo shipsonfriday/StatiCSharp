@@ -1,4 +1,4 @@
-﻿namespace StatiCSharp.Interfaces
+namespace StatiCSharp.Interfaces
 {
     /// <summary>
     /// The interface a page of the website must implement.

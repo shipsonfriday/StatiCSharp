@@ -1,4 +1,4 @@
-﻿# Incremental output
+# Incremental output
 
 __StatiC#__ updates the output directory instead of rebuilding it. A file is written only
 when its content actually changed, new files are created as needed, and files that no

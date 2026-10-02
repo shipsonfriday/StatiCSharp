@@ -6,6 +6,12 @@ insert_final_newline = true
 indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
+# UTF-8 without a byte order mark, which is what the runtime and every tool assume anyway.
+# The sources used to be split: everything under src carried one, nothing under tests did.
+# Three invisible bytes that show up in a diff, in grep output and in anything reading the
+# first line of a file, for no gain - the compiler reads UTF-8 without one just as well, which
+# the test files proved all along while asserting Japanese, Greek and Cyrillic strings.
+charset = utf-8
 
 [*.{csproj,props,targets,slnx}]
 indent_size = 2
@@ -18,8 +24,6 @@ indent_size = 2
 trim_trailing_whitespace = false
 
 [*.cs]
-# Matches the existing sources: 47 of 52 files carry a UTF-8 BOM.
-charset = utf-8-bom
 
 # Usings
 dotnet_sort_system_directives_first = true

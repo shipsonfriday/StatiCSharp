@@ -1,4 +1,4 @@
-﻿using Markdig;
+using Markdig;
 using StatiCSharp.Interfaces;
 using System.Text;
 

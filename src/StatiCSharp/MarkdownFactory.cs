@@ -1,4 +1,4 @@
-﻿using static StatiCSharp.StatiCSharpConsole;
+using static StatiCSharp.StatiCSharpConsole;
 
 namespace StatiCSharp;
 

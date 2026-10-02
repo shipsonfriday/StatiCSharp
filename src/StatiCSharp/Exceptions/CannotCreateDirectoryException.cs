@@ -1,4 +1,4 @@
-﻿namespace StatiCSharp.Exceptions;
+namespace StatiCSharp.Exceptions;
 
 /// <summary>
 /// Thrown when a directory StatiC# needs does not exist and cannot be created.

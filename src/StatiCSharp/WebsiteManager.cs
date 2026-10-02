@@ -1,4 +1,4 @@
-﻿using StatiCSharp.Exceptions;
+using StatiCSharp.Exceptions;
 using StatiCSharp.Interfaces;
 using static StatiCSharp.StatiCSharpConsole;
 

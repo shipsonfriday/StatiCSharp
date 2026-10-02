@@ -1,4 +1,4 @@
-﻿using StatiCSharp.Interfaces;
+using StatiCSharp.Interfaces;
 using StatiCSharp.Tools;
 using System.Globalization;
 using static StatiCSharp.StatiCSharpConsole;

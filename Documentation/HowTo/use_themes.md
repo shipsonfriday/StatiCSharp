@@ -1,4 +1,4 @@
-﻿# Use Themes
+# Use Themes
 
 **StatiC#** makes it easy to use different themes for your website. This article shows how to use [Foundation](https://www.nuget.org/packages/StatiCSharp.Theme.Foundation).  
 
