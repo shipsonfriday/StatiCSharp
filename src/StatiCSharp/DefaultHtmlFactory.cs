@@ -25,7 +25,7 @@ public class DefaultHtmlFactory: IHtmlFactory
     /// <inheritdoc/>
     public string MakeHeadHtml(ISite site, RenderContext context)
     {
-        return new Link().Rel("stylesheet").Href("/default-theme/styles.css").Render();
+        return new Link().Rel(LinkRelation.Stylesheet).Href("/default-theme/styles.css").Render();
     }
 
     /// <inheritdoc/>

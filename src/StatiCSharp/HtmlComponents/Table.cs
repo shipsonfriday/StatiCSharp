@@ -214,6 +214,11 @@ public class Th : HtmlElement<Th>, IHtmlComponent
     /// <summary>Sets the <c>scope</c> attribute.</summary>
     /// <param name="value">The value of the attribute.</param>
     /// <returns>this - the element itself.</returns>
+    public Th Scope(CellScope value) => Attribute("scope", AttributeValue.Of(value));
+
+    /// <summary>Sets the <c>scope</c> attribute to anything. Use the <see cref="CellScope"/> overload otherwise.</summary>
+    /// <param name="value">The value of the attribute.</param>
+    /// <returns>this - the element itself.</returns>
     public Th Scope(string value) => Attribute("scope", value);
 
     /// <summary>Sets the <c>colspan</c> attribute.</summary>

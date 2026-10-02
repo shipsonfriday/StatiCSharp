@@ -31,12 +31,19 @@ public class Input : HtmlElement<Input>, IHtmlComponent
     }
 
     /// <summary>
-    /// The type attribute specifies the type of &lt;input&gt; element to display.<br/>
-    /// If the type attribute is not specified, the default type is "text".
-    /// <para>Check <see href="https://www.w3schools.com/tags/att_input_type.asp">W3Schools</see> for an overview.</para>
+    /// The type attribute specifies the type of &lt;input&gt; element to display.
+    /// Without one, the browser treats the input as <see cref="InputType.Text"/>.
     /// </summary>
-    /// <param name="t"></param>
-    /// <returns></returns>
+    /// <param name="type">The kind of input to display.</param>
+    /// <returns>this - the element itself.</returns>
+    public Input Type(InputType type) => Attribute("type", AttributeValue.Of(type));
+
+    /// <summary>
+    /// Sets the <c>type</c> attribute to anything, for a type the standard adds after this
+    /// release. Use the <see cref="InputType"/> overload otherwise.
+    /// </summary>
+    /// <param name="t">The value of the attribute.</param>
+    /// <returns>this - the element itself.</returns>
     public Input Type(string t)
     {
         Attributes["type"] = t;

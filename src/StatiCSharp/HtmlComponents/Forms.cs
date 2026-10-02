@@ -39,6 +39,11 @@ public class Form : HtmlElement<Form>, IHtmlComponent
     /// <summary>Sets the <c>method</c> attribute.</summary>
     /// <param name="value">The value of the attribute.</param>
     /// <returns>this - the element itself.</returns>
+    public Form Method(FormMethod value) => Attribute("method", AttributeValue.Of(value));
+
+    /// <summary>Sets the <c>method</c> attribute to anything. Use the <see cref="FormMethod"/> overload otherwise.</summary>
+    /// <param name="value">The value of the attribute.</param>
+    /// <returns>this - the element itself.</returns>
     public Form Method(string value) => Attribute("method", value);
 }
 
@@ -107,6 +112,11 @@ public class Button : HtmlElement<Button>, IHtmlComponent
     }
 
     /// <summary>Sets the <c>type</c> attribute.</summary>
+    /// <param name="value">The value of the attribute.</param>
+    /// <returns>this - the element itself.</returns>
+    public Button Type(ButtonType value) => Attribute("type", AttributeValue.Of(value));
+
+    /// <summary>Sets the <c>type</c> attribute to anything. Use the <see cref="ButtonType"/> overload otherwise.</summary>
     /// <param name="value">The value of the attribute.</param>
     /// <returns>this - the element itself.</returns>
     public Button Type(string value) => Attribute("type", value);

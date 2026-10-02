@@ -78,16 +78,19 @@ public class A : HtmlElement<A>, IHtmlComponent
     /// </summary>
     /// <param name="target"></param>
     /// <returns></returns>
-    public A Target(string target)
-    {
-        string[] allowed = new string[] {"_self", "_blank", "_parent", "_top"};
-        var exists = Array.Exists(allowed, element => element == target);
-        if (exists)
-        {
-            Attributes["target"] = target;
-            return this;
-        }
-        return this;
-    }
+    public A Target(LinkTarget target) => Attribute("target", AttributeValue.Of(target));
+
+    /// <summary>
+    /// Sets the <c>target</c> attribute to a browsing context of your own.
+    /// <para>
+    /// Use the <see cref="LinkTarget"/> overload for the four keywords. This one used to check
+    /// the value against those four and <b>drop it without a word</b> when it did not match, so
+    /// a mistyped "_blnak" produced a link with no target at all.
+    /// </para>
+    /// </summary>
+    /// <param name="target">The name of the browsing context to open the link in.</param>
+    /// <returns>this - the element itself.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="target"/> is null.</exception>
+    public A Target(string target) => Attribute("target", target);
 
 }

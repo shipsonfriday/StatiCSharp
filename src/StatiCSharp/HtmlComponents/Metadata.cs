@@ -20,6 +20,14 @@ public class Link : HtmlElement<Link>, IHtmlComponent
     /// <summary>Sets the <c>rel</c> attribute.</summary>
     /// <param name="value">The value of the attribute.</param>
     /// <returns>this - the element itself.</returns>
+    public Link Rel(LinkRelation value) => Attribute("rel", AttributeValue.Of(value));
+
+    /// <summary>
+    /// Sets the <c>rel</c> attribute to anything, which is what several relations separated by
+    /// spaces need. Use the <see cref="LinkRelation"/> overload for a single one.
+    /// </summary>
+    /// <param name="value">The value of the attribute.</param>
+    /// <returns>this - the element itself.</returns>
     public Link Rel(string value) => Attribute("rel", value);
 
     /// <summary>Sets the <c>href</c> attribute.</summary>

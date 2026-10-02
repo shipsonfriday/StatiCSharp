@@ -117,6 +117,25 @@ When adding `IHtmlFactory` your IDE will prompt you to add the following propert
 - `public string MakeItemHtml(IItem item, RenderContext context)` Method that returns the \<body> HTML -code for an item site.
 - `public string MakeTagListHtml(List<IItem> items, string tag, RenderContext context)` Method that returns the \<body> HTML -code for the taglist site.
 
+### Values the standard fixes
+
+Where an attribute takes one of a handful of values, there is a type for it rather than a
+string, so a mistyped one does not reach the page:
+
+```C#
+new Input().Type(InputType.Checkbox)        // type="checkbox"
+new Input().Type(InputType.DateTimeLocal)   // type="datetime-local"
+new A("Docs").Target(LinkTarget.Blank)      // target="_blank"
+new Link().Rel(LinkRelation.Stylesheet)     // rel="stylesheet"
+new Form().Method(FormMethod.Post)          // method="post"
+new Button("Go").Type(ButtonType.Submit)    // type="submit"
+new Th("Name").Scope(CellScope.Col)         // scope="col"
+```
+
+Each of these keeps a `string` overload for what the standard adds later, and for the cases a
+single value cannot express - `rel` may hold several relations separated by spaces, and `target`
+may name a browsing context of your own.
+
 ### Writing a date
 
 `StatiCSharp.Tools.DateText.For(date, context.Website.Language)` writes a date the way the
