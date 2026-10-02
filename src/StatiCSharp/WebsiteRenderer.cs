@@ -19,7 +19,6 @@ internal sealed class WebsiteRenderer
     private readonly IHtmlFactory _htmlFactory;
     private readonly HtmlBuilder _htmlBuilder;
     private readonly OutputWriter _output;
-    private readonly string _outputDirectory;
 
     /// <summary>
     /// Starts a renderer for one run.
@@ -27,22 +26,18 @@ internal sealed class WebsiteRenderer
     /// <param name="context">The website's configuration together with the content that was read.</param>
     /// <param name="htmlFactory">The theme that renders the bodies.</param>
     /// <param name="htmlBuilder">The pipeline, for the head content its parsers need.</param>
-    /// <param name="output">The writer for this run.</param>
-    /// <param name="outputDirectory">The absolute path of the output directory.</param>
+    /// <param name="output">The writer for this run, which knows where the output goes.</param>
     /// <exception cref="ArgumentNullException">An argument is null.</exception>
-    /// <exception cref="ArgumentException"><paramref name="outputDirectory"/> is empty or only whitespace.</exception>
     internal WebsiteRenderer(
         RenderContext context,
         IHtmlFactory htmlFactory,
         HtmlBuilder htmlBuilder,
-        OutputWriter output,
-        string outputDirectory)
+        OutputWriter output)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(htmlFactory);
         ArgumentNullException.ThrowIfNull(htmlBuilder);
         ArgumentNullException.ThrowIfNull(output);
-        ArgumentException.ThrowIfNullOrWhiteSpace(outputDirectory);
 
         // The same instance is handed to every call, so the theme sees one website throughout
         // the run and does not have to hold anything itself.
@@ -50,7 +45,6 @@ internal sealed class WebsiteRenderer
         _htmlFactory = htmlFactory;
         _htmlBuilder = htmlBuilder;
         _output = output;
-        _outputDirectory = outputDirectory;
     }
 
     /// <summary>
@@ -218,12 +212,6 @@ internal sealed class WebsiteRenderer
     /// <returns>A <see cref="Task"/> that represents the asynchronous write operation.</returns>
     private async Task RenderSiteAsync(ISite site, string body)
     {
-        // The url decides where the file goes. There used to be a second calculation here,
-        // kept in step with the Url properties by a comment asking for it, which is how a
-        // path of "../.." in the front matter could write outside the output directory.
-        string path = Directory.CreateDirectory(
-            Path.Combine([_outputDirectory, .. UrlPath.SegmentsOf(site.Url)])).ToString();
-
         string document = HtmlDocument.Wrap(
             _context.Website,
             site,
@@ -231,9 +219,13 @@ internal sealed class WebsiteRenderer
             _htmlBuilder.AdditionalHeaderContent,
             body);
 
-        if (!await _output.WriteAsync(path, "index.html", document))
+        // The url says where the site goes; the writer turns that into a directory below the
+        // output. There used to be a second path calculation here, kept in step with the Url
+        // properties by a comment asking for it, which is how a path of "../.." in the front
+        // matter could write outside the output directory.
+        if (!await _output.WriteAsync(UrlPath.SegmentsOf(site.Url), "index.html", document))
         {
-            WriteLine($"WARNING: The path {path} is already in use. Change the path in meta data to avoid duplicates.");
+            WriteLine($"WARNING: Two sites are written to {site.Url}. Change the path in the meta data of one of them; only the last one is kept.");
         }
     }
 }

@@ -37,8 +37,8 @@ public class WebsiteRendererTests
         };
     }
 
-    private static WebsiteRenderer RendererFor(RenderContext context, OutputWriter output, string outputDirectory)
-        => new(context, new DefaultHtmlFactory(), new HtmlBuilder(useDefaultMarkdownParser: true), output, outputDirectory);
+    private static WebsiteRenderer RendererFor(RenderContext context, OutputWriter output)
+        => new(context, new DefaultHtmlFactory(), new HtmlBuilder(useDefaultMarkdownParser: true), output);
 
     [Fact]
     public void RejectsMissingArguments()
@@ -48,12 +48,10 @@ public class WebsiteRendererTests
         var builder = new HtmlBuilder(useDefaultMarkdownParser: true);
         var output = new OutputWriter("/output", onlyWriteWhatChanged: true);
 
-        Assert.Throws<ArgumentNullException>(() => new WebsiteRenderer(null!, factory, builder, output, "/output"));
-        Assert.Throws<ArgumentNullException>(() => new WebsiteRenderer(context, null!, builder, output, "/output"));
-        Assert.Throws<ArgumentNullException>(() => new WebsiteRenderer(context, factory, null!, output, "/output"));
-        Assert.Throws<ArgumentNullException>(() => new WebsiteRenderer(context, factory, builder, null!, "/output"));
-        Assert.Throws<ArgumentNullException>(() => new WebsiteRenderer(context, factory, builder, output, null!));
-        Assert.Throws<ArgumentException>(() => new WebsiteRenderer(context, factory, builder, output, "   "));
+        Assert.Throws<ArgumentNullException>(() => new WebsiteRenderer(null!, factory, builder, output));
+        Assert.Throws<ArgumentNullException>(() => new WebsiteRenderer(context, null!, builder, output));
+        Assert.Throws<ArgumentNullException>(() => new WebsiteRenderer(context, factory, null!, output));
+        Assert.Throws<ArgumentNullException>(() => new WebsiteRenderer(context, factory, builder, null!));
     }
 
     [Fact]
@@ -65,7 +63,7 @@ public class WebsiteRendererTests
         RenderContext context = AContextWithTags(["+++"]);
 
         var output = new OutputWriter(directory.Path, onlyWriteWhatChanged: true);
-        await RendererFor(context, output, directory.Path).RenderTagListsAsync();
+        await RendererFor(context, output).RenderTagListsAsync();
 
         Assert.False(File.Exists(Path.Combine(directory.Path, "tag", "index.html")));
         Assert.False(Directory.Exists(Path.Combine(directory.Path, "tag")));
@@ -78,7 +76,7 @@ public class WebsiteRendererTests
         RenderContext context = AContextWithTags(["CSharp", "Web Dev"]);
 
         var output = new OutputWriter(directory.Path, onlyWriteWhatChanged: true);
-        await RendererFor(context, output, directory.Path).RenderTagListsAsync();
+        await RendererFor(context, output).RenderTagListsAsync();
 
         Assert.True(File.Exists(Path.Combine(directory.Path, "tag", "csharp", "index.html")));
         Assert.True(File.Exists(Path.Combine(directory.Path, "tag", "web-dev", "index.html")));
@@ -93,7 +91,7 @@ public class WebsiteRendererTests
         RenderContext context = AContextWithTags(["Web Dev"], ["web-dev"]);
 
         var output = new OutputWriter(directory.Path, onlyWriteWhatChanged: true);
-        await RendererFor(context, output, directory.Path).RenderTagListsAsync();
+        await RendererFor(context, output).RenderTagListsAsync();
 
         Assert.Single(Directory.GetDirectories(Path.Combine(directory.Path, "tag")));
         Assert.True(File.Exists(Path.Combine(directory.Path, "tag", "web-dev", "index.html")));
@@ -106,7 +104,7 @@ public class WebsiteRendererTests
         RenderContext context = AContextWithTags(["one"]);
 
         var output = new OutputWriter(directory.Path, onlyWriteWhatChanged: true);
-        await RendererFor(context, output, directory.Path).RenderItemsAsync();
+        await RendererFor(context, output).RenderItemsAsync();
 
         Assert.True(File.Exists(Path.Combine(directory.Path, "posts", "post-0", "index.html")));
     }
@@ -119,7 +117,7 @@ public class WebsiteRendererTests
         ((Item)context.Sections[0].Items[0]).Path = "a-custom-path";
 
         var output = new OutputWriter(directory.Path, onlyWriteWhatChanged: true);
-        await RendererFor(context, output, directory.Path).RenderItemsAsync();
+        await RendererFor(context, output).RenderItemsAsync();
 
         Assert.True(File.Exists(Path.Combine(directory.Path, "posts", "a-custom-path", "index.html")));
         Assert.False(Directory.Exists(Path.Combine(directory.Path, "posts", "post-0")));
@@ -136,7 +134,7 @@ public class WebsiteRendererTests
         }
 
         var output = new OutputWriter(directory.Path, onlyWriteWhatChanged: true);
-        await RendererFor(context, output, directory.Path).RenderItemsAsync();
+        await RendererFor(context, output).RenderItemsAsync();
 
         Assert.Single(Directory.GetDirectories(Path.Combine(directory.Path, "posts")));
     }

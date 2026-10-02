@@ -271,7 +271,7 @@ public sealed class WebsiteManager
         WriteLine("Copying theme resources...");
         await output.CopyIntoOutputAsync(HtmlFactory.ResourcesPath);
 
-        WebsiteRenderer renderer = new(context, HtmlFactory, _htmlBuilder, output, Output);
+        WebsiteRenderer renderer = new(context, HtmlFactory, _htmlBuilder, output);
 
         WriteLine("Writing index...");
         await renderer.RenderIndexAsync();

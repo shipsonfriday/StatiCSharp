@@ -84,18 +84,29 @@ internal sealed class OutputWriter
         Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)));
 
     /// <summary>
-    /// Writes a file into the output.
+    /// Writes a file into the output, creating the directory it goes into.
+    /// <para>
+    /// The path is resolved against the output directory here, because this is the only type
+    /// that knows where that is. Its callers used to be handed the output path as well and do
+    /// the arithmetic themselves.
+    /// </para>
     /// </summary>
-    /// <param name="path">The target directory.</param>
+    /// <param name="pathSegments">The directories below the output directory, outermost first.</param>
     /// <param name="filename">The filename.</param>
     /// <param name="content">The content of the file.</param>
     /// <returns>
     /// False if this run already wrote that file. The file is written either way, so the
     /// later site wins - the caller reports it, because it means two sites claim one url.
     /// </returns>
-    internal async Task<bool> WriteAsync(string path, string filename, string content)
+    /// <exception cref="ArgumentNullException">An argument is null.</exception>
+    internal async Task<bool> WriteAsync(IReadOnlyList<string> pathSegments, string filename, string content)
     {
-        string filePath = Path.Combine(path, filename);
+        ArgumentNullException.ThrowIfNull(pathSegments);
+        ArgumentNullException.ThrowIfNull(filename);
+        ArgumentNullException.ThrowIfNull(content);
+
+        string directory = Directory.CreateDirectory(Path.Combine([_output, .. pathSegments])).ToString();
+        string filePath = Path.Combine(directory, filename);
         bool isTheFirst = Record(filePath);
 
         if (_onlyWriteWhatChanged && File.Exists(filePath))

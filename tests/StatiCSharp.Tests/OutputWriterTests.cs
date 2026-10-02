@@ -10,8 +10,8 @@ public class OutputWriterTests
         using var directory = new TempDirectory();
         var output = new OutputWriter(directory.Path, onlyWriteWhatChanged: false);
 
-        Assert.True(await output.WriteAsync(directory.Path, "index.html", "first"));
-        Assert.False(await output.WriteAsync(directory.Path, "index.html", "second"));
+        Assert.True(await output.WriteAsync([], "index.html", "first"));
+        Assert.False(await output.WriteAsync([], "index.html", "second"));
 
         // The later site still wins, which is why the caller reports the collision.
         Assert.Equal("second", await File.ReadAllTextAsync(
@@ -29,8 +29,8 @@ public class OutputWriterTests
         var first = new OutputWriter(directory.Path, onlyWriteWhatChanged: false);
         var second = new OutputWriter(directory.Path, onlyWriteWhatChanged: false);
 
-        Assert.True(await first.WriteAsync(directory.Path, "index.html", "x"));
-        Assert.True(await second.WriteAsync(directory.Path, "index.html", "x"));
+        Assert.True(await first.WriteAsync([], "index.html", "x"));
+        Assert.True(await second.WriteAsync([], "index.html", "x"));
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class OutputWriterTests
         using var directory = new TempDirectory();
         var output = new OutputWriter(directory.Path, onlyWriteWhatChanged: false);
 
-        await output.WriteAsync(directory.Path, "index.html", "<p>x</p>");
+        await output.WriteAsync([], "index.html", "<p>x</p>");
 
         Assert.Equal("<p>x</p>", await File.ReadAllTextAsync(
             Path.Combine(directory.Path, "index.html"), TestContext.Current.CancellationToken));
@@ -52,11 +52,11 @@ public class OutputWriterTests
         var output = new OutputWriter(directory.Path, onlyWriteWhatChanged: false);
         string file = Path.Combine(directory.Path, "index.html");
 
-        await output.WriteAsync(directory.Path, "index.html", "same");
+        await output.WriteAsync([], "index.html", "same");
         DateTime first = File.GetLastWriteTimeUtc(file);
 
         File.SetLastWriteTimeUtc(file, first.AddDays(-1));
-        await output.WriteAsync(directory.Path, "index.html", "same");
+        await output.WriteAsync([], "index.html", "same");
 
         Assert.NotEqual(first.AddDays(-1), File.GetLastWriteTimeUtc(file));
     }
@@ -68,11 +68,11 @@ public class OutputWriterTests
         var output = new OutputWriter(directory.Path, onlyWriteWhatChanged: true);
         string file = Path.Combine(directory.Path, "index.html");
 
-        await output.WriteAsync(directory.Path, "index.html", "same");
+        await output.WriteAsync([], "index.html", "same");
 
         DateTime marker = File.GetLastWriteTimeUtc(file).AddDays(-1);
         File.SetLastWriteTimeUtc(file, marker);
-        await output.WriteAsync(directory.Path, "index.html", "same");
+        await output.WriteAsync([], "index.html", "same");
 
         Assert.Equal(marker, File.GetLastWriteTimeUtc(file));
     }
@@ -87,7 +87,7 @@ public class OutputWriterTests
         string outputPath = Path.Combine(directory.Path, "Output");
         var output = new OutputWriter(outputPath, onlyWriteWhatChanged: true);
 
-        await output.WriteAsync(outputPath, "index.html", "same");
+        await output.WriteAsync([], "index.html", "same");
         await output.CleanUpAsync();
 
         Assert.True(File.Exists(Path.Combine(outputPath, "index.html")));
@@ -99,8 +99,8 @@ public class OutputWriterTests
         using var directory = new TempDirectory();
         var output = new OutputWriter(directory.Path, onlyWriteWhatChanged: true);
 
-        await output.WriteAsync(directory.Path, "index.html", "before");
-        await output.WriteAsync(directory.Path, "index.html", "after");
+        await output.WriteAsync([], "index.html", "before");
+        await output.WriteAsync([], "index.html", "after");
 
         Assert.Equal("after", await File.ReadAllTextAsync(
             Path.Combine(directory.Path, "index.html"), TestContext.Current.CancellationToken));
@@ -316,7 +316,7 @@ public class OutputWriterTests
         Directory.CreateDirectory(Path.Combine(outputPath, "posts"));
 
         var output = new OutputWriter(outputPath, onlyWriteWhatChanged: true);
-        await output.WriteAsync(Path.Combine(outputPath, "posts"), "index.html", "written this run");
+        await output.WriteAsync(["posts"], "index.html", "written this run");
 
         await output.CleanUpAsync();
 
