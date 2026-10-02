@@ -28,5 +28,8 @@ myWebsite
 Add a section by creating a folder under `Content` and naming it in `WithSections(...)`.
 Any other folder becomes a page.
 
+To put it on the web, copy `.github/workflows/publish.yml` beside this folder into your own
+repository and follow [publishing your website](../HowTo/publishing.md).
+
 See the [how-to's](../) for metadata, themes, incremental output and custom parsers, and the
 [readme](../../README.md) for the full quick start.

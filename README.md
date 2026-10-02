@@ -143,6 +143,11 @@ Run the project and your new awesome website will be generated in the `Output` d
 $ dotnet run
 ```
 
+To put it on the web, copy the workflow from the
+[project template](Documentation/ProjectTemplate/.github/workflows/publish.yml) into your
+repository - [publishing your website](Documentation/HowTo/publishing.md) walks through it and
+through the other ways.
+
 Check out the [documentation](Documentation/) for further information.
 
 ## Upgrading from 0.5

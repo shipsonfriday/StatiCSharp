@@ -1,0 +1,61 @@
+# Builds the website and publishes it to GitHub Pages.
+#
+# Copy this file to .github/workflows/publish.yml in your own repository. Then, once:
+# Settings -> Pages -> Build and deployment -> Source: "GitHub Actions".
+#
+# Nothing here needs a secret. The deployment is authorized by the id-token permission
+# below, so there is no token to create and none to leak.
+name: Publish
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time, and let a running one finish: cancelling it halfway would
+# leave the site partly updated.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Generate the website
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      # From the project folder, because the generator takes the current directory as its
+      # source. Give Program.cs an absolute path instead if you move this.
+      - name: Generate
+        run: dotnet run
+        working-directory: myWebsite
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: myWebsite/Output
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
