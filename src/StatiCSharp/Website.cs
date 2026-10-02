@@ -79,16 +79,21 @@ public class Website : IWebsite
     /// Sets the language the website's main content is written in.
     /// Defaults to "en-US" when not set.
     /// </summary>
-    /// <param name="language">An IETF language tag, e.g. "en-US" or "de-DE".</param>
+    /// <param name="language">An IETF language tag, e.g. "en-US", "de-DE" or "de".</param>
     /// <returns>this - the website itself.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="language"/> is null.</exception>
-    /// <exception cref="ArgumentException"><paramref name="language"/> is empty or only whitespace.</exception>
-    /// <exception cref="CultureNotFoundException"><paramref name="language"/> is not a known language tag.</exception>
+    /// <exception cref="ArgumentException"><paramref name="language"/> is empty, only whitespace, or not a language tag.</exception>
+    /// <exception cref="CultureNotFoundException"><paramref name="language"/> is not a language this machine knows.</exception>
     public Website WithLanguage(string language)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(language);
 
-        return WithLanguage(new CultureInfo(language.Trim()));
+        string tag = language.Trim();
+        RejectAnUnderscore(tag, nameof(language));
+
+        // predefinedOnly, because the plain constructor invents a culture for anything that
+        // merely looks like a tag: new CultureInfo("klingon") succeeds and formats in English.
+        return WithLanguage(CultureInfo.GetCultureInfo(tag, predefinedOnly: true));
     }
 
     /// <summary>
@@ -98,12 +103,50 @@ public class Website : IWebsite
     /// <param name="language">The culture of the main content.</param>
     /// <returns>this - the website itself.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="language"/> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="language"/> is the invariant culture, or its name is not a language tag.</exception>
+    /// <exception cref="CultureNotFoundException"><paramref name="language"/> is not a language this machine knows.</exception>
     public Website WithLanguage(CultureInfo language)
     {
         ArgumentNullException.ThrowIfNull(language);
 
+        // Checked here as well as in the overload above, because the culture's name is written
+        // into the lang attribute of every page. A culture the runtime made up on the spot
+        // produces an invalid one and formats dates in English without saying so.
+        if (language.Name.Length == 0)
+        {
+            throw new ArgumentException(
+                "The invariant culture cannot be a website's language: it would leave the lang "
+                + "attribute of every page empty. Name the language, e.g. \"en-US\" or \"de\".",
+                nameof(language));
+        }
+
+        RejectAnUnderscore(language.Name, nameof(language));
+        CultureInfo.GetCultureInfo(language.Name, predefinedOnly: true);
+
         Language = language;
         return this;
+    }
+
+    /// <summary>
+    /// Rejects a culture name with an underscore in it.
+    /// <para>
+    /// .NET reads <c>en_US</c> as English with a US sort order and accepts it, so it reaches the
+    /// lang attribute as <c>lang="en_us"</c> - which is not a valid language tag. Nobody naming
+    /// a website's language means a sort order; they mean a hyphen.
+    /// </para>
+    /// </summary>
+    private static void RejectAnUnderscore(string tag, string parameterName)
+    {
+        if (!tag.Contains('_', StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        throw new ArgumentException(
+            $"\"{tag}\" is not a language tag. The parts of a tag are separated by hyphens, so "
+            + $"this is probably meant to be \"{tag.Replace('_', '-')}\". An underscore selects an "
+            + "alternate sort order in .NET, which is not a language.",
+            parameterName);
     }
 
     /// <summary>
