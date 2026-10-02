@@ -46,7 +46,7 @@ Two details the file already handles, and that are easy to get wrong:
 Put a file named `CNAME` holding your domain into your `Resources` directory, and StatiC#
 copies it into the output on every run. It is also on the list of files the generator never
 deletes, so one you placed in the output directory by hand survives as well - see
-[incremental output](incremental_output.md#files-statics-never-deletes).
+[incremental output](incremental_output.md#files-static-never-deletes).
 
 ### Folders starting with an underscore
 

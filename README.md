@@ -175,10 +175,9 @@ Two additions worth knowing about. Every run writes a `sitemap.xml` listing ever
 on the url given to `Website.Create` - which is now checked to be an http address, since an
 entry of `example.com/posts` would be a sitemap no crawler can follow.
 
-And `manager.WithLog(Action<string>)` sends the progress lines
-and the warnings wherever you want instead of to the console, so a build can fail on them. A
-warning starts with `WARNING: ` and names what went wrong - a date that cannot be read, two
-tags leading to one url, two sites written to one url.
+And `manager.WithLog(Action<string>)` sends the progress lines and the warnings wherever you
+want instead of to the console, so a build can fail on them - see
+[messages and warnings](Documentation/HowTo/messages_and_warnings.md) for what each one means.
 
 Four changes affect content rather than code:
 
