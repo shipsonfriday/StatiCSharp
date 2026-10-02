@@ -8,13 +8,19 @@ Add the template of your choice to your website project as a project or package 
 
 ```
 <ItemGroup>
-    <PackageReference Include="StatiCSharp.Theme.Foundation" Version="<the version built for StatiC# 1.0>" />
+    <PackageReference Include="StatiCSharp.Theme.Foundation" Version="2.0.0" />
 </ItemGroup>
 ```
 
+> **Foundation for StatiC# 1.0 is not out yet.** The published versions up to 1.1.0 were built
+> against 0.5 and do not run on 1.0 - see [below](#a-theme-built-for-05). 2.0.0 will be the
+> first one for 1.0; until it is on
+> [nuget.org](https://www.nuget.org/packages/StatiCSharp.Theme.Foundation), use the built-in
+> default theme, which needs no reference at all, or write your own with
+> [making a custom theme](making_a_custom_theme.md).
+
 The package id is `StatiCSharp.Theme.Foundation`, singular. Check which version was built
-against the StatiC# release you are using - a theme compiled against 0.5 does not run on
-1.0, see below.
+against the StatiC# release you are using.
 You can use the NuGet package manager as well.  
 Build your project to restore packages.  
 
@@ -40,6 +46,8 @@ await WebsiteManager
 A theme no longer takes the website. It is given everything it needs when a site is rendered,
 so one instance works for any website and its constructor is free for the theme's own
 options, e.g. `new FoundationHtmlFactory(accentColor: "#c0392b")`.
+
+## A theme built for 0.5
 
 A theme built against StatiC# 0.5 has to be rebuilt for 1.0, and its source has to be
 adjusted: `IHtmlFactory` changed, and so did the html components it renders with.
