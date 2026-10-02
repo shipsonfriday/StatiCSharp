@@ -1,94 +1,93 @@
 using StatiCSharp.Interfaces;
 
-namespace StatiCSharp.HtmlComponents
+namespace StatiCSharp.HtmlComponents;
+
+/// <summary>
+/// A representation of an &lt;a&gt;&lt;/a&gt; element.
+/// <para>Call the Render() method to turn it into an HTML string.</para>
+/// </summary>
+public class A : HtmlElement<A>, IHtmlComponent
 {
-    /// <summary>
-    /// A representation of an &lt;a&gt;&lt;/a&gt; element.
-    /// <para>Call the Render() method to turn it into an HTML string.</para>
-    /// </summary>
-    public class A : HtmlElement<A>, IHtmlComponent
+    /// <inheritdoc/>
+    protected override string TagName
     {
-        /// <inheritdoc/>
-        protected override string TagName
-        {
-            get { return "a"; }
-        }
-
-        /// <summary>
-        /// Initiate a new and empty anker-element.
-        /// </summary>
-        public A()
-        {
-            // No action needed, because the base class already initialized an empty List<IHtmlComponent>.
-        }
-
-        /// <summary>
-        /// Initiate a new link with another element or component inside.
-        /// </summary>
-        /// <param name="component"></param>
-        public A(IHtmlComponent component)
-        {
-            Children = new List<IHtmlComponent>() { component };
-        }
-
-        /// <summary>
-        /// Initiate a new link with a text-body.
-        /// </summary>
-        /// <param name="text">The text for the link.</param>
-        public A(string text)
-        {
-            Children = new List<IHtmlComponent>();
-            Children.Add(new Text(text));
-        }
-
-        /// <summary>
-        /// Initiate a new anchor element with the given content. Lets elements be nested by
-        /// passing their children as arguments.
-        /// </summary>
-        /// <param name="content">The elements or components for the content of the anchor element.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
-        public A(params IHtmlComponent[] content)
-        {
-            ArgumentNullException.ThrowIfNull(content);
-
-            Children = [.. content];
-        }
-
-        /// <summary>
-        /// Set the content of the href attribute.
-        /// </summary>
-        /// <param name="href">The target of the link.</param>
-        /// <returns>this - the element itself.</returns>
-        public A Href(string href)
-        {
-            Attributes["href"] = href;
-            return this;
-        }
-
-        /// <summary>
-        /// Where to display the linked URL.<br/><br/>
-        /// <para>
-        /// The following keywords have special meanings for where to load the URL:<br/>
-        /// "_self": the current browsing context. (Default)<br/>
-        /// "_blank": usually a new tab, but users can configure browsers to open a new window instead.<br/>
-        /// "_parent": the parent browsing context of the current one. If no parent, behaves as "_self".<br/>
-        /// "_top": the topmost browsing context (the "highest" context that's an ancestor of the current one).
-        /// If no ancestors, behaves as "_self".
-        /// </para>
-        /// </summary>
-        /// <param name="target"></param>
-        /// <returns></returns>
-        public A Target(string target)
-        {
-            string[] allowed = new string[] {"_self", "_blank", "_parent", "_top"};
-            var exists = Array.Exists(allowed, element => element == target);
-            if (exists)
-            {
-                Attributes["target"] = target;
-                return this;
-            }
-            return this;
-        }
-
+        get { return "a"; }
     }
+
+    /// <summary>
+    /// Initiate a new and empty anker-element.
+    /// </summary>
+    public A()
+    {
+        // No action needed, because the base class already initialized an empty List<IHtmlComponent>.
+    }
+
+    /// <summary>
+    /// Initiate a new link with another element or component inside.
+    /// </summary>
+    /// <param name="component"></param>
+    public A(IHtmlComponent component)
+    {
+        Children = new List<IHtmlComponent>() { component };
+    }
+
+    /// <summary>
+    /// Initiate a new link with a text-body.
+    /// </summary>
+    /// <param name="text">The text for the link.</param>
+    public A(string text)
+    {
+        Children = new List<IHtmlComponent>();
+        Children.Add(new Text(text));
+    }
+
+    /// <summary>
+    /// Initiate a new anchor element with the given content. Lets elements be nested by
+    /// passing their children as arguments.
+    /// </summary>
+    /// <param name="content">The elements or components for the content of the anchor element.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
+    public A(params IHtmlComponent[] content)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+
+        Children = [.. content];
+    }
+
+    /// <summary>
+    /// Set the content of the href attribute.
+    /// </summary>
+    /// <param name="href">The target of the link.</param>
+    /// <returns>this - the element itself.</returns>
+    public A Href(string href)
+    {
+        Attributes["href"] = href;
+        return this;
+    }
+
+    /// <summary>
+    /// Where to display the linked URL.<br/><br/>
+    /// <para>
+    /// The following keywords have special meanings for where to load the URL:<br/>
+    /// "_self": the current browsing context. (Default)<br/>
+    /// "_blank": usually a new tab, but users can configure browsers to open a new window instead.<br/>
+    /// "_parent": the parent browsing context of the current one. If no parent, behaves as "_self".<br/>
+    /// "_top": the topmost browsing context (the "highest" context that's an ancestor of the current one).
+    /// If no ancestors, behaves as "_self".
+    /// </para>
+    /// </summary>
+    /// <param name="target"></param>
+    /// <returns></returns>
+    public A Target(string target)
+    {
+        string[] allowed = new string[] {"_self", "_blank", "_parent", "_top"};
+        var exists = Array.Exists(allowed, element => element == target);
+        if (exists)
+        {
+            Attributes["target"] = target;
+            return this;
+        }
+        return this;
+    }
+
 }

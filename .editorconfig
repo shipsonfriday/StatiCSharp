@@ -30,7 +30,8 @@ dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = false
 csharp_using_directive_placement = outside_namespace:suggestion
 
-# Namespaces. The sources are mixed (27 file-scoped, 25 block); new code uses file-scoped.
+# Namespaces are file-scoped throughout. The sources used to be mixed, the older folders -
+# HtmlComponents, Interfaces, Tools - still block-scoped.
 csharp_style_namespace_declarations = file_scoped:suggestion
 
 # Braces: Allman, as used throughout the existing code.

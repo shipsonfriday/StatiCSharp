@@ -1,22 +1,21 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace StatiCSharp
+namespace StatiCSharp;
+
+internal static class StatiCSharpConsole
 {
-    internal static class StatiCSharpConsole
+    /// <summary>
+    /// Writes a text to the console, just like <see cref="Console.WriteLine()"/>. If no console is available, the text is written to the debug console.
+    /// </summary>
+    /// <param name="text"></param>
+    public static void WriteLine(string text)
     {
-        /// <summary>
-        /// Writes a text to the console, just like <see cref="Console.WriteLine()"/>. If no console is available, the text is written to the debug console.
-        /// </summary>
-        /// <param name="text"></param>
-        public static void WriteLine(string text)
+        if (Environment.UserInteractive)
         {
-            if (Environment.UserInteractive)
-            {
-                Console.WriteLine(text);
-                return;
-            }
-            Debug.WriteLine(text);
+            Console.WriteLine(text);
+            return;
         }
+        Debug.WriteLine(text);
     }
 }
