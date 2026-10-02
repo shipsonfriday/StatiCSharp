@@ -69,7 +69,7 @@ new Body
 }
 ```
 
-Attributes are set by chaining, in any order, and every method hands back your own element
+Attributes are written in the order you set them, and every method hands back your own element
 type, so `new A("x").Class("nav").Href("/")` and `new A("x").Href("/").Class("nav")` both
 compile.
 

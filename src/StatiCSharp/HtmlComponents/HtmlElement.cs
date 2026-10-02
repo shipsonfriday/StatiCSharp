@@ -47,9 +47,18 @@ namespace StatiCSharp.HtmlComponents
 
         /// <summary>
         /// Contains the attributes that are added to the opening tag of the element.
-        /// &lt;Key&gt;&lt;Value&gt; is equivalent to Key="Value".
+        /// &lt;Key&gt;&lt;Value&gt; is equivalent to Key="Value". A null value writes the name
+        /// alone, as a boolean attribute like <c>checked</c> is written.
+        /// <para>
+        /// Ordered, and not an ordinary <see cref="Dictionary{TKey, TValue}"/>, because the
+        /// order ends up in the output. A dictionary happens to enumerate in insertion order as
+        /// long as nothing is removed, but that is an implementation detail its contract does
+        /// not promise - and if it ever changed, every file of every generated website would be
+        /// rewritten with its attributes shuffled. Setting a key that is already there keeps its
+        /// position, so <c>Class("a").Id("b").Class("c")</c> still writes the class first.
+        /// </para>
         /// </summary>
-        protected Dictionary<string, string?> Attributes { get; set; } = new Dictionary<string, string?>();
+        protected OrderedDictionary<string, string?> Attributes { get; set; } = [];
 
         /// <summary>
         /// Initiate a new Html-Element, based on the derived class.
@@ -129,26 +138,29 @@ namespace StatiCSharp.HtmlComponents
             // Build leading tag
             elementBuilder.Append(CultureInfo.InvariantCulture, $"<{TagName}");
 
-            // Add attributes with key-value pairs. An empty value is still a value:
-            // aria-label="" and value="" say something, and dropping them silently loses
-            // whatever the caller asked for. Only null means "write the name alone".
+            // One pass, so the attributes are written in the order they were set. There used
+            // to be two - first the ones with a value, then the ones without - which moved a
+            // boolean attribute like "checked" behind every other attribute, wherever the
+            // caller had put it.
             foreach (KeyValuePair<string, string?> attribute in Attributes)
             {
-                if (!string.IsNullOrEmpty(attribute.Key) && attribute.Value is not null)
+                if (string.IsNullOrEmpty(attribute.Key))
                 {
-                    // Encoded, so a quote in the value cannot end the attribute early
-                    // and break the tag. Values are taken literally, not as markup.
-                    elementBuilder.Append(CultureInfo.InvariantCulture, $" {attribute.Key}=\"{WebUtility.HtmlEncode(attribute.Value)}\"");
+                    continue;
                 }
-            }
 
-            // Add attributes with just keys
-            foreach (KeyValuePair<string, string?> attribute in Attributes)
-            {
-                if ((!string.IsNullOrEmpty(attribute.Key)) && (attribute.Value is null))
+                if (attribute.Value is null)
                 {
+                    // The name stands alone, the way "checked" and "hidden" are written.
                     elementBuilder.Append(CultureInfo.InvariantCulture, $" {attribute.Key}");
+                    continue;
                 }
+
+                // Encoded, so a quote in the value cannot end the attribute early and break
+                // the tag. Values are taken literally, not as markup. An empty value is still
+                // a value: aria-label="" and value="" say something, and dropping them
+                // silently loses whatever the caller asked for.
+                elementBuilder.Append(CultureInfo.InvariantCulture, $" {attribute.Key}=\"{WebUtility.HtmlEncode(attribute.Value)}\"");
             }
 
             // Close leading tag
