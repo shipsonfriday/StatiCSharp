@@ -166,6 +166,11 @@ required values go into the entry point and everything optional follows fluently
 | `IHtmlBuilder` | gone - it had no reachable implementation |
 | `website.Index`, `website.Pages`, `website.Sections` | gone - `IWebsite` is configuration; read content is on `RenderContext` |
 
+One addition worth knowing about: `manager.WithLog(Action<string>)` sends the progress lines
+and the warnings wherever you want instead of to the console, so a build can fail on them. A
+warning starts with `WARNING: ` and names what went wrong - a date that cannot be read, two
+tags leading to one url, two sites written to one url.
+
 Four changes affect content rather than code:
 
 - **The output directory holds the website and nothing else.** Files the generator did not

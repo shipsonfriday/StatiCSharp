@@ -34,7 +34,7 @@ public class RenderContextTests
             .WithSections("posts");
 
         var theme = new RecordingHtmlFactory { ResourcesPath = directory.EmptyDirectory("Theme") };
-        await WebsiteManager.For(website, directory.Path).WithTheme(theme).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).WithTheme(theme).MakeAsync();
 
         RenderContext context = Assert.Single(new HashSet<RenderContext>(theme.Contexts));
 
@@ -56,7 +56,7 @@ public class RenderContextTests
             .WithSections("posts");
 
         var theme = new RecordingHtmlFactory { ResourcesPath = directory.EmptyDirectory("Theme") };
-        await WebsiteManager.For(website, directory.Path).WithTheme(theme).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).WithTheme(theme).MakeAsync();
 
         // index, section, item, tag list - each with its own site, so a theme can put a
         // canonical url or open graph tags into the head. Sorted, because the items and the

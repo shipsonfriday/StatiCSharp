@@ -1,6 +1,5 @@
 using StatiCSharp.Exceptions;
 using StatiCSharp.Interfaces;
-using static StatiCSharp.StatiCSharpConsole;
 
 namespace StatiCSharp;
 
@@ -18,6 +17,7 @@ namespace StatiCSharp;
 public sealed class WebsiteManager
 {
     private readonly HtmlBuilder _htmlBuilder = new(useDefaultMarkdownParser: true);
+    private Action<string> _log = Console.WriteLine;
     private readonly List<string> _preservedOutput = [.. OutputWriter.AlwaysPreserved];
 
     /// <summary>
@@ -132,6 +132,31 @@ public sealed class WebsiteManager
     public WebsiteManager NoIncrementalOutput()
     {
         IncrementalOutput = false;
+        return this;
+    }
+
+    /// <summary>
+    /// Sends the generator's messages somewhere other than the console.
+    /// <para>
+    /// Progress lines and warnings both go here; a warning starts with <c>"WARNING: "</c>. The
+    /// warnings are the interesting part - colliding tag urls, a date that cannot be read, two
+    /// sites claiming one url - and a build script that wants to fail on them needs to see
+    /// them rather than watch them scroll past.
+    /// </para>
+    /// <para>
+    /// May be called from several threads at once, because the sites are written in parallel.
+    /// <see cref="Console.WriteLine(string)"/>, the default, handles that; a collection of your
+    /// own has to.
+    /// </para>
+    /// </summary>
+    /// <param name="log">Where a message goes. Pass <c>_ => { }</c> to stay quiet.</param>
+    /// <returns>this - the manager itself.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="log"/> is null.</exception>
+    public WebsiteManager WithLog(Action<string> log)
+    {
+        ArgumentNullException.ThrowIfNull(log);
+
+        _log = log;
         return this;
     }
 
@@ -251,52 +276,52 @@ public sealed class WebsiteManager
     /// <exception cref="InvalidOperationException">A directory that is copied into the output contains the output.</exception>
     public async Task MakeAsync()
     {
-        WriteLine("Website generating process startet...");
+        _log("Website generating process startet...");
 
-        WriteLine("Checking environment...");
+        _log("Checking environment...");
         await Task.Run(() => EnvironmentCheck.Verify(Content, Resources, Output, HtmlFactory.ResourcesPath));
 
-        WriteLine("Collecting markdown data...");
-        RenderContext context = new ContentReader(Content, _htmlBuilder).Read(Website);
+        _log("Collecting markdown data...");
+        RenderContext context = new ContentReader(Content, _htmlBuilder, _log).Read(Website);
 
         // One writer per run: the paths it records are only meaningful for this run.
         OutputWriter output = new(Output, onlyWriteWhatChanged: IncrementalOutput, alsoPreserve: _preservedOutput);
 
         if (!IncrementalOutput)
         {
-            WriteLine("Deleting old output files...");
+            _log("Deleting old output files...");
             await Task.Run(output.Clear);
         }
 
-        WriteLine("Copying theme resources...");
+        _log("Copying theme resources...");
         await output.CopyIntoOutputAsync(HtmlFactory.ResourcesPath);
 
-        WebsiteRenderer renderer = new(context, HtmlFactory, _htmlBuilder, output);
+        WebsiteRenderer renderer = new(context, HtmlFactory, _htmlBuilder, output, _log);
 
-        WriteLine("Writing index...");
+        _log("Writing index...");
         await renderer.RenderIndexAsync();
 
-        WriteLine("Writing pages...");
+        _log("Writing pages...");
         await renderer.RenderPagesAsync();
 
-        WriteLine("Writing sections...");
+        _log("Writing sections...");
         await renderer.RenderSectionsAsync();
 
-        WriteLine("Writing items...");
+        _log("Writing items...");
         await renderer.RenderItemsAsync();
 
-        WriteLine("Writing tag lists...");
+        _log("Writing tag lists...");
         await renderer.RenderTagListsAsync();
 
-        WriteLine("Copying user resources...");
+        _log("Copying user resources...");
         await output.CopyIntoOutputAsync(Resources);
 
         // Last, because it removes everything the steps above did not produce. User
         // resources are copied before it for that reason - and after the theme resources,
         // so a user file still wins over a theme file of the same name.
-        WriteLine("Cleaning up...");
+        _log("Cleaning up...");
         await output.CleanUpAsync();
 
-        WriteLine($"Success! Your website has been generated at {Output}");
+        _log($"Success! Your website has been generated at {Output}");
     }
 }

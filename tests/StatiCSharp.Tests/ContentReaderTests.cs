@@ -10,7 +10,8 @@ public class ContentReaderTests
 
     private static ContentReader ReaderFor(TempDirectory directory) => new(
         Path.Combine(directory.Path, "Content"),
-        new HtmlBuilder(useDefaultMarkdownParser: true));
+        new HtmlBuilder(useDefaultMarkdownParser: true),
+        _ => { });
 
     /// <summary>
     /// Builds a source directory with one section holding one item, gives the item file a
@@ -231,9 +232,9 @@ public class ContentReaderTests
     {
         var builder = new HtmlBuilder(useDefaultMarkdownParser: true);
 
-        Assert.Throws<ArgumentNullException>(() => new ContentReader(null!, builder));
-        Assert.Throws<ArgumentException>(() => new ContentReader("   ", builder));
-        Assert.Throws<ArgumentNullException>(() => new ContentReader("/content", null!));
+        Assert.Throws<ArgumentNullException>(() => new ContentReader(null!, builder, _ => { }));
+        Assert.Throws<ArgumentException>(() => new ContentReader("   ", builder, _ => { }));
+        Assert.Throws<ArgumentNullException>(() => new ContentReader("/content", null!, _ => { }));
     }
 
     [Fact]

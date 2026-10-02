@@ -1,4 +1,3 @@
-using static StatiCSharp.StatiCSharpConsole;
 
 namespace StatiCSharp;
 
@@ -21,19 +20,21 @@ internal static class MarkdownFactory
     /// </para>
     /// </summary>
     /// <param name="path">Path to the markdown file.</param>
+    /// <param name="log">Where a message about a malformed line goes.</param>
     /// <returns>The front matter and the content.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
-    public static MarkdownFile Read(string path)
+    /// <exception cref="ArgumentNullException">An argument is null.</exception>
+    public static MarkdownFile Read(string path, Action<string> log)
     {
         ArgumentNullException.ThrowIfNull(path);
+        ArgumentNullException.ThrowIfNull(log);
 
         string[] lines = File.ReadAllLines(path);
         List<int> yamlMarker = YamlMarkers(lines);
 
-        return new MarkdownFile(MetaDataIn(lines, yamlMarker, path), ContentIn(lines, yamlMarker));
+        return new MarkdownFile(MetaDataIn(lines, yamlMarker, path, log), ContentIn(lines, yamlMarker));
     }
 
-    private static Dictionary<string, string> MetaDataIn(string[] lines, List<int> yamlMarker, string path)
+    private static Dictionary<string, string> MetaDataIn(string[] lines, List<int> yamlMarker, string path, Action<string> log)
     {
         Dictionary<string, string> metaData = [];
 
@@ -56,7 +57,7 @@ internal static class MarkdownFactory
 
             if (indexOfColon < 0)
             {
-                WriteLine($"WARNING: Ignoring the line \"{lines[i]}\" in the meta data of {path}, because it has no colon.");
+                log($"WARNING: Ignoring the line \"{lines[i]}\" in the meta data of {path}, because it has no colon.");
                 continue;
             }
 
@@ -67,7 +68,7 @@ internal static class MarkdownFactory
 
             if (!metaData.TryAdd(key, value))
             {
-                WriteLine($"WARNING: The key \"{key}\" appears more than once in the meta data of {path}. Using the last value.");
+                log($"WARNING: The key \"{key}\" appears more than once in the meta data of {path}. Using the last value.");
                 metaData[key] = value;
             }
         }

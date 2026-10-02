@@ -38,7 +38,7 @@ public class WebsiteRendererTests
     }
 
     private static WebsiteRenderer RendererFor(RenderContext context, OutputWriter output)
-        => new(context, new DefaultHtmlFactory(), new HtmlBuilder(useDefaultMarkdownParser: true), output);
+        => new(context, new DefaultHtmlFactory(), new HtmlBuilder(useDefaultMarkdownParser: true), output, _ => { });
 
     [Fact]
     public void RejectsMissingArguments()
@@ -48,10 +48,11 @@ public class WebsiteRendererTests
         var builder = new HtmlBuilder(useDefaultMarkdownParser: true);
         var output = new OutputWriter("/output", onlyWriteWhatChanged: true);
 
-        Assert.Throws<ArgumentNullException>(() => new WebsiteRenderer(null!, factory, builder, output));
-        Assert.Throws<ArgumentNullException>(() => new WebsiteRenderer(context, null!, builder, output));
-        Assert.Throws<ArgumentNullException>(() => new WebsiteRenderer(context, factory, null!, output));
-        Assert.Throws<ArgumentNullException>(() => new WebsiteRenderer(context, factory, builder, null!));
+        Assert.Throws<ArgumentNullException>(() => new WebsiteRenderer(null!, factory, builder, output, _ => { }));
+        Assert.Throws<ArgumentNullException>(() => new WebsiteRenderer(context, null!, builder, output, _ => { }));
+        Assert.Throws<ArgumentNullException>(() => new WebsiteRenderer(context, factory, null!, output, _ => { }));
+        Assert.Throws<ArgumentNullException>(() => new WebsiteRenderer(context, factory, builder, null!, _ => { }));
+        Assert.Throws<ArgumentNullException>(() => new WebsiteRenderer(context, factory, builder, output, null!));
     }
 
     [Fact]

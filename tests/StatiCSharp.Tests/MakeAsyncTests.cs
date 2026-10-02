@@ -45,7 +45,7 @@ public class MakeAsyncTests
         using var directory = new TempDirectory();
         Website website = WriteSource(directory);
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
 
         string output = Path.Combine(directory.Path, "Output");
 
@@ -64,7 +64,7 @@ public class MakeAsyncTests
         using var directory = new TempDirectory();
         Website website = WriteSource(directory);
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
 
         string tagDirectory = Path.Combine(directory.Path, "Output", "tag");
 
@@ -85,7 +85,7 @@ public class MakeAsyncTests
         using var directory = new TempDirectory();
         Website website = WriteSource(directory);
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
 
         string output = Path.Combine(directory.Path, "Output");
 
@@ -100,7 +100,7 @@ public class MakeAsyncTests
         using var directory = new TempDirectory();
         Website website = WriteSource(directory);
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
 
         string output = Path.Combine(directory.Path, "Output");
 
@@ -116,10 +116,10 @@ public class MakeAsyncTests
         using var directory = new TempDirectory();
         Website website = WriteSource(directory);
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
 
         Website second = WriteSource(directory);
-        await WebsiteManager.For(second, directory.Path).MakeAsync();
+        await WebsiteManager.For(second, directory.Path).WithLog(_ => { }).MakeAsync();
 
         string output = Path.Combine(directory.Path, "Output");
         int written = Directory.GetFiles(output, "index.html", SearchOption.AllDirectories).Length;
@@ -134,7 +134,7 @@ public class MakeAsyncTests
         using var directory = new TempDirectory();
         Website website = WriteSource(directory);
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
 
         string orphan = Path.Combine(directory.Path, "Output", "posts", "deleted-post");
         Directory.CreateDirectory(orphan);
@@ -144,7 +144,7 @@ public class MakeAsyncTests
             TestContext.Current.CancellationToken);
 
         Website second = WriteSource(directory);
-        await WebsiteManager.For(second, directory.Path).MakeAsync();
+        await WebsiteManager.For(second, directory.Path).WithLog(_ => { }).MakeAsync();
 
         Assert.False(Directory.Exists(orphan));
     }
@@ -158,11 +158,11 @@ public class MakeAsyncTests
         Website website = WriteSource(directory);
         string index = Path.Combine(directory.Path, "Output", "index.html");
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
 
         DateTime marker = File.GetLastWriteTimeUtc(index).AddDays(-1);
         File.SetLastWriteTimeUtc(index, marker);
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
 
         Assert.Equal(marker, File.GetLastWriteTimeUtc(index));
     }
@@ -174,11 +174,11 @@ public class MakeAsyncTests
         Website website = WriteSource(directory);
         string index = Path.Combine(directory.Path, "Output", "index.html");
 
-        await WebsiteManager.For(website, directory.Path).NoIncrementalOutput().MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).NoIncrementalOutput().MakeAsync();
 
         DateTime marker = File.GetLastWriteTimeUtc(index).AddDays(-1);
         File.SetLastWriteTimeUtc(index, marker);
-        await WebsiteManager.For(website, directory.Path).NoIncrementalOutput().MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).NoIncrementalOutput().MakeAsync();
 
         Assert.NotEqual(marker, File.GetLastWriteTimeUtc(index));
     }
@@ -189,12 +189,12 @@ public class MakeAsyncTests
         using var directory = new TempDirectory();
         Website website = WriteSource(directory);
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
 
         string leftover = Path.Combine(directory.Path, "Output", "old-photo.png");
         await File.WriteAllTextAsync(leftover, "image", TestContext.Current.CancellationToken);
 
-        await WebsiteManager.For(website, directory.Path).NoIncrementalOutput().MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).NoIncrementalOutput().MakeAsync();
 
         Assert.False(File.Exists(leftover));
     }
@@ -209,12 +209,12 @@ public class MakeAsyncTests
         Website website = WriteSource(directory);
         directory.WriteFile("Resources/old-logo.png", "image");
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
         string copied = Path.Combine(directory.Path, "Output", "old-logo.png");
         Assert.True(File.Exists(copied));
 
         File.Delete(Path.Combine(directory.Path, "Resources", "old-logo.png"));
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
 
         Assert.False(File.Exists(copied));
     }
@@ -226,8 +226,8 @@ public class MakeAsyncTests
         Website website = WriteSource(directory);
         directory.WriteFile("Resources/logo.png", "image");
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
 
         Assert.True(File.Exists(Path.Combine(directory.Path, "Output", "logo.png")));
         Assert.True(File.Exists(Path.Combine(directory.Path, "Output", "favicon.png")));
@@ -244,10 +244,10 @@ public class MakeAsyncTests
         directory.WriteFile("Output/CNAME", "example.com");
         string head = Path.Combine(directory.Path, "Output", ".git", "HEAD");
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
         Assert.True(File.Exists(head));
 
-        await WebsiteManager.For(website, directory.Path).NoIncrementalOutput().MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).NoIncrementalOutput().MakeAsync();
         Assert.True(File.Exists(head));
         Assert.True(File.Exists(Path.Combine(directory.Path, "Output", "CNAME")));
     }
@@ -261,7 +261,7 @@ public class MakeAsyncTests
         Website website = WriteSource(directory);
         directory.WriteFile("Resources/logo.png", "image");
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
 
         string[] copies =
         [
@@ -276,7 +276,7 @@ public class MakeAsyncTests
             File.SetLastWriteTimeUtc(copy, marker);
         }
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
 
         foreach (string copy in copies)
         {
@@ -291,7 +291,7 @@ public class MakeAsyncTests
         Website website = WriteSource(directory);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => WebsiteManager.For(website, directory.Path)
+            () => WebsiteManager.For(website, directory.Path).WithLog(_ => { })
                 .WithResourcesDirectory(directory.Path)
                 .MakeAsync());
 
@@ -310,7 +310,7 @@ public class MakeAsyncTests
             "Content/posts/escaper.md",
             "---", "title: Escaper", "path: ../../escaped", "---", "Body.");
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
 
         string[] outsideTheOutput =
         [
@@ -335,7 +335,7 @@ public class MakeAsyncTests
         Website website = Website.Create(url: "https://example.com", name: "My Website")
             .WithSections("My Section");
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
 
         string output = Path.Combine(directory.Path, "Output");
 
@@ -360,10 +360,10 @@ public class MakeAsyncTests
         Website website = Website.Create(url: "https://example.com", name: "My Website")
             .WithSections("My Section");
 
-        var reader = new ContentReader(Path.Combine(directory.Path, "Content"), new HtmlBuilder(useDefaultMarkdownParser: true));
+        var reader = new ContentReader(Path.Combine(directory.Path, "Content"), new HtmlBuilder(useDefaultMarkdownParser: true), _ => { });
         RenderContext content = reader.Read(website);
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
 
         string output = Path.Combine(directory.Path, "Output");
         List<string> urls = [content.Index.Url];
@@ -387,7 +387,7 @@ public class MakeAsyncTests
         directory.WriteFile("Output/robots.txt", "User-agent: *");
         directory.WriteFile("Output/leftover.txt", "not mine");
 
-        await WebsiteManager.For(website, directory.Path)
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { })
             .WithPreservedOutput("robots.txt")
             .MakeAsync();
 

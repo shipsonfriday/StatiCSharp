@@ -18,7 +18,7 @@ public class MarkdownFactoryTests
             "---",
             "# Heading");
 
-        Dictionary<string, string> metaData = MarkdownFactory.Read(path).MetaData;
+        Dictionary<string, string> metaData = MarkdownFactory.Read(path, _ => { }).MetaData;
 
         Assert.Equal("My Post", metaData["title"]);
         Assert.Equal("Roland", metaData["author"]);
@@ -30,7 +30,7 @@ public class MarkdownFactoryTests
         using var directory = new TempDirectory();
         string path = directory.WriteFile("content.md", "---", "title: My Post", "---", "# Heading", "Body.");
 
-        Assert.Equal("# Heading\nBody.", MarkdownFactory.Read(path).Content);
+        Assert.Equal("# Heading\nBody.", MarkdownFactory.Read(path, _ => { }).Content);
     }
 
     [Fact]
@@ -41,8 +41,8 @@ public class MarkdownFactoryTests
         using var directory = new TempDirectory();
         string path = directory.WriteFile("content.md");
 
-        Assert.Empty(MarkdownFactory.Read(path).MetaData);
-        Assert.Equal(string.Empty, MarkdownFactory.Read(path).Content);
+        Assert.Empty(MarkdownFactory.Read(path, _ => { }).MetaData);
+        Assert.Equal(string.Empty, MarkdownFactory.Read(path, _ => { }).Content);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class MarkdownFactoryTests
             "---",
             "Body.");
 
-        Dictionary<string, string> metaData = MarkdownFactory.Read(path).MetaData;
+        Dictionary<string, string> metaData = MarkdownFactory.Read(path, _ => { }).MetaData;
 
         Assert.Equal("Second", metaData["title"]);
         Assert.Equal("Roland", metaData["author"]);
@@ -80,7 +80,7 @@ public class MarkdownFactoryTests
             "---",
             "Body.");
 
-        Dictionary<string, string> metaData = MarkdownFactory.Read(path).MetaData;
+        Dictionary<string, string> metaData = MarkdownFactory.Read(path, _ => { }).MetaData;
 
         Assert.Equal("My Post", metaData["title"]);
         Assert.Equal("Roland", metaData["author"]);
@@ -99,7 +99,7 @@ public class MarkdownFactoryTests
             "---",
             "Body.");
 
-        Dictionary<string, string> metaData = MarkdownFactory.Read(path).MetaData;
+        Dictionary<string, string> metaData = MarkdownFactory.Read(path, _ => { }).MetaData;
 
         Assert.Equal(2, metaData.Count);
         Assert.Equal("Roland", metaData["author"]);
@@ -117,7 +117,7 @@ public class MarkdownFactoryTests
             "---",
             "Body.");
 
-        Dictionary<string, string> metaData = MarkdownFactory.Read(path).MetaData;
+        Dictionary<string, string> metaData = MarkdownFactory.Read(path, _ => { }).MetaData;
 
         Assert.Equal("My Post", Assert.Single(metaData).Value);
     }
@@ -128,7 +128,7 @@ public class MarkdownFactoryTests
         using var directory = new TempDirectory();
         string path = directory.WriteFile("content.md", "---", "TITLE: My Post", "---", "Body.");
 
-        Assert.Equal("My Post", MarkdownFactory.Read(path).MetaData["title"]);
+        Assert.Equal("My Post", MarkdownFactory.Read(path, _ => { }).MetaData["title"]);
     }
 
     [Theory]
@@ -146,7 +146,7 @@ public class MarkdownFactoryTests
             using var directory = new TempDirectory();
             string path = directory.WriteFile("content.md", "---", "TITLE: My Post", "---", "Body.");
 
-            Assert.True(MarkdownFactory.Read(path).MetaData.ContainsKey("title"));
+            Assert.True(MarkdownFactory.Read(path, _ => { }).MetaData.ContainsKey("title"));
         }
         finally
         {
@@ -160,7 +160,7 @@ public class MarkdownFactoryTests
         using var directory = new TempDirectory();
         string path = directory.WriteFile("content.md", "---", "title: Note: on urls", "---", "Body.");
 
-        Assert.Equal("Note: on urls", MarkdownFactory.Read(path).MetaData["title"]);
+        Assert.Equal("Note: on urls", MarkdownFactory.Read(path, _ => { }).MetaData["title"]);
     }
 
     [Fact]
@@ -169,8 +169,8 @@ public class MarkdownFactoryTests
         using var directory = new TempDirectory();
         string path = directory.WriteFile("content.md", "---", "title: My Post", "Body.");
 
-        Assert.Empty(MarkdownFactory.Read(path).MetaData);
-        Assert.Equal("---\ntitle: My Post\nBody.", MarkdownFactory.Read(path).Content);
+        Assert.Empty(MarkdownFactory.Read(path, _ => { }).MetaData);
+        Assert.Equal("---\ntitle: My Post\nBody.", MarkdownFactory.Read(path, _ => { }).Content);
     }
 
     [Fact]
@@ -179,8 +179,8 @@ public class MarkdownFactoryTests
         using var directory = new TempDirectory();
         string path = directory.WriteFile("content.md", "# Heading", "Body.");
 
-        Assert.Empty(MarkdownFactory.Read(path).MetaData);
-        Assert.Equal("# Heading\nBody.", MarkdownFactory.Read(path).Content);
+        Assert.Empty(MarkdownFactory.Read(path, _ => { }).MetaData);
+        Assert.Equal("# Heading\nBody.", MarkdownFactory.Read(path, _ => { }).Content);
     }
 
     [Fact]
@@ -196,7 +196,7 @@ public class MarkdownFactoryTests
             "---\ntitle: My Post\n---\nBody.",
             new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
 
-        MarkdownFile file = MarkdownFactory.Read(path);
+        MarkdownFile file = MarkdownFactory.Read(path, _ => { });
 
         Assert.Equal("My Post", file.MetaData["title"]);
         Assert.Equal("Body.", file.Content);
@@ -205,6 +205,6 @@ public class MarkdownFactoryTests
     [Fact]
     public void RejectsNull()
     {
-        Assert.Throws<ArgumentNullException>(() => MarkdownFactory.Read(null!));
+        Assert.Throws<ArgumentNullException>(() => MarkdownFactory.Read(null!, _ => { }));
     }
 }

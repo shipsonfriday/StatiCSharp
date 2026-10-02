@@ -1,7 +1,6 @@
 using StatiCSharp.Interfaces;
 using StatiCSharp.Tools;
 using System.Globalization;
-using static StatiCSharp.StatiCSharpConsole;
 
 namespace StatiCSharp;
 
@@ -24,21 +23,25 @@ internal sealed class ContentReader
 {
     private readonly string _contentDirectory;
     private readonly HtmlBuilder _htmlBuilder;
+    private readonly Action<string> _log;
 
     /// <summary>
     /// Starts a reader for one content directory.
     /// </summary>
     /// <param name="contentDirectory">The absolute path of the directory holding the markdown files.</param>
     /// <param name="htmlBuilder">The pipeline that turns the markdown content into html.</param>
+    /// <param name="log">Where a message about the content goes.</param>
     /// <exception cref="ArgumentNullException">An argument is null.</exception>
     /// <exception cref="ArgumentException"><paramref name="contentDirectory"/> is empty or only whitespace.</exception>
-    internal ContentReader(string contentDirectory, HtmlBuilder htmlBuilder)
+    internal ContentReader(string contentDirectory, HtmlBuilder htmlBuilder, Action<string> log)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(contentDirectory);
         ArgumentNullException.ThrowIfNull(htmlBuilder);
+        ArgumentNullException.ThrowIfNull(log);
 
         _contentDirectory = contentDirectory;
         _htmlBuilder = htmlBuilder;
+        _log = log;
     }
 
     /// <summary>
@@ -130,7 +133,7 @@ internal sealed class ContentReader
             // be written over the index of the website.
             if (!UrlPath.HasASegment(sectionName))
             {
-                WriteLine($"WARNING: The section folder \"{sectionName}\" has no characters that can be used in a url. Skipping it.");
+                _log($"WARNING: The section folder \"{sectionName}\" has no characters that can be used in a url. Skipping it.");
                 continue;
             }
 
@@ -195,14 +198,14 @@ internal sealed class ContentReader
     /// Whether the site read from this file gets a url segment of its own. Without one it would
     /// be written over the page in the directory above it, so it is reported and left out.
     /// </summary>
-    private static bool HasItsOwnSegment(ISite site, string path)
+    private bool HasItsOwnSegment(ISite site, string path)
     {
         if (UrlPath.HasASegment(SiteSegment.Of(site.Path, site.MarkdownFileName)))
         {
             return true;
         }
 
-        WriteLine($"WARNING: {path} has no characters that can be used in a url, neither in its filename nor in its path entry. Skipping it.");
+        _log($"WARNING: {path} has no characters that can be used in a url, neither in its filename nor in its path entry. Skipping it.");
         return false;
     }
 
@@ -241,13 +244,13 @@ internal sealed class ContentReader
     /// </summary>
     private void FillFromMarkdown(ISite site, string path)
     {
-        MarkdownFile file = MarkdownFactory.Read(path);
+        MarkdownFile file = MarkdownFactory.Read(path, _log);
 
         site.Content = _htmlBuilder.ToHtml(file.Content);
         site.MarkdownFileName = Path.GetFileName(path);
         site.MarkdownFilePath = path;
 
-        MapMetaData(file.MetaData, site);
+        MapMetaData(file.MetaData, site, _log);
     }
 
     /// <summary>
@@ -279,11 +282,13 @@ internal sealed class ContentReader
     /// </summary>
     /// <param name="metaData">The meta data.</param>
     /// <param name="site">The site where to add the meta data.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="metaData"/> or <paramref name="site"/> is null.</exception>
-    internal static void MapMetaData(Dictionary<string, string> metaData, ISite site)
+    /// <param name="log">Where a message about an unusable value goes.</param>
+    /// <exception cref="ArgumentNullException">An argument is null.</exception>
+    internal static void MapMetaData(Dictionary<string, string> metaData, ISite site, Action<string> log)
     {
         ArgumentNullException.ThrowIfNull(metaData);
         ArgumentNullException.ThrowIfNull(site);
+        ArgumentNullException.ThrowIfNull(log);
 
         // Plain text, not markup. These end up in <title> and in meta content
         // attributes, where markup does not belong, and the render sites encode them.
@@ -312,7 +317,7 @@ internal sealed class ContentReader
             }
             else
             {
-                WriteLine($"WARNING: Could not read the date \"{date}\" in {site.MarkdownFilePath}. Expected ISO 8601, e.g. 2026-09-27. Using {site.Date:yyyy-MM-dd} instead.");
+                log($"WARNING: Could not read the date \"{date}\" in {site.MarkdownFilePath}. Expected ISO 8601, e.g. 2026-09-27. Using {site.Date:yyyy-MM-dd} instead.");
             }
         }
 

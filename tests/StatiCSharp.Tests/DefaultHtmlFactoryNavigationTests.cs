@@ -100,7 +100,8 @@ public class DefaultHtmlFactoryNavigationTests
 
         RenderContext content = new ContentReader(
                 System.IO.Path.Combine(directory.Path, "Content"),
-                new HtmlBuilder(useDefaultMarkdownParser: true))
+                new HtmlBuilder(useDefaultMarkdownParser: true),
+                _ => { })
             .Read(Website.Create(url: "https://example.com", name: "My Website")
                 .WithSections("posts", "drafts"));
 

@@ -21,7 +21,7 @@ public class MetaDataTests
             ["tags"] = "one, two",
         };
 
-        ContentReader.MapMetaData(metaData, site);
+        ContentReader.MapMetaData(metaData, site, _ => { });
 
         Assert.Equal("My Post", site.Title);
         Assert.Equal("A short description", site.Description);
@@ -37,7 +37,7 @@ public class MetaDataTests
         Item site = AnItem();
         DateOnly defaultDate = site.Date;
 
-        ContentReader.MapMetaData([], site);
+        ContentReader.MapMetaData([], site, _ => { });
 
         Assert.Equal(string.Empty, site.Title);
         Assert.Equal(string.Empty, site.Author);
@@ -56,7 +56,7 @@ public class MetaDataTests
             ["author"] = string.Empty,
             ["date"] = "   ",
             ["path"] = string.Empty,
-        }, site);
+        }, site, _ => { });
 
         Assert.Equal(string.Empty, site.Author);
         Assert.Equal(defaultDate, site.Date);
@@ -70,7 +70,7 @@ public class MetaDataTests
         // and a /tag/ directory in the output.
         Item site = AnItem();
 
-        ContentReader.MapMetaData(new Dictionary<string, string> { ["tags"] = string.Empty }, site);
+        ContentReader.MapMetaData(new Dictionary<string, string> { ["tags"] = string.Empty }, site, _ => { });
 
         Assert.Empty(site.Tags);
     }
@@ -80,7 +80,7 @@ public class MetaDataTests
     {
         Item site = AnItem();
 
-        ContentReader.MapMetaData(new Dictionary<string, string> { ["tags"] = "one, , two," }, site);
+        ContentReader.MapMetaData(new Dictionary<string, string> { ["tags"] = "one, , two," }, site, _ => { });
 
         Assert.Equal(["one", "two"], site.Tags);
     }
@@ -91,7 +91,7 @@ public class MetaDataTests
         // The old code removed every space, turning "web dev" into "webdev".
         Item site = AnItem();
 
-        ContentReader.MapMetaData(new Dictionary<string, string> { ["tags"] = "web dev, c#" }, site);
+        ContentReader.MapMetaData(new Dictionary<string, string> { ["tags"] = "web dev, c#" }, site, _ => { });
 
         Assert.Equal(["web dev", "c#"], site.Tags);
     }
@@ -104,7 +104,7 @@ public class MetaDataTests
         Item site = AnItem();
         DateOnly defaultDate = site.Date;
 
-        ContentReader.MapMetaData(new Dictionary<string, string> { ["date"] = "not a date" }, site);
+        ContentReader.MapMetaData(new Dictionary<string, string> { ["date"] = "not a date" }, site, _ => { });
 
         Assert.Equal(defaultDate, site.Date);
     }
@@ -123,7 +123,7 @@ public class MetaDataTests
             CultureInfo.CurrentCulture = new CultureInfo(culture);
             Item site = AnItem();
 
-            ContentReader.MapMetaData(new Dictionary<string, string> { ["date"] = "2026-09-27" }, site);
+            ContentReader.MapMetaData(new Dictionary<string, string> { ["date"] = "2026-09-27" }, site, _ => { });
 
             Assert.Equal(new DateOnly(2026, 9, 27), site.Date);
         }
@@ -136,8 +136,9 @@ public class MetaDataTests
     [Fact]
     public void MapMetaData_RejectsNullArguments()
     {
-        Assert.Throws<ArgumentNullException>(() => ContentReader.MapMetaData(null!, AnItem()));
-        Assert.Throws<ArgumentNullException>(() => ContentReader.MapMetaData([], null!));
+        Assert.Throws<ArgumentNullException>(() => ContentReader.MapMetaData(null!, AnItem(), _ => { }));
+        Assert.Throws<ArgumentNullException>(() => ContentReader.MapMetaData([], null!, _ => { }));
+        Assert.Throws<ArgumentNullException>(() => ContentReader.MapMetaData([], AnItem(), null!));
     }
 
     [Fact]
@@ -152,7 +153,7 @@ public class MetaDataTests
         {
             ["title"] = "My *great* post",
             ["description"] = "Uses <angle> brackets & an ampersand",
-        }, site);
+        }, site, _ => { });
 
         Assert.Equal("My *great* post", site.Title);
         Assert.Equal("Uses <angle> brackets & an ampersand", site.Description);
@@ -163,7 +164,7 @@ public class MetaDataTests
     {
         Item site = AnItem();
 
-        ContentReader.MapMetaData(new Dictionary<string, string> { ["title"] = "The \"quoted\" post" }, site);
+        ContentReader.MapMetaData(new Dictionary<string, string> { ["title"] = "The \"quoted\" post" }, site, _ => { });
 
         Assert.Equal("The \"quoted\" post", site.Title);
     }

@@ -1,6 +1,5 @@
 using StatiCSharp.Interfaces;
 using StatiCSharp.Tools;
-using static StatiCSharp.StatiCSharpConsole;
 
 namespace StatiCSharp;
 
@@ -19,6 +18,7 @@ internal sealed class WebsiteRenderer
     private readonly IHtmlFactory _htmlFactory;
     private readonly HtmlBuilder _htmlBuilder;
     private readonly OutputWriter _output;
+    private readonly Action<string> _log;
 
     /// <summary>
     /// Starts a renderer for one run.
@@ -27,17 +27,20 @@ internal sealed class WebsiteRenderer
     /// <param name="htmlFactory">The theme that renders the bodies.</param>
     /// <param name="htmlBuilder">The pipeline, for the head content its parsers need.</param>
     /// <param name="output">The writer for this run, which knows where the output goes.</param>
+    /// <param name="log">Where a message about a site goes. May be called from several threads.</param>
     /// <exception cref="ArgumentNullException">An argument is null.</exception>
     internal WebsiteRenderer(
         RenderContext context,
         IHtmlFactory htmlFactory,
         HtmlBuilder htmlBuilder,
-        OutputWriter output)
+        OutputWriter output,
+        Action<string> log)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(htmlFactory);
         ArgumentNullException.ThrowIfNull(htmlBuilder);
         ArgumentNullException.ThrowIfNull(output);
+        ArgumentNullException.ThrowIfNull(log);
 
         // The same instance is handed to every call, so the theme sees one website throughout
         // the run and does not have to hold anything itself.
@@ -45,6 +48,7 @@ internal sealed class WebsiteRenderer
         _htmlFactory = htmlFactory;
         _htmlBuilder = htmlBuilder;
         _output = output;
+        _log = log;
     }
 
     /// <summary>
@@ -147,7 +151,7 @@ internal sealed class WebsiteRenderer
         // to the same directory, so say so rather than letting one overwrite the other.
         foreach (var collision in tags.GroupBy(UrlSlug.From).Where(group => group.Count() > 1))
         {
-            WriteLine($"WARNING: The tags {string.Join(", ", collision.Select(tag => $"\"{tag}\""))} all lead to /tag/{collision.Key}. Only one of them will be written.");
+            _log($"WARNING: The tags {string.Join(", ", collision.Select(tag => $"\"{tag}\""))} all lead to /tag/{collision.Key}. Only one of them will be written.");
         }
 
         List<Task> tasks = new List<Task>();
@@ -167,7 +171,7 @@ internal sealed class WebsiteRenderer
             {
                 // Nothing usable is left, e.g. for a tag written as "+++". An empty segment
                 // would put the tag page into the /tag directory itself.
-                WriteLine($"WARNING: The tag \"{tag}\" has no characters that can be used in a url. Skipping it.");
+                _log($"WARNING: The tag \"{tag}\" has no characters that can be used in a url. Skipping it.");
                 return;
             }
 
@@ -225,7 +229,7 @@ internal sealed class WebsiteRenderer
         // matter could write outside the output directory.
         if (!await _output.WriteAsync(UrlPath.SegmentsOf(site.Url), "index.html", document))
         {
-            WriteLine($"WARNING: Two sites are written to {site.Url}. Change the path in the meta data of one of them; only the last one is kept.");
+            _log($"WARNING: Two sites are written to {site.Url}. Change the path in the meta data of one of them; only the last one is kept.");
         }
     }
 }

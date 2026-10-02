@@ -31,10 +31,10 @@ public class RepeatedRunTests
         Website website = WriteSource(directory);
         string output = Path.Combine(directory.Path, "Output");
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
         string[] first = [.. Directory.GetFiles(output, "*", SearchOption.AllDirectories).Order()];
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
         string[] second = [.. Directory.GetFiles(output, "*", SearchOption.AllDirectories).Order()];
 
         Assert.Equal(first, second);
@@ -50,10 +50,10 @@ public class RepeatedRunTests
         Website website = WriteSource(directory);
         string index = Path.Combine(directory.Path, "Output", "index.html");
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
         string afterFirstRun = await File.ReadAllTextAsync(index, TestContext.Current.CancellationToken);
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
         string afterSecondRun = await File.ReadAllTextAsync(index, TestContext.Current.CancellationToken);
 
         Assert.Equal(afterFirstRun, afterSecondRun);
@@ -85,11 +85,11 @@ public class RepeatedRunTests
         Website website = WriteSource(directory);
         string index = Path.Combine(directory.Path, "Output", "index.html");
 
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
         Assert.Contains("<title>Home</title>", await File.ReadAllTextAsync(index, TestContext.Current.CancellationToken), StringComparison.Ordinal);
 
         File.Delete(Path.Combine(directory.Path, "Content", "index.md"));
-        await WebsiteManager.For(website, directory.Path).MakeAsync();
+        await WebsiteManager.For(website, directory.Path).WithLog(_ => { }).MakeAsync();
 
         Assert.Contains("<title></title>", await File.ReadAllTextAsync(index, TestContext.Current.CancellationToken), StringComparison.Ordinal);
     }
