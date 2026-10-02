@@ -36,7 +36,7 @@ public class Picture : HtmlElement<Picture>, IHtmlComponent
 /// A representation of a &lt;source&gt; element.
 /// <para>Call the Render() method to turn it into an HTML string.</para>
 /// </summary>
-public class Source : HtmlElement<Source>, IHtmlComponent
+public class Source : HtmlElement<Source, NoContent>, IHtmlComponent
 {
     /// <inheritdoc/>
     protected override string TagName => "source";

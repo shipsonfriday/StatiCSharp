@@ -21,6 +21,7 @@
 - The default theme's navigation says a section's title instead of its folder name, in the order the sections were declared, and no longer links a section that has no index.md.
 - A website is configuration only. Index, Pages and Sections are no longer on IWebsite: reading returns its result instead of filling the website, so one website can be generated any number of times.
 - Every run writes a sitemap.xml, built from the pages that were actually written. The website's url is checked to be an http address now, because every entry is built on it.
+- Where the html standard says what an element may contain, the types say it too: a Ul takes Li elements, a Tr takes cells, a void element takes nothing. Content that does not belong no longer compiles instead of rendering as invalid html.
 - The attribute values the html standard fixes are typed: InputType, LinkTarget, LinkRelation, FormMethod, ButtonType and CellScope, each beside the string overload it had.
 - WithLog(Action&lt;string&gt;) sends the generator's messages wherever you want instead of to the console, so a build can act on the warnings. Defaults to the console.
 - The public interfaces hand out read-only collections, so a theme cannot write into what it is rendering.

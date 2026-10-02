@@ -7,7 +7,7 @@ namespace StatiCSharp.HtmlComponents;
 /// A representation of a &lt;input /&gt; element.
 /// Call the Render() method to turn it into an HTML string.
 /// </summary>
-public class Input : HtmlElement<Input>, IHtmlComponent
+public class Input : HtmlElement<Input, NoContent>, IHtmlComponent
 {
     /// <inheritdoc/>
     protected override string TagName

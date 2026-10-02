@@ -42,10 +42,17 @@ public class HorizontalRule : HtmlElement<HorizontalRule>
 
 /// <summary>
 /// Derived from the non-generic base, for an element that needs no fluent chain.
+/// <para>
+/// That base has no <c>Add</c>: the typed one lives on <see cref="HtmlElement{TSelf, TChild}"/>,
+/// which is what lets an element state what it may contain. An element derived from here
+/// declares its own if it wants a collection initializer, which is what this one does.
+/// </para>
 /// </summary>
 public class Marker : HtmlElement
 {
     protected override string TagName => "mark";
+
+    public void Add(IHtmlComponent component) => Children.Add(component);
 }
 
 public class CustomElementTests
@@ -93,8 +100,8 @@ public class CustomElementTests
     [Fact]
     public void TheInitializerWorksOnTheNonGenericBaseToo()
     {
-        // Add and IEnumerable both sit on the non-generic base, so the initializer is
-        // available even without the TSelf parameter.
+        // IEnumerable sits on the non-generic base and Marker declares its own Add, which is
+        // all a collection initializer needs - no TSelf parameter involved.
         Assert.Equal("<mark><h1>Title</h1></mark>", new Marker { new H1("Title") }.Render());
     }
 

@@ -6,7 +6,7 @@ namespace StatiCSharp.HtmlComponents;
 /// A representation of a &lt;br&gt; element.
 /// <para>Call the Render() method to turn it into an HTML string.</para>
 /// </summary>
-public class Br : HtmlElement<Br>, IHtmlComponent
+public class Br : HtmlElement<Br, NoContent>, IHtmlComponent
 {
     /// <inheritdoc/>
     protected override string TagName => "br";
@@ -22,7 +22,7 @@ public class Br : HtmlElement<Br>, IHtmlComponent
 /// A representation of a &lt;hr&gt; element.
 /// <para>Call the Render() method to turn it into an HTML string.</para>
 /// </summary>
-public class Hr : HtmlElement<Hr>, IHtmlComponent
+public class Hr : HtmlElement<Hr, NoContent>, IHtmlComponent
 {
     /// <inheritdoc/>
     protected override string TagName => "hr";

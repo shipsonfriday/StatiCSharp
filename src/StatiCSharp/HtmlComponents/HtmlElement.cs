@@ -10,9 +10,10 @@ namespace StatiCSharp.HtmlComponents;
 /// A base class for all basic HTML elements.
 /// <para>
 /// Deriving from this is supported: override <see cref="TagName"/>, and
-/// <see cref="VoidElement"/> if the element takes no content. Derive from
-/// <see cref="HtmlElement{TSelf}"/> instead to also get the shared fluent methods typed
-/// to your own element.
+/// <see cref="VoidElement"/> if the element takes no content. It gives you no <c>Add</c>
+/// though, so assign <see cref="Children"/> in a constructor or declare an <c>Add</c> of your
+/// own if you want a collection initializer. <see cref="HtmlElement{TSelf}"/> is the usual
+/// choice: it brings both, plus the shared fluent methods typed to your own element.
 /// </para>
 /// <para>
 /// Implements the non-generic <see cref="IEnumerable"/> so that children can be written
@@ -77,28 +78,10 @@ public abstract class HtmlElement : IHtmlComponent, IEnumerable
     /// <returns>An enumerator over the content of this element.</returns>
     IEnumerator IEnumerable.GetEnumerator() => Children.GetEnumerator();
 
-    /// <summary>
-    /// Adds an element or component to the content of this element.
-    /// <para>
-    /// Returns nothing on purpose. Together with <see cref="IEnumerable"/> this is what
-    /// a collection initializer needs, which ignores the return value:
-    /// <code>
-    /// new Div { new H1("Title"), new Paragraph("Text") }
-    /// </code>
-    /// It used to return the element so that calls could be chained. That third way of
-    /// nesting was dropped in favour of the two above, and a void return is what makes
-    /// it impossible rather than merely unused.
-    /// </para>
-    /// </summary>
-    /// <param name="component">The element or component to add. Must implement IHtmlComponent.</param>
-    public void Add(IHtmlComponent component) => Children.Add(component);
-
-    /// <summary>
-    /// Adds text to the content of this element. The text is written as it is; use
-    /// encoding at the call site if it comes from anywhere but your own code.
-    /// </summary>
-    /// <param name="text">The text to add inside the content of the element.</param>
-    public void Add(string text) => Children.Add(new Text(text));
+    // No public Add here on purpose. It lives on HtmlElement<TSelf, TChild>, typed to what the
+    // element may contain, so that an element with a content rule can state it. A public Add
+    // on this class would be inherited by every element and let anything into anything - a Div
+    // into a Ul, content into an Input that cannot render it.
 
     /// <summary>
     /// Rejects attribute names that would not survive being written into a tag.
@@ -183,8 +166,8 @@ public abstract class HtmlElement : IHtmlComponent, IEnumerable
 }
 
 /// <summary>
-/// Adds the fluent methods that every element shares, typed so that they hand back the
-/// derived element rather than the base.
+/// An element that accepts children of one type, with the fluent methods every element shares,
+/// typed so that they hand back the derived element rather than the base.
 /// <para>
 /// Without <typeparamref name="TSelf"/> a chain would lose the derived type after the
 /// first shared method, and this would not compile:
@@ -194,11 +177,37 @@ public abstract class HtmlElement : IHtmlComponent, IEnumerable
 /// because <c>Class</c> would have returned <see cref="HtmlElement"/>, which has no
 /// <c>Href</c>. The call order used to matter; it no longer does.
 /// </para>
+/// <para>
+/// <typeparamref name="TChild"/> is for the places where the html standard says what may be
+/// inside: a <c>ul</c> holds <c>li</c> elements, a <c>tbody</c> holds <c>tr</c> elements, a void
+/// element holds nothing. Because <c>Add</c> lives here and not on <see cref="HtmlElement"/>,
+/// naming the child type is the whole restriction - there is no wider <c>Add</c> to fall back
+/// to, so a collection initializer cannot go around it either. Use
+/// <see cref="HtmlElement{TSelf}"/> for an element that takes any content.
+/// </para>
 /// </summary>
 /// <typeparam name="TSelf">The deriving element type.</typeparam>
-public abstract class HtmlElement<TSelf> : HtmlElement
-    where TSelf : HtmlElement<TSelf>
+/// <typeparam name="TChild">What this element may contain.</typeparam>
+public abstract class HtmlElement<TSelf, TChild> : HtmlElement
+    where TSelf : HtmlElement<TSelf, TChild>
+    where TChild : IHtmlComponent
 {
+    /// <summary>
+    /// Adds a child to the content of this element.
+    /// <para>
+    /// Returns nothing on purpose. Together with <see cref="IEnumerable"/> this is what a
+    /// collection initializer needs, which ignores the return value:
+    /// <code>
+    /// new Div { new H1("Title"), new Paragraph("Text") }
+    /// </code>
+    /// It used to return the element so that calls could be chained. That third way of nesting
+    /// was dropped in favour of the two above, and a void return is what makes it impossible
+    /// rather than merely unused.
+    /// </para>
+    /// </summary>
+    /// <param name="child">The child to add.</param>
+    public void Add(TChild child) => Children.Add(child);
+
     /// <summary>
     /// Add a class attribute.
     /// </summary>
@@ -323,4 +332,46 @@ public abstract class HtmlElement<TSelf> : HtmlElement
         Attributes[CheckedKey(key)] = value.ToString(CultureInfo.InvariantCulture);
         return (TSelf)this;
     }
+}
+
+/// <summary>
+/// An element that takes any content, which is most of them.
+/// <para>
+/// A shorthand for <see cref="HtmlElement{TSelf, TChild}"/> with no restriction, and what a
+/// custom element in a theme derives from. It adds the <c>Add</c> for plain text, which an
+/// element with a content rule must not have: a bare string is not an <c>li</c>.
+/// </para>
+/// </summary>
+/// <typeparam name="TSelf">The deriving element type.</typeparam>
+public abstract class HtmlElement<TSelf> : HtmlElement<TSelf, IHtmlComponent>
+    where TSelf : HtmlElement<TSelf>
+{
+    /// <summary>
+    /// Adds text to the content of this element. The text is written as it is; use encoding at
+    /// the call site if it comes from anywhere but your own code.
+    /// </summary>
+    /// <param name="text">The text to add inside the content of the element.</param>
+    public void Add(string text) => Children.Add(new Text(text));
+}
+
+/// <summary>
+/// The content type of an element that can hold none. No instance of this can be made, so
+/// <see cref="HtmlElement{TSelf, TChild}.Add(TChild)"/> has nothing to accept and the element
+/// cannot be given content - not through a constructor, not through <c>Add</c>, not through a
+/// collection initializer.
+/// <para>
+/// Before this, <c>new Input { new Div("lost") }</c> compiled and rendered <c>&lt;input&gt;</c>:
+/// the content was accepted and dropped without a word, because a void element has no closing
+/// tag to put it in.
+/// </para>
+/// </summary>
+public sealed class NoContent : IHtmlComponent
+{
+    private NoContent()
+    {
+    }
+
+    /// <summary>Never called: there is no instance to call it on.</summary>
+    /// <returns>An empty string.</returns>
+    public string Render() => string.Empty;
 }

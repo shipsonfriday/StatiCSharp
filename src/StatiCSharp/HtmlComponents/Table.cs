@@ -3,6 +3,15 @@ using StatiCSharp.Interfaces;
 namespace StatiCSharp.HtmlComponents;
 
 /// <summary>
+/// A cell of a table row, which the html standard says is a <c>td</c> or a <c>th</c> and nothing
+/// else. The two have nothing else in common, so this says only that - it is what lets
+/// <see cref="Tr"/> name what it may contain.
+/// </summary>
+public interface ITableCell : IHtmlComponent
+{
+}
+
+/// <summary>
 /// A representation of a &lt;table&gt;&lt;/table&gt; element.
 /// <para>Call the Render() method to turn it into an HTML string.</para>
 /// </summary>
@@ -66,7 +75,7 @@ public class Caption : HtmlElement<Caption>, IHtmlComponent
 /// A representation of a &lt;thead&gt;&lt;/thead&gt; element.
 /// <para>Call the Render() method to turn it into an HTML string.</para>
 /// </summary>
-public class Thead : HtmlElement<Thead>, IHtmlComponent
+public class Thead : HtmlElement<Thead, Tr>, IHtmlComponent
 {
     /// <inheritdoc/>
     protected override string TagName => "thead";
@@ -77,18 +86,11 @@ public class Thead : HtmlElement<Thead>, IHtmlComponent
     /// <summary>Initiate a new thead element with the given content.</summary>
     /// <param name="content">The elements or components inside the element.</param>
     /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
-    public Thead(params IHtmlComponent[] content)
+    public Thead(params Tr[] content)
     {
         ArgumentNullException.ThrowIfNull(content);
 
         Children = [.. content];
-    }
-
-    /// <summary>Initiate a new thead element with the given text.</summary>
-    /// <param name="text">The text inside the element.</param>
-    public Thead(string text)
-    {
-        Children = [new Text(text)];
     }
 }
 
@@ -96,7 +98,7 @@ public class Thead : HtmlElement<Thead>, IHtmlComponent
 /// A representation of a &lt;tbody&gt;&lt;/tbody&gt; element.
 /// <para>Call the Render() method to turn it into an HTML string.</para>
 /// </summary>
-public class Tbody : HtmlElement<Tbody>, IHtmlComponent
+public class Tbody : HtmlElement<Tbody, Tr>, IHtmlComponent
 {
     /// <inheritdoc/>
     protected override string TagName => "tbody";
@@ -107,18 +109,11 @@ public class Tbody : HtmlElement<Tbody>, IHtmlComponent
     /// <summary>Initiate a new tbody element with the given content.</summary>
     /// <param name="content">The elements or components inside the element.</param>
     /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
-    public Tbody(params IHtmlComponent[] content)
+    public Tbody(params Tr[] content)
     {
         ArgumentNullException.ThrowIfNull(content);
 
         Children = [.. content];
-    }
-
-    /// <summary>Initiate a new tbody element with the given text.</summary>
-    /// <param name="text">The text inside the element.</param>
-    public Tbody(string text)
-    {
-        Children = [new Text(text)];
     }
 }
 
@@ -126,7 +121,7 @@ public class Tbody : HtmlElement<Tbody>, IHtmlComponent
 /// A representation of a &lt;tfoot&gt;&lt;/tfoot&gt; element.
 /// <para>Call the Render() method to turn it into an HTML string.</para>
 /// </summary>
-public class Tfoot : HtmlElement<Tfoot>, IHtmlComponent
+public class Tfoot : HtmlElement<Tfoot, Tr>, IHtmlComponent
 {
     /// <inheritdoc/>
     protected override string TagName => "tfoot";
@@ -137,18 +132,11 @@ public class Tfoot : HtmlElement<Tfoot>, IHtmlComponent
     /// <summary>Initiate a new tfoot element with the given content.</summary>
     /// <param name="content">The elements or components inside the element.</param>
     /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
-    public Tfoot(params IHtmlComponent[] content)
+    public Tfoot(params Tr[] content)
     {
         ArgumentNullException.ThrowIfNull(content);
 
         Children = [.. content];
-    }
-
-    /// <summary>Initiate a new tfoot element with the given text.</summary>
-    /// <param name="text">The text inside the element.</param>
-    public Tfoot(string text)
-    {
-        Children = [new Text(text)];
     }
 }
 
@@ -156,7 +144,7 @@ public class Tfoot : HtmlElement<Tfoot>, IHtmlComponent
 /// A representation of a &lt;tr&gt;&lt;/tr&gt; element.
 /// <para>Call the Render() method to turn it into an HTML string.</para>
 /// </summary>
-public class Tr : HtmlElement<Tr>, IHtmlComponent
+public class Tr : HtmlElement<Tr, ITableCell>, IHtmlComponent
 {
     /// <inheritdoc/>
     protected override string TagName => "tr";
@@ -167,18 +155,11 @@ public class Tr : HtmlElement<Tr>, IHtmlComponent
     /// <summary>Initiate a new tr element with the given content.</summary>
     /// <param name="content">The elements or components inside the element.</param>
     /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
-    public Tr(params IHtmlComponent[] content)
+    public Tr(params ITableCell[] content)
     {
         ArgumentNullException.ThrowIfNull(content);
 
         Children = [.. content];
-    }
-
-    /// <summary>Initiate a new tr element with the given text.</summary>
-    /// <param name="text">The text inside the element.</param>
-    public Tr(string text)
-    {
-        Children = [new Text(text)];
     }
 }
 
@@ -186,7 +167,7 @@ public class Tr : HtmlElement<Tr>, IHtmlComponent
 /// A representation of a &lt;th&gt;&lt;/th&gt; element.
 /// <para>Call the Render() method to turn it into an HTML string.</para>
 /// </summary>
-public class Th : HtmlElement<Th>, IHtmlComponent
+public class Th : HtmlElement<Th>, ITableCell
 {
     /// <inheritdoc/>
     protected override string TagName => "th";
@@ -236,7 +217,7 @@ public class Th : HtmlElement<Th>, IHtmlComponent
 /// A representation of a &lt;td&gt;&lt;/td&gt; element.
 /// <para>Call the Render() method to turn it into an HTML string.</para>
 /// </summary>
-public class Td : HtmlElement<Td>, IHtmlComponent
+public class Td : HtmlElement<Td>, ITableCell
 {
     /// <inheritdoc/>
     protected override string TagName => "td";

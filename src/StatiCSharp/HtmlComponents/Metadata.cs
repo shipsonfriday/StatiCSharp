@@ -6,7 +6,7 @@ namespace StatiCSharp.HtmlComponents;
 /// A representation of a &lt;link&gt; element.
 /// <para>Call the Render() method to turn it into an HTML string.</para>
 /// </summary>
-public class Link : HtmlElement<Link>, IHtmlComponent
+public class Link : HtmlElement<Link, NoContent>, IHtmlComponent
 {
     /// <inheritdoc/>
     protected override string TagName => "link";
@@ -50,7 +50,7 @@ public class Link : HtmlElement<Link>, IHtmlComponent
 /// A representation of a &lt;meta&gt; element.
 /// <para>Call the Render() method to turn it into an HTML string.</para>
 /// </summary>
-public class Meta : HtmlElement<Meta>, IHtmlComponent
+public class Meta : HtmlElement<Meta, NoContent>, IHtmlComponent
 {
     /// <inheritdoc/>
     protected override string TagName => "meta";

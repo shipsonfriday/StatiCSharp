@@ -130,7 +130,7 @@ public class Button : HtmlElement<Button>, IHtmlComponent
 /// A representation of a &lt;select&gt;&lt;/select&gt; element.
 /// <para>Call the Render() method to turn it into an HTML string.</para>
 /// </summary>
-public class Select : HtmlElement<Select>, IHtmlComponent
+public class Select : HtmlElement<Select, Option>, IHtmlComponent
 {
     /// <inheritdoc/>
     protected override string TagName => "select";
@@ -141,18 +141,11 @@ public class Select : HtmlElement<Select>, IHtmlComponent
     /// <summary>Initiate a new select element with the given content.</summary>
     /// <param name="content">The elements or components inside the element.</param>
     /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
-    public Select(params IHtmlComponent[] content)
+    public Select(params Option[] content)
     {
         ArgumentNullException.ThrowIfNull(content);
 
         Children = [.. content];
-    }
-
-    /// <summary>Initiate a new select element with the given text.</summary>
-    /// <param name="text">The text inside the element.</param>
-    public Select(string text)
-    {
-        Children = [new Text(text)];
     }
 
     /// <summary>Sets the <c>name</c> attribute.</summary>

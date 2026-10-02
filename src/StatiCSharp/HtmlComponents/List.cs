@@ -76,7 +76,7 @@ public class Li: HtmlElement<Li>, IHtmlComponent
 /// A representation of a &lt;ul&gt;&lt;/ul&gt; element.
 /// Call the Render() method to turn it into an HTML string.
 /// </summary>
-public class Ul : HtmlElement<Ul>, IHtmlComponent
+public class Ul : HtmlElement<Ul, Li>, IHtmlComponent
 {
     /// <inheritdoc/>
     protected override string TagName
@@ -93,30 +93,12 @@ public class Ul : HtmlElement<Ul>, IHtmlComponent
     }
 
     /// <summary>
-    /// Initiate a new &lt;ul&gt; element with another element or component inside.
-    /// </summary>
-    /// <param name="component">The component for the content of the ul.</param>
-    public Ul(IHtmlComponent component)
-    {
-        Children = new List<IHtmlComponent> { component };
-    }
-
-    /// <summary>
-    /// Initiate a new ul element with text.
-    /// </summary>
-    /// <param name="text">The text for the content of the &lt;ul&gt;.</param>
-    public Ul(string text)
-    {
-        Children = new List<IHtmlComponent> { new Text(text) };
-    }
-
-    /// <summary>
     /// Initiate a new ul element with the given content. Lets elements be nested by
     /// passing their children as arguments.
     /// </summary>
-    /// <param name="content">The elements or components for the content of the ul element.</param>
+    /// <param name="content">The list items inside the ul element.</param>
     /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
-    public Ul(params IHtmlComponent[] content)
+    public Ul(params Li[] content)
     {
         ArgumentNullException.ThrowIfNull(content);
 
@@ -130,7 +112,7 @@ public class Ul : HtmlElement<Ul>, IHtmlComponent
 /// A representation of a &lt;ol&gt;&lt;/ol&gt; element.<br/>
 /// Call the Render() method to turn it into an HTML string.
 /// </summary>
-public class Ol : HtmlElement<Ol>, IHtmlComponent
+public class Ol : HtmlElement<Ol, Li>, IHtmlComponent
 {
     /// <inheritdoc/>
     protected override string TagName
@@ -147,30 +129,12 @@ public class Ol : HtmlElement<Ol>, IHtmlComponent
     }
 
     /// <summary>
-    /// Initiate a new &lt;ol&gt; element with another element or component inside.
-    /// </summary>
-    /// <param name="component">The component for the content of the ol.</param>
-    public Ol(IHtmlComponent component)
-    {
-        Children = new List<IHtmlComponent> { component };
-    }
-
-    /// <summary>
-    /// Initiate a new ol element with text.
-    /// </summary>
-    /// <param name="text">The text for the content of the &lt;ol&gt;.</param>
-    public Ol(string text)
-    {
-        Children = new List<IHtmlComponent> { new Text(text) };
-    }
-
-    /// <summary>
     /// Initiate a new ol element with the given content. Lets elements be nested by
     /// passing their children as arguments.
     /// </summary>
-    /// <param name="content">The elements or components for the content of the ol element.</param>
+    /// <param name="content">The list items inside the ol element.</param>
     /// <exception cref="ArgumentNullException"><paramref name="content"/> is null.</exception>
-    public Ol(params IHtmlComponent[] content)
+    public Ol(params Li[] content)
     {
         ArgumentNullException.ThrowIfNull(content);
 

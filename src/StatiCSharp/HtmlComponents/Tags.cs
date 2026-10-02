@@ -178,23 +178,15 @@ public static class Tags
     public static Ul Ul() => new();
 
     /// <summary>Creates an unordered list with the given content.</summary>
-    /// <param name="content">The elements or components inside it.</param>
-    public static Ul Ul(params IHtmlComponent[] content) => new(content);
-
-    /// <summary>Creates an unordered list with the given text as its content.</summary>
-    /// <param name="text">The text inside it.</param>
-    public static Ul Ul(string text) => new(text);
+    /// <param name="content">The list items inside it.</param>
+    public static Ul Ul(params Li[] content) => new(content);
 
     /// <summary>Creates an empty an ordered list.</summary>
     public static Ol Ol() => new();
 
     /// <summary>Creates an ordered list with the given content.</summary>
-    /// <param name="content">The elements or components inside it.</param>
-    public static Ol Ol(params IHtmlComponent[] content) => new(content);
-
-    /// <summary>Creates an ordered list with the given text as its content.</summary>
-    /// <param name="text">The text inside it.</param>
-    public static Ol Ol(string text) => new(text);
+    /// <param name="content">The list items inside it.</param>
+    public static Ol Ol(params Li[] content) => new(content);
 
     /// <summary>Creates an empty a nav.</summary>
     public static Nav Nav() => new();
@@ -563,45 +555,29 @@ public static class Tags
     public static Thead Thead() => new();
 
     /// <summary>Creates a &lt;thead&gt; element with the given content.</summary>
-    /// <param name="content">The elements or components inside it.</param>
-    public static Thead Thead(params IHtmlComponent[] content) => new(content);
-
-    /// <summary>Creates a &lt;thead&gt; element with the given text.</summary>
-    /// <param name="text">The text inside it.</param>
-    public static Thead Thead(string text) => new(text);
+    /// <param name="content">The rows inside it.</param>
+    public static Thead Thead(params Tr[] content) => new(content);
 
     /// <summary>Creates an empty &lt;tbody&gt; element.</summary>
     public static Tbody Tbody() => new();
 
     /// <summary>Creates a &lt;tbody&gt; element with the given content.</summary>
-    /// <param name="content">The elements or components inside it.</param>
-    public static Tbody Tbody(params IHtmlComponent[] content) => new(content);
-
-    /// <summary>Creates a &lt;tbody&gt; element with the given text.</summary>
-    /// <param name="text">The text inside it.</param>
-    public static Tbody Tbody(string text) => new(text);
+    /// <param name="content">The rows inside it.</param>
+    public static Tbody Tbody(params Tr[] content) => new(content);
 
     /// <summary>Creates an empty &lt;tfoot&gt; element.</summary>
     public static Tfoot Tfoot() => new();
 
     /// <summary>Creates a &lt;tfoot&gt; element with the given content.</summary>
-    /// <param name="content">The elements or components inside it.</param>
-    public static Tfoot Tfoot(params IHtmlComponent[] content) => new(content);
-
-    /// <summary>Creates a &lt;tfoot&gt; element with the given text.</summary>
-    /// <param name="text">The text inside it.</param>
-    public static Tfoot Tfoot(string text) => new(text);
+    /// <param name="content">The rows inside it.</param>
+    public static Tfoot Tfoot(params Tr[] content) => new(content);
 
     /// <summary>Creates an empty &lt;tr&gt; element.</summary>
     public static Tr Tr() => new();
 
     /// <summary>Creates a &lt;tr&gt; element with the given content.</summary>
-    /// <param name="content">The elements or components inside it.</param>
-    public static Tr Tr(params IHtmlComponent[] content) => new(content);
-
-    /// <summary>Creates a &lt;tr&gt; element with the given text.</summary>
-    /// <param name="text">The text inside it.</param>
-    public static Tr Tr(string text) => new(text);
+    /// <param name="content">The cells inside it.</param>
+    public static Tr Tr(params ITableCell[] content) => new(content);
 
     /// <summary>Creates an empty &lt;th&gt; element.</summary>
     public static Th Th() => new();
@@ -662,12 +638,8 @@ public static class Tags
     public static Select Select() => new();
 
     /// <summary>Creates a &lt;select&gt; element with the given content.</summary>
-    /// <param name="content">The elements or components inside it.</param>
-    public static Select Select(params IHtmlComponent[] content) => new(content);
-
-    /// <summary>Creates a &lt;select&gt; element with the given text.</summary>
-    /// <param name="text">The text inside it.</param>
-    public static Select Select(string text) => new(text);
+    /// <param name="content">The options inside it.</param>
+    public static Select Select(params Option[] content) => new(content);
 
     /// <summary>Creates an empty &lt;option&gt; element.</summary>
     public static Option Option() => new();

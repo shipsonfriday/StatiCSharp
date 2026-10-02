@@ -117,6 +117,34 @@ When adding `IHtmlFactory` your IDE will prompt you to add the following propert
 - `public string MakeItemHtml(IItem item, RenderContext context)` Method that returns the \<body> HTML -code for an item site.
 - `public string MakeTagListHtml(List<IItem> items, string tag, RenderContext context)` Method that returns the \<body> HTML -code for the taglist site.
 
+### What may go inside what
+
+Where the html standard says what an element may contain, the types say it too, so the compiler
+refuses the rest:
+
+```C#
+new Ul(new Li("a"), new Li("b"))     // fine
+new Ul(new Div("x"))                 // does not compile - a ul holds li elements
+new Ul { "bare text" }               // does not compile either
+new Tr(new Th("Month"), new Td("1")) // fine - a row holds cells
+new Input { new Div("x") }           // does not compile - input holds nothing at all
+```
+
+| Element | may contain |
+| --- | --- |
+| `Ul`, `Ol` | `Li` |
+| `Thead`, `Tbody`, `Tfoot` | `Tr` |
+| `Tr` | `Th`, `Td` |
+| `Select` | `Option` |
+| `Br`, `Hr`, `Image`, `Input`, `Link`, `Meta`, `Source` | nothing |
+
+This is not everything the standard constrains - a `table` allows six different children and a
+`details` wants its `summary` first, neither of which a single type can express - but it covers
+the mistakes that produce html which almost works. A `ul` inside a `ul` renders in every browser
+and is still invalid; the default theme shipped with exactly that bug for a while.
+
+Every other element takes any content, and so does one of your own.
+
 ### Values the standard fixes
 
 Where an attribute takes one of a handful of values, there is a type for it rather than a
@@ -278,6 +306,10 @@ public class Dialog : HtmlElement<Dialog>
 
 Your element gets everything the built-in ones have: both nesting syntaxes, the fluent
 attribute methods typed to `Dialog`, and the attribute name checking.
+
+If your element has a content rule of its own, name the child type instead:
+`class Breadcrumbs : HtmlElement<Breadcrumbs, Li>` gives it an `Add(Li)` and nothing wider, so
+neither `Add` nor a collection initializer lets anything else in.
 
 ```C#
 new Dialog(new H1("Title"), new Paragraph("Text")).Open().Class("modal")
