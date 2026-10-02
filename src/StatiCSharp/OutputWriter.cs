@@ -77,6 +77,14 @@ internal sealed class OutputWriter
     internal bool Produced(string filePath) => _producedFiles.ContainsKey(Path.GetFullPath(filePath));
 
     /// <summary>
+    /// The files this run produced, relative to the output directory and with forward slashes,
+    /// so that a caller can describe the website without walking the disk again.
+    /// </summary>
+    internal IReadOnlyList<string> ProducedFiles()
+        => [.. _producedFiles.Keys
+            .Select(file => Path.GetRelativePath(_output, file).Replace(Path.DirectorySeparatorChar, '/'))];
+
+    /// <summary>
     /// Whether a file or directory of this name is kept even though the run did not produce it.
     /// </summary>
     /// <param name="path">The path of the file or directory.</param>

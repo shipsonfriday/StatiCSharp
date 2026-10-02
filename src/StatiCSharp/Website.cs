@@ -52,13 +52,36 @@ public class Website : IWebsite
     /// <param name="name">The name of the website.</param>
     /// <returns>The new website, ready for further configuration.</returns>
     /// <exception cref="ArgumentNullException">A value is null.</exception>
-    /// <exception cref="ArgumentException">A value is empty or only whitespace.</exception>
+    /// <exception cref="ArgumentException">A value is empty or only whitespace, or <paramref name="url"/> is not an http or https address.</exception>
     public static Website Create(string url, string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(url);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
-        return new Website(url.Trim(), name.Trim());
+        return new Website(CheckedUrl(url.Trim()), name.Trim());
+    }
+
+    /// <summary>
+    /// Rejects anything that is not an absolute http or https address.
+    /// <para>
+    /// The url is where the website lives, and the sitemap builds every entry on it. An address
+    /// that is not one produces a sitemap no crawler can follow, so it is better refused here
+    /// than written out. A trailing slash is dropped, so that joining a site's path onto it
+    /// never doubles the separator.
+    /// </para>
+    /// </summary>
+    private static string CheckedUrl(string url)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? parsed)
+            || (parsed.Scheme != Uri.UriSchemeHttp && parsed.Scheme != Uri.UriSchemeHttps))
+        {
+            throw new ArgumentException(
+                $"\"{url}\" is not where a website lives. Give the complete address including the "
+                + "scheme, e.g. \"https://example.com\".",
+                nameof(url));
+        }
+
+        return url.TrimEnd('/');
     }
 
     /// <summary>

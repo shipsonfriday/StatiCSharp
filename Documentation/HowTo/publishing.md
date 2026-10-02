@@ -4,6 +4,21 @@ StatiC# writes your website into the `Output` directory. Getting that directory 
 is a separate job, and which way suits you depends on where it should live. This article
 covers GitHub Pages first, because that path needs no account anywhere else and no secret.
 
+## The sitemap
+
+Every run writes a `sitemap.xml` into the output, listing the absolute url of every page that
+was written. Crawlers look for it at the root of the site, which is where it lands, and the
+urls are built on the address you gave `Website.Create`.
+
+It is built from the pages that were actually written rather than from your content, so it
+cannot promise a page the generator decided not to write - a tag whose name yields no url, an
+article whose filename yields none. It carries no `lastmod`: the dates available would be the
+wrong ones, since only an article carries a modification date from its file and in a fresh
+checkout even that is the time the file was cloned.
+
+If you want crawlers pointed at it explicitly, put a `robots.txt` holding
+`Sitemap: https://yourdomain.com/sitemap.xml` into your `Resources` directory.
+
 ## GitHub Pages, built by a workflow
 
 This is the way to do it: GitHub checks out your repository, runs the generator, and deploys

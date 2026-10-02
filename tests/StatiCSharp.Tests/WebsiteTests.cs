@@ -87,6 +87,37 @@ public class WebsiteTests
         Assert.Throws<ArgumentNullException>(() => AWebsite().WithLanguage((CultureInfo)null!));
     }
 
+    [Theory]
+    [InlineData("https://example.com")]
+    [InlineData("http://example.com")]
+    [InlineData("https://example.com/blog")]
+    [InlineData("https://sub.example.co.uk")]
+    public void Create_AcceptsAnAddressAWebsiteCanLiveAt(string url)
+    {
+        Assert.Equal(url, Website.Create(url: url, name: "My Website").Url);
+    }
+
+    [Theory]
+    [InlineData("example.com")]
+    [InlineData("not a url")]
+    [InlineData("/posts")]
+    [InlineData("ftp://example.com")]
+    [InlineData("file:///tmp")]
+    public void Create_RejectsWhatIsNotAnHttpAddress(string url)
+    {
+        // It was taken as given, so the sitemap would have built every entry on it.
+        var thrown = Assert.Throws<ArgumentException>(() => Website.Create(url: url, name: "My Website"));
+
+        Assert.Contains("https://example.com", thrown.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Create_DropsATrailingSlashFromTheUrl()
+    {
+        // So that joining a site's path onto it never doubles the separator.
+        Assert.Equal("https://example.com", Website.Create(url: "https://example.com/", name: "W").Url);
+    }
+
     [Fact]
     public void Create_RejectsANullUrl()
     {

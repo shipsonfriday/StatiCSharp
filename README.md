@@ -171,7 +171,11 @@ required values go into the entry point and everything optional follows fluently
 | `IHtmlBuilder` | gone - it had no reachable implementation |
 | `website.Index`, `website.Pages`, `website.Sections` | gone - `IWebsite` is configuration; read content is on `RenderContext` |
 
-One addition worth knowing about: `manager.WithLog(Action<string>)` sends the progress lines
+Two additions worth knowing about. Every run writes a `sitemap.xml` listing every page, built
+on the url given to `Website.Create` - which is now checked to be an http address, since an
+entry of `example.com/posts` would be a sitemap no crawler can follow.
+
+And `manager.WithLog(Action<string>)` sends the progress lines
 and the warnings wherever you want instead of to the console, so a build can fail on them. A
 warning starts with `WARNING: ` and names what went wrong - a date that cannot be read, two
 tags leading to one url, two sites written to one url.

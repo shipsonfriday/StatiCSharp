@@ -316,6 +316,10 @@ public sealed class WebsiteManager
         _log("Copying user resources...");
         await output.CopyIntoOutputAsync(Resources);
 
+        // After everything else, because it lists what was written rather than what was meant.
+        _log("Writing the sitemap...");
+        await output.WriteAsync([], Sitemap.FileName, Sitemap.For(Website, output.ProducedFiles()));
+
         // Last, because it removes everything the steps above did not produce. User
         // resources are copied before it for that reason - and after the theme resources,
         // so a user file still wins over a theme file of the same name.
