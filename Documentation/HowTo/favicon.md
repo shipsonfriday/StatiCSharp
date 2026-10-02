@@ -7,5 +7,7 @@ Place your favicon into the Resources directory:
 Resources/favicon.png
 ```
 
-The file has to be `.png`.  
+The name and the extension both matter: StatiC# writes
+`<link rel="icon" type="image/png" href="/favicon.png">` into the head of every page, so the
+file has to be a png called `favicon.png`.  
 Check out [favicon.io](https://favicon.io/) to generate a favicon.

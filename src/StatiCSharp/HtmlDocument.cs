@@ -54,7 +54,9 @@ internal static class HtmlDocument
         document.Append(CultureInfo.InvariantCulture, $"<meta name=\"description\" content=\"{WebUtility.HtmlEncode(site.Description)}\">");
         document.Append(CultureInfo.InvariantCulture, $"<meta name=\"author\" content=\"{WebUtility.HtmlEncode(site.Author)}\">");
         document.Append(CultureInfo.InvariantCulture, $"<meta name=\"keywords\" content=\"{WebUtility.HtmlEncode(string.Join(", ", site.Tags))}\">");
-        document.Append("<link rel=\"icon\" type=\"image/x-icon\" href=\"/favicon.png\">");
+        // image/png, not image/x-icon: the file is a png, and x-icon is the type of an .ico.
+        // A browser may skip a link whose declared type it does not support.
+        document.Append("<link rel=\"icon\" type=\"image/png\" href=\"/favicon.png\">");
         document.Append(themeHead);
         document.Append(parserHead);
         document.Append("</head>");

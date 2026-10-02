@@ -1,3 +1,4 @@
+using System;
 using Xunit;
 
 namespace StatiCSharp.Tests;
@@ -94,5 +95,16 @@ public class HtmlDocumentTests
         Assert.Throws<ArgumentNullException>(() => HtmlDocument.Wrap(website, new Item(), null!, empty, empty));
         Assert.Throws<ArgumentNullException>(() => HtmlDocument.Wrap(website, new Item(), empty, null!, empty));
         Assert.Throws<ArgumentNullException>(() => HtmlDocument.Wrap(website, new Item(), empty, empty, null!));
+    }
+
+    [Fact]
+    public void TheFaviconIsDeclaredAsThePngItIs()
+    {
+        // It used to say image/x-icon, which is the type of an .ico file, while the href has
+        // always pointed at a png. A browser may skip a link whose type it does not support.
+        string document = HtmlDocument.Wrap(AWebsite(), new Index(), string.Empty, string.Empty, "<body></body>");
+
+        Assert.Contains("<link rel=\"icon\" type=\"image/png\" href=\"/favicon.png\">", document, StringComparison.Ordinal);
+        Assert.DoesNotContain("x-icon", document, StringComparison.Ordinal);
     }
 }
