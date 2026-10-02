@@ -87,7 +87,7 @@ public class DefaultHtmlFactory: IHtmlFactory
     }
 
     /// <inheritdoc/>
-    public string MakeTagListHtml(List<IItem> items, string tag, RenderContext context)
+    public string MakeTagListHtml(IReadOnlyList<IItem> items, string tag, RenderContext context)
     {
         return new Body(
                 new SiteHeader(context),
@@ -161,9 +161,9 @@ public class DefaultHtmlFactory: IHtmlFactory
 
     private class ItemList: IHtmlComponent
     {
-        private List<IItem> items;
+        private readonly IReadOnlyList<IItem> items;
         private CultureInfo culture;
-        public ItemList(List<IItem> items, CultureInfo culture)
+        public ItemList(IReadOnlyList<IItem> items, CultureInfo culture)
         {
             this.items = items;
             this.culture = culture;
@@ -186,8 +186,8 @@ public class DefaultHtmlFactory: IHtmlFactory
 
     private class TagList: IHtmlComponent
     {
-        private List<string> tags;
-        public TagList(List<string> tags)
+        private readonly IReadOnlyList<string> tags;
+        public TagList(IReadOnlyList<string> tags)
         {
             this.tags = tags;
         }

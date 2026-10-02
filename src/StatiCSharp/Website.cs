@@ -36,7 +36,7 @@ public class Website : IWebsite
     public CultureInfo Language { get; private set; } = DefaultLanguage;
 
     /// <inheritdoc/>
-    public List<string> MakeSectionsFor { get; private set; } = [];
+    public IReadOnlyList<string> MakeSectionsFor { get; private set; } = [];
 
     private Website(string url, string name)
     {

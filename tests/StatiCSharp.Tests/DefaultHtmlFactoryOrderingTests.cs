@@ -23,15 +23,42 @@ public class DefaultHtmlFactoryOrderingTests
     [Fact]
     public void MakeSectionHtml_ListsItemsNewestFirst()
     {
-        var section = new Section { SectionName = "posts" };
-        section.Items.Add(AnItem("middle", "2025-01-01"));
-        section.Items.Add(AnItem("newest", "2026-01-01"));
-        section.Items.Add(AnItem("oldest", "2024-01-01"));
+        // Handed through a section that is not in order, which Section itself cannot be - it
+        // inserts by date. A theme has to order what it is given rather than trust it.
+        ISection section = new UnorderedSection("posts",
+            AnItem("middle", "2025-01-01"),
+            AnItem("newest", "2026-01-01"),
+            AnItem("oldest", "2024-01-01"));
 
         Website website = Website.Create(url: "https://example.com", name: "My Website");
         string html = new DefaultHtmlFactory().MakeSectionHtml(section, new RenderContext { Website = website });
 
         Assert.Equal(["newest", "middle", "oldest"], TitleOrder(html, "newest", "middle", "oldest"));
+    }
+
+    /// <summary>
+    /// A section that hands out its items in whatever order they were given. Section keeps them
+    /// sorted, so a test that wants an unsorted one needs its own.
+    /// </summary>
+    private sealed class UnorderedSection(string sectionName, params IItem[] items) : ISection
+    {
+        public string SectionName { get; set; } = sectionName;
+
+        public IReadOnlyList<IItem> Items { get; } = items;
+
+        public void AddItem(IItem item) => throw new NotSupportedException();
+
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Author { get; set; } = string.Empty;
+        public DateOnly Date { get; set; }
+        public DateOnly DateLastModified { get; set; }
+        public string Path { get; set; } = string.Empty;
+        public string Url => $"/{SectionName}";
+        public IReadOnlyList<string> Tags { get; set; } = [];
+        public string Content { get; set; } = string.Empty;
+        public string MarkdownFileName { get; set; } = string.Empty;
+        public string MarkdownFilePath { get; set; } = string.Empty;
     }
 
     [Fact]

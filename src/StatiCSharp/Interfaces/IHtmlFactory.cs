@@ -68,5 +68,5 @@ public interface IHtmlFactory
     /// <param name="tag">The name of the tag.</param>
     /// <param name="context">The website's configuration and content.</param>
     /// <returns>A string containing the html-code.</returns>
-    string MakeTagListHtml(List<IItem> items, string tag, RenderContext context);
+    string MakeTagListHtml(IReadOnlyList<IItem> items, string tag, RenderContext context);
 }

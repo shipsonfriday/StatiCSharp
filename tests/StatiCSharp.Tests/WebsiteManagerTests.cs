@@ -125,6 +125,6 @@ public class WebsiteManagerTests
         public string MakePageHtml(IPage page, RenderContext context) => string.Empty;
         public string MakeSectionHtml(ISection section, RenderContext context) => string.Empty;
         public string MakeItemHtml(IItem item, RenderContext context) => string.Empty;
-        public string MakeTagListHtml(List<IItem> items, string tag, RenderContext context) => string.Empty;
+        public string MakeTagListHtml(IReadOnlyList<IItem> items, string tag, RenderContext context) => string.Empty;
     }
 }

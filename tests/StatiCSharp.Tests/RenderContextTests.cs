@@ -95,7 +95,7 @@ public class RenderContextTests
         public string MakePageHtml(IPage page, RenderContext context) => Record(context);
         public string MakeSectionHtml(ISection section, RenderContext context) => Record(context);
         public string MakeItemHtml(IItem item, RenderContext context) => Record(context);
-        public string MakeTagListHtml(List<IItem> items, string tag, RenderContext context) => Record(context);
+        public string MakeTagListHtml(IReadOnlyList<IItem> items, string tag, RenderContext context) => Record(context);
 
         private string Record(RenderContext context)
         {

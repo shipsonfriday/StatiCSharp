@@ -11,12 +11,18 @@ public interface ISection: ISite
     string SectionName { get; set; }
 
     /// <summary>
-    /// A list of the items corresponding to this section.
+    /// The items corresponding to this section, newest first.
+    /// <para>
+    /// Read only, so that rendering cannot change what it is rendering. It used to be a
+    /// <see cref="List{T}"/>, and the default theme sorted it in place while building a page -
+    /// a section came out of a render in a different order than it went in.
+    /// <see cref="AddItem"/> is the way to add one.
+    /// </para>
     /// </summary>
-    List<IItem> Items { get; }
+    IReadOnlyList<IItem> Items { get; }
 
     /// <summary>
-    /// Adds an item to the section and sorts them by date.
+    /// Adds an item to the section, keeping the items ordered by date, newest first.
     /// </summary>
     /// <param name="item">The item to add.</param>
     void AddItem(IItem item);

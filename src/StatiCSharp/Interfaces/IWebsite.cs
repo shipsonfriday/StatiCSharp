@@ -36,6 +36,6 @@ public interface IWebsite
     /// <summary>
     /// Collection of the websites section-names. Folders in the content directory with names matching one item of this list a treated as sections.
     /// </summary>
-    List<string> MakeSectionsFor { get; }
+    IReadOnlyList<string> MakeSectionsFor { get; }
 
 }

@@ -211,6 +211,8 @@ Themes have to be rebuilt. `IHtmlFactory` is unchanged, but the html components 
 | `Content` in a custom element | `Children` |
 | `Href($"/tag/{tag}")` | `Href($"/tag/{UrlSlug.From(tag)}")` |
 | `new Text(item.Title)` | encode it - meta data is plain text now |
+| `section.Items.Add(x)`, `site.Tags.Add(x)` | `IReadOnlyList` now - use `section.AddItem(x)`, assign a new list for tags |
+| `MakeTagListHtml(List<IItem> items, …)` | `IReadOnlyList<IItem>` |
 | `MakeIndexHtml(index)` | `MakeIndexHtml(index, RenderContext context)` - same for every `Make…Html` |
 | `MakeHeadHtml()` | `MakeHeadHtml(ISite site, RenderContext context)` |
 | `MyTheme(IWebsite website)` | no constructor needed - use `context.Website` |

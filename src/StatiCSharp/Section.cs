@@ -7,7 +7,9 @@ internal class Section : ISection
 {
     public string SectionName { get; set; } = string.Empty;
 
-    public List<IItem> Items { get; } = [];
+    private readonly List<IItem> _items = [];
+
+    public IReadOnlyList<IItem> Items => _items;
 
     public string Title { get; set; } = string.Empty;
 
@@ -33,7 +35,7 @@ internal class Section : ISection
 
     public string MarkdownFilePath { get; set; } = string.Empty;
 
-    public List<string> Tags { get; set; } = new List<string>();
+    public IReadOnlyList<string> Tags { get; set; } = [];
 
     public string Content { get; set; } = string.Empty;
 
@@ -49,15 +51,15 @@ internal class Section : ISection
         // Insert at the right position instead of re-sorting. List.Sort is unstable, so
         // items sharing a date could swap places between runs, which would make GitMode
         // rewrite unchanged files.
-        int successor = Items.FindIndex(existing => existing.Date < item.Date);
+        int successor = _items.FindIndex(existing => existing.Date < item.Date);
 
         if (successor < 0)
         {
-            Items.Add(item);
+            _items.Add(item);
         }
         else
         {
-            Items.Insert(successor, item);
+            _items.Insert(successor, item);
         }
     }
 }

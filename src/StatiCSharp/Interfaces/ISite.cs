@@ -50,7 +50,7 @@ public interface ISite
     /// <summary>
     /// The tags that are associated with the site.
     /// </summary>
-    List<string> Tags { get; set; }
+    IReadOnlyList<string> Tags { get; set; }
 
     /// <summary>
     /// The content of the site, given by the associated markdown file.

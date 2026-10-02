@@ -20,6 +20,7 @@
 - Output is written incrementally by default: unchanged files are left alone, and files the generator did not produce are removed. WithPreservedOutput names exceptions; .git, .nojekyll and CNAME are always kept.
 - The default theme's navigation says a section's title instead of its folder name, in the order the sections were declared, and no longer links a section that has no index.md.
 - A website is configuration only. Index, Pages and Sections are no longer on IWebsite: reading returns its result instead of filling the website, so one website can be generated any number of times.
+- The public interfaces hand out read-only collections, so a theme cannot write into what it is rendering.
 - Themes get a RenderContext: every IHtmlFactory method is handed the website's configuration and all of its content, so a theme no longer takes the website in its constructor and can build a navigation, a sitemap or a tag cloud.
 - Markdig raised to 1.4.0.
 
